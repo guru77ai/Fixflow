@@ -1,0 +1,350 @@
+/* RTL (Right-to-Left) Styles for Arabic */
+
+/* ===== Root Direction ===== */
+html[dir="rtl"] {
+    direction: rtl;
+}
+
+/* ===== Body ===== */
+html[dir="rtl"] body {
+    text-align: right;
+}
+
+/* ===== Sidebar ===== */
+html[dir="rtl"] .sidebar {
+    left: auto;
+    right: 0;
+}
+
+html[dir="rtl"] .sidebar:not(.open) {
+    transform: translateX(100%);
+}
+
+html[dir="rtl"] .sidebar.open {
+    transform: translateX(0);
+}
+
+html[dir="rtl"] .logo-container {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .menu-link {
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .menu-arrow {
+    transform: rotate(180deg);
+}
+
+html[dir="rtl"] .menu-arrow.rotate-90 {
+    transform: rotate(-90deg);
+}
+
+html[dir="rtl"] .submenu {
+    padding-left: 0;
+    padding-right: var(--spacing-md);
+}
+
+/* ===== Top Navigation ===== */
+html[dir="rtl"] .topnav-left {
+    order: 2;
+}
+
+html[dir="rtl"] .topnav-right {
+    order: 1;
+}
+
+html[dir="rtl"] .org-selector,
+html[dir="rtl"] .branch-selector {
+    margin-left: 0;
+    margin-right: var(--spacing-sm);
+}
+
+html[dir="rtl"] .search-box {
+    margin-left: 0;
+    margin-right: var(--spacing-md);
+}
+
+html[dir="rtl"] .lang-selector,
+html[dir="rtl"] .notifications,
+html[dir="rtl"] .user-menu {
+    margin-left: var(--spacing-sm);
+    margin-right: 0;
+}
+
+html[dir="rtl"] .notification-dropdown {
+    left: auto;
+    right: 0;
+}
+
+html[dir="rtl"] .user-menu .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+
+/* ===== Breadcrumbs ===== */
+html[dir="rtl"] .breadcrumb {
+    padding-left: 0;
+    padding-right: var(--spacing-lg);
+}
+
+html[dir="rtl"] .breadcrumb-item + .breadcrumb-item::before {
+    padding-left: 0;
+    padding-right: var(--spacing-sm);
+}
+
+/* ===== Cards ===== */
+html[dir="rtl"] .card-header {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-md);
+}
+
+html[dir="rtl"] .card-body {
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+}
+
+/* ===== Forms ===== */
+html[dir="rtl"] .form-label {
+    text-align: right;
+}
+
+html[dir="rtl"] .form-control,
+html[dir="rtl"] .form-select {
+    text-align: right;
+}
+
+html[dir="rtl"] .input-group-text {
+    border-left: none;
+    border-right: 1px solid var(--bs-border-color);
+}
+
+html[dir="rtl"] .input-group .form-control:first-child,
+html[dir="rtl"] .input-group .form-select:first-child {
+    border-right: none;
+    border-left: 1px solid var(--bs-border-color);
+}
+
+/* ===== Buttons ===== */
+html[dir="rtl"] .btn-icon {
+    flex-direction: row-reverse;
+}
+
+/* ===== Tables ===== */
+html[dir="rtl"] .table th,
+html[dir="rtl"] .table td {
+    text-align: right;
+}
+
+html[dir="rtl"] .table th:first-child,
+html[dir="rtl"] .table td:first-child {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-sm);
+}
+
+html[dir="rtl"] .table th:last-child,
+html[dir="rtl"] .table td:last-child {
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-md);
+}
+
+/* ===== Dropdowns ===== */
+html[dir="rtl"] .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+
+html[dir="rtl"] .dropdown-menu-start {
+    left: auto;
+    right: 0;
+}
+
+html[dir="rtl"] .dropdown-menu-end {
+    left: 0;
+    right: auto;
+}
+
+/* ===== Modals ===== */
+html[dir="rtl"] .modal-content {
+    text-align: right;
+}
+
+html[dir="rtl"] .modal-header .btn-close {
+    margin: -var(--spacing-sm) auto -var(--spacing-sm) -var(--spacing-sm);
+}
+
+html[dir="rtl"] .modal-footer {
+    flex-direction: row-reverse;
+}
+
+/* ===== Alerts ===== */
+html[dir="rtl"] .alert-dismissible .btn-close {
+    left: auto;
+    right: 0;
+}
+
+/* ===== Badges ===== */
+html[dir="rtl"] .position-absolute.top-0.start-100 {
+    left: 100%;
+    right: auto;
+}
+
+/* ===== DataTables ===== */
+html[dir="rtl"] .dataTables_wrapper .dataTables_filter input {
+    text-align: right;
+}
+
+html[dir="rtl"] .dataTables_wrapper .dataTables_paginate {
+    flex-direction: row-reverse;
+}
+
+/* ===== Stats Grid ===== */
+html[dir="rtl"] .stats-grid {
+    direction: rtl;
+}
+
+html[dir="rtl"] .stat-card {
+    text-align: right;
+}
+
+/* ===== Text Alignment ===== */
+html[dir="rtl"] .text-start {
+    text-align: right !important;
+}
+
+html[dir="rtl"] .text-end {
+    text-align: left !important;
+}
+
+html[dir="rtl"] .float-start {
+    float: right !important;
+}
+
+html[dir="rtl"] .float-end {
+    float: left !important;
+}
+
+html[dir="rtl"] .me-1 {
+    margin-right: 0.25rem !important;
+    margin-left: unset !important;
+}
+
+html[dir="rtl"] .ms-1 {
+    margin-left: 0.25rem !important;
+    margin-right: unset !important;
+}
+
+html[dir="rtl"] .me-2 {
+    margin-right: 0.5rem !important;
+    margin-left: unset !important;
+}
+
+html[dir="rtl"] .ms-2 {
+    margin-left: 0.5rem !important;
+    margin-right: unset !important;
+}
+
+html[dir="rtl"] .me-3 {
+    margin-right: 1rem !important;
+    margin-left: unset !important;
+}
+
+html[dir="rtl"] .ms-3 {
+    margin-left: 1rem !important;
+    margin-right: unset !important;
+}
+
+html[dir="rtl"] .me-4 {
+    margin-right: 1.5rem !important;
+    margin-left: unset !important;
+}
+
+html[dir="rtl"] .ms-4 {
+    margin-left: 1.5rem !important;
+    margin-right: unset !important;
+}
+
+html[dir="rtl"] .pe-1 {
+    padding-right: 0.25rem !important;
+    padding-left: unset !important;
+}
+
+html[dir="rtl"] .ps-1 {
+    padding-left: 0.25rem !important;
+    padding-right: unset !important;
+}
+
+html[dir="rtl"] .pe-2 {
+    padding-right: 0.5rem !important;
+    padding-left: unset !important;
+}
+
+html[dir="rtl"] .ps-2 {
+    padding-left: 0.5rem !important;
+    padding-right: unset !important;
+}
+
+html[dir="rtl"] .pe-3 {
+    padding-right: 1rem !important;
+    padding-left: unset !important;
+}
+
+html[dir="rtl"] .ps-3 {
+    padding-left: 1rem !important;
+    padding-right: unset !important;
+}
+
+html[dir="rtl"] .pe-4 {
+    padding-right: 1.5rem !important;
+    padding-left: unset !important;
+}
+
+html[dir="rtl"] .ps-4 {
+    padding-left: 1.5rem !important;
+    padding-right: unset !important;
+}
+
+html[dir="rtl"] .rounded-start {
+    border-top-right-radius: var(--border-radius) !important;
+    border-bottom-right-radius: var(--border-radius) !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+html[dir="rtl"] .rounded-end {
+    border-top-left-radius: var(--border-radius) !important;
+    border-bottom-left-radius: var(--border-radius) !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* ===== Bootstrap Overrides ===== */
+html[dir="rtl"] .btn-group > .btn:not(:first-child):not(.dropdown-toggle) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}
+
+html[dir="rtl"] .btn-group > .btn:not(:last-child):not(.dropdown-toggle) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+html[dir="rtl"] .input-group > .form-control:not(:first-child),
+html[dir="rtl"] .input-group > .form-select:not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+html[dir="rtl"] .input-group > .form-control:not(:last-child),
+html[dir="rtl"] .input-group > .form-select:not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* ===== Custom Properties ===== */
+html[dir="rtl"] {
+    --bs-border-radius-start: var(--border-radius);
+    --bs-border-radius-end: var(--border-radius);
+}

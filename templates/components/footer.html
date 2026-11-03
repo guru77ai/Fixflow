@@ -1,0 +1,22 @@
+{% load i18n %}
+<!-- Footer -->
+<footer class="footer">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="mb-0">
+                    &copy; {{ current_year }} 
+                    <a href="#" class="text-decoration-none">{% trans "FixSoftRepair Pro" %}</a>.
+                    {% trans "All rights reserved." %}
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <p class="mb-0">
+                    {% trans "Version" %} 1.0.0 |
+                    <a href="#" class="text-decoration-none">{% trans "Documentation" %}</a> |
+                    <a href="#" class="text-decoration-none">{% trans "Support" %}</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>

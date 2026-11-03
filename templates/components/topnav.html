@@ -1,0 +1,171 @@
+{% load static i18n %}
+<!-- Top Navigation -->
+<header class="topnav">
+    <div class="topnav-left">
+        <button class="menu-toggle" @click="$dispatch('toggle-sidebar')">
+            <i class="bi bi-list"></i>
+        </button>
+        
+        <!-- Organization Selector -->
+        {% if organizations %}
+        <div class="org-selector dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-building"></i>
+                {{ current_organization.name|truncatechars:20 }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-start">
+                {% for org in organizations %}
+                <li>
+                    <a class="dropdown-item {% if org.id == current_organization.id %}active{% endif %}" 
+                       href="?organization={{ org.id }}">
+                        {{ org.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Branch Selector -->
+        {% if branches %}
+        <div class="branch-selector dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-shop"></i>
+                {{ current_branch.name|truncatechars:20 }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-start">
+                {% for branch in branches %}
+                <li>
+                    <a class="dropdown-item {% if branch.id == current_branch.id %}active{% endif %}" 
+                       href="?branch={{ branch.id }}">
+                        {{ branch.name }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="topnav-right">
+        <!-- Global Search -->
+        <div class="search-box">
+            <form action="{% url 'search' %}" method="get">
+                <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" name="q" 
+                           placeholder="{% trans 'Search...' %}" aria-label="Search">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Language Selector -->
+        <div class="lang-selector dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-globe"></i>
+                {{ request.LANGUAGE_CODE|upper }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="#" onclick="changeLanguage('fr')">
+                        <span class="flag-icon">🇫🇷</span> Français
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" onclick="changeLanguage('ar')">
+                        <span class="flag-icon">🇸🇦</span> العربية
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="#" onclick="changeLanguage('en')">
+                        <span class="flag-icon">🇬🇧</span> English
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Notifications -->
+        <div class="notifications dropdown">
+            <button class="btn btn-sm btn-outline-secondary position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-bell"></i>
+                {% if unread_notifications > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ unread_notifications }}
+                    <span class="visually-hidden">{% trans "unread notifications" %}</span>
+                </span>
+                {% endif %}
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                <div class="notification-header">
+                    <h6>{% trans "Notifications" %}</h6>
+                    {% if unread_notifications > 0 %}
+                    <a href="{% url 'notifications:list' %}" class="mark-all-read">
+                        {% trans "Mark all as read" %}
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="notification-list">
+                    {% for notification in recent_notifications %}
+                    <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                        <div class="notification-content">
+                            <div class="notification-title">{{ notification.title }}</div>
+                            <div class="notification-message">{{ notification.message|truncatechars:100 }}</div>
+                            <div class="notification-time">{{ notification.created_at|timesince }} {% trans "ago" %}</div>
+                        </div>
+                        <div class="notification-actions">
+                            <a href="{{ notification.entity_url|default:'#' }}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View" %}
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="notification-item empty">
+                        <div class="notification-content">
+                            <div class="notification-message">{% trans "No new notifications" %}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="notification-footer">
+                    <a href="{% url 'notifications:list' %}" class="view-all">
+                        {% trans "View all notifications" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Menu -->
+        <div class="user-menu dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="{{ user.get_short_name }}" class="user-avatar-sm">
+                {% else %}
+                <span class="user-avatar-sm initials">{{ user.get_short_name|slice:":1"|upper }}</span>
+                {% endif %}
+                <span class="user-name-sm">{{ user.get_short_name }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                        <i class="bi bi-person"></i> {% trans "Profile" %}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'accounts:settings' %}">
+                        <i class="bi bi-gear"></i> {% trans "Settings" %}
+                    </a>
+                </li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{% url 'logout' %}">
+                        <i class="bi bi-box-arrow-right"></i> {% trans "Logout" %}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>

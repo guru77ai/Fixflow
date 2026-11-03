@@ -1,0 +1,10 @@
+"""
+Zakat application configuration.
+"""
+from django.apps import AppConfig
+
+
+class ZakatConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.zakat'
+    verbose_name = 'Zakat'

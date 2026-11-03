@@ -1,0 +1,52 @@
+# Django and Framework
+Django>=5.2,<5.3
+djangorestframework>=3.15.0
+
+# Database
+# SQLite is built-in, but we'll use django-db-geventpool for connection pooling
+# For development, we'll use standard SQLite
+
+# API Documentation
+drf-spectacular>=0.27.0
+
+# Security
+django-cors-headers>=4.3.0
+
+# File handling
+django-storages>=1.14.0
+Pillow>=10.2.0
+
+# PDF generation
+reportlab>=4.1.0
+
+# Excel export
+openpyxl>=3.1.2
+
+# HTMX for frontend
+# Will be loaded via CDN in templates
+
+# Celery for async tasks (optional, for future use)
+# celery>=5.3.0
+# redis>=5.0.0
+
+# Cryptography for licensing
+cryptography>=42.0.0
+
+# Python decimal for financial calculations
+# Built-in, no package needed
+
+# Translation
+# Built-in Django i18n
+
+# Development tools
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=8.0.0
+pytest-django>=4.7.0
+factory-boy>=3.3.0
+
+# Code quality
+flake8>=6.1.0
+black>=24.0.0
+isort>=5.13.0
