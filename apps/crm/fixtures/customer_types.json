@@ -1,0 +1,45 @@
+[{
+  "model": "crm.CustomerType",
+  "pk": "20000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "20000000-0000-0000-0000-000000000001",
+    "name": "Retail",
+    "code": "RTL",
+    "description": "Retail customers",
+    "sequence": 1,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerType",
+  "pk": "20000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "20000000-0000-0000-0000-000000000002",
+    "name": "Wholesale",
+    "code": "WSL",
+    "description": "Wholesale customers",
+    "sequence": 2,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerType",
+  "pk": "20000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "20000000-0000-0000-0000-000000000003",
+    "name": "Corporate",
+    "code": "CORP",
+    "description": "Corporate customers",
+    "sequence": 3,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerType",
+  "pk": "20000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "20000000-0000-0000-0000-000000000004",
+    "name": "VIP",
+    "code": "VIP",
+    "description": "VIP customers",
+    "sequence": 4,
+    "is_active": true
+  }
+}]

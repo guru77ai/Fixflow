@@ -1,0 +1,53 @@
+[{
+  "model": "crm.DeviceBrand",
+  "pk": "24000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "24000000-0000-0000-0000-000000000001",
+    "name": "Apple",
+    "code": "APP",
+    "description": "Apple Inc.",
+    "website": "https://www.apple.com",
+    "logo": "",
+    "sequence": 1,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceBrand",
+  "pk": "24000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "24000000-0000-0000-0000-000000000002",
+    "name": "Samsung",
+    "code": "SAM",
+    "description": "Samsung Electronics",
+    "website": "https://www.samsung.com",
+    "logo": "",
+    "sequence": 2,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceBrand",
+  "pk": "24000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "24000000-0000-0000-0000-000000000003",
+    "name": "Huawei",
+    "code": "HUA",
+    "description": "Huawei Technologies",
+    "website": "https://www.huawei.com",
+    "logo": "",
+    "sequence": 3,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceBrand",
+  "pk": "24000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "24000000-0000-0000-0000-000000000004",
+    "name": "Xiaomi",
+    "code": "XIA",
+    "description": "Xiaomi Corporation",
+    "website": "https://www.mi.com",
+    "logo": "",
+    "sequence": 4,
+    "is_active": true
+  }
+}]

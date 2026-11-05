@@ -1,0 +1,40 @@
+[{
+  "model": "crm.DeviceModel",
+  "pk": "26000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "26000000-0000-0000-0000-000000000001",
+    "name": "iPhone 15 Pro",
+    "code": "IP15P",
+    "brand": "24000000-0000-0000-0000-000000000001",
+    "category": "23000000-0000-0000-0000-000000000001",
+    "description": "Apple iPhone 15 Pro",
+    "sequence": 1,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceModel",
+  "pk": "26000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "26000000-0000-0000-0000-000000000002",
+    "name": "Galaxy S23 Ultra",
+    "code": "GS23U",
+    "brand": "24000000-0000-0000-0000-000000000002",
+    "category": "23000000-0000-0000-0000-000000000001",
+    "description": "Samsung Galaxy S23 Ultra",
+    "sequence": 2,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceModel",
+  "pk": "26000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "26000000-0000-0000-0000-000000000003",
+    "name": "Mate 50 Pro",
+    "code": "M50P",
+    "brand": "24000000-0000-0000-0000-000000000003",
+    "category": "23000000-0000-0000-0000-000000000001",
+    "description": "Huawei Mate 50 Pro",
+    "sequence": 3,
+    "is_active": true
+  }
+}]

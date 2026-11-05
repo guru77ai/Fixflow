@@ -1,0 +1,31 @@
+[{
+  "model": "crm.CustomerGroup",
+  "pk": "22000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "22000000-0000-0000-0000-000000000001",
+    "name": "Standard",
+    "code": "STD",
+    "description": "Standard customer group",
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerGroup",
+  "pk": "22000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "22000000-0000-0000-0000-000000000002",
+    "name": "Premium",
+    "code": "PREM",
+    "description": "Premium customer group",
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerGroup",
+  "pk": "22000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "22000000-0000-0000-0000-000000000003",
+    "name": "Gold",
+    "code": "GOLD",
+    "description": "Gold customer group",
+    "is_active": true
+  }
+}]

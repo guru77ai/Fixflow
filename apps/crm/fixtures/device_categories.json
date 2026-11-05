@@ -1,0 +1,49 @@
+[{
+  "model": "crm.DeviceCategory",
+  "pk": "23000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "23000000-0000-0000-0000-000000000001",
+    "name": "Smartphones",
+    "code": "SMART",
+    "description": "Smartphone devices",
+    "parent": null,
+    "sequence": 1,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceCategory",
+  "pk": "23000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "23000000-0000-0000-0000-000000000002",
+    "name": "Laptops",
+    "code": "LAP",
+    "description": "Laptop computers",
+    "parent": null,
+    "sequence": 2,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceCategory",
+  "pk": "23000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "23000000-0000-0000-0000-000000000003",
+    "name": "Tablets",
+    "code": "TAB",
+    "description": "Tablet devices",
+    "parent": null,
+    "sequence": 3,
+    "is_active": true
+  }
+}, {
+  "model": "crm.DeviceCategory",
+  "pk": "23000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "23000000-0000-0000-0000-000000000004",
+    "name": "Desktops",
+    "code": "DESK",
+    "description": "Desktop computers",
+    "parent": null,
+    "sequence": 4,
+    "is_active": true
+  }
+}]

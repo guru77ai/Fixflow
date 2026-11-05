@@ -1,0 +1,45 @@
+[{
+  "model": "crm.CustomerSource",
+  "pk": "21000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "21000000-0000-0000-0000-000000000001",
+    "name": "Walk-in",
+    "code": "WKIN",
+    "description": "Walk-in customers",
+    "sequence": 1,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerSource",
+  "pk": "21000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "21000000-0000-0000-0000-000000000002",
+    "name": "Referral",
+    "code": "REF",
+    "description": "Referred by existing customer",
+    "sequence": 2,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerSource",
+  "pk": "21000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "21000000-0000-0000-0000-000000000003",
+    "name": "Online",
+    "code": "ONL",
+    "description": "Online customers",
+    "sequence": 3,
+    "is_active": true
+  }
+}, {
+  "model": "crm.CustomerSource",
+  "pk": "21000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "21000000-0000-0000-0000-000000000004",
+    "name": "Social Media",
+    "code": "SOC",
+    "description": "Customers from social media",
+    "sequence": 4,
+    "is_active": true
+  }
+}]

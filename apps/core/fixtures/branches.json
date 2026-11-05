@@ -1,0 +1,64 @@
+[{
+  "model": "core.Branch",
+  "pk": "10000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "10000000-0000-0000-0000-000000000001",
+    "name": "Main Branch",
+    "code": "MAIN",
+    "description": "Main branch of FixSoftRepair Pro",
+    "address": "123 Main Street",
+    "city": "Algeria",
+    "state": "Algeria",
+    "postal_code": "12345",
+    "country": "Algeria",
+    "phone": "+213123456789",
+    "email": "main@fixsoftrepair.com",
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "manager": null,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "core.Branch",
+  "pk": "10000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "10000000-0000-0000-0000-000000000002",
+    "name": "Downtown Branch",
+    "code": "DTN",
+    "description": "Downtown branch",
+    "address": "456 Downtown Ave",
+    "city": "Algeria",
+    "state": "Algeria",
+    "postal_code": "54321",
+    "country": "Algeria",
+    "phone": "+213987654321",
+    "email": "downtown@fixsoftrepair.com",
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "manager": null,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "core.Branch",
+  "pk": "10000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "10000000-0000-0000-0000-000000000003",
+    "name": "Test Branch",
+    "code": "TEST",
+    "description": "Test branch for development",
+    "address": "789 Test Ave",
+    "city": "Test City",
+    "state": "TC",
+    "postal_code": "98765",
+    "country": "USA",
+    "phone": "+1234567890",
+    "email": "test@test.com",
+    "organization": "00000000-0000-0000-0000-000000000002",
+    "manager": null,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

@@ -1,0 +1,43 @@
+[{
+  "model": "core.Organization",
+  "pk": "00000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "00000000-0000-0000-0000-000000000001",
+    "name": "FixSoftRepair Pro",
+    "code": "FSRP",
+    "description": "Main organization for FixSoftRepair Pro",
+    "address": "123 Main Street",
+    "city": "Algeria",
+    "state": "Algeria",
+    "postal_code": "12345",
+    "country": "Algeria",
+    "phone": "+213123456789",
+    "email": "info@fixsoftrepair.com",
+    "website": "https://www.fixsoftrepair.com",
+    "tax_id": "TAX123456789",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "core.Organization",
+  "pk": "00000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "00000000-0000-0000-0000-000000000002",
+    "name": "Test Organization",
+    "code": "TEST",
+    "description": "Test organization for development",
+    "address": "456 Test Street",
+    "city": "Test City",
+    "state": "TC",
+    "postal_code": "67890",
+    "country": "USA",
+    "phone": "+1234567890",
+    "email": "test@test.com",
+    "website": "https://www.test.com",
+    "tax_id": "TAX987654321",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]
