@@ -53,6 +53,10 @@ LOCAL_APPS = [
     'apps.documents',
     'apps.barcode',
     'apps.zakat',
+    'apps.crm',
+    'apps.repair',
+    'apps.inventory',
+    'apps.suppliers',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

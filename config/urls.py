@@ -46,7 +46,19 @@ urlpatterns += [
         path('documents/', include('apps.documents.urls')),
         path('barcode/', include('apps.barcode.urls')),
         path('zakat/', include('apps.zakat.urls')),
+        path('crm/', include('apps.crm.urls')),
+        path('repair/', include('apps.repair.urls')),
+        path('inventory/', include('apps.inventory.urls')),
+        path('suppliers/', include('apps.suppliers.urls')),
     ])),
+]
+
+# Frontend URLs for new modules
+urlpatterns += [
+    path('crm/', include('apps.crm.urls')),
+    path('repair/', include('apps.repair.urls')),
+    path('inventory/', include('apps.inventory.urls')),
+    path('suppliers/', include('apps.suppliers.urls')),
 ]
 
 # Frontend URLs

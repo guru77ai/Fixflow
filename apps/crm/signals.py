@@ -1,0 +1,3 @@
+"""
+Signals for CRM module
+"""
