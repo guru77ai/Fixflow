@@ -50,6 +50,7 @@ urlpatterns += [
         path('repair/', include('apps.repair.urls')),
         path('inventory/', include('apps.inventory.urls')),
         path('suppliers/', include('apps.suppliers.urls')),
+        path('pos/', include('apps.pos.urls')),
     ])),
 ]
 
@@ -59,6 +60,7 @@ urlpatterns += [
     path('repair/', include('apps.repair.urls')),
     path('inventory/', include('apps.inventory.urls')),
     path('suppliers/', include('apps.suppliers.urls')),
+    path('pos/', include('apps.pos.urls')),
 ]
 
 # Frontend URLs
