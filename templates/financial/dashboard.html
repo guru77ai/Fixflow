@@ -1,0 +1,356 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Financial Dashboard" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Financial Dashboard" %}</h1>
+    <p class="page-subtitle">{% trans "Overview of invoices, expenses, and payments" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Invoices" %}</h6>
+                            <h3 class="stat-value mb-0">{{ stats.total_invoices|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Revenue" %}</h6>
+                            <h3 class="stat-value mb-0">DZD {{ stats.total_revenue|default:0|floatformat:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Expenses" %}</h6>
+                            <h3 class="stat-value mb-0">DZD {{ stats.total_expenses|default:0|floatformat:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Pending Payments" %}</h6>
+                            <h3 class="stat-value mb-0">DZD {{ stats.pending_payments|default:0|floatformat:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Invoice Status Overview -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Invoice Status" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">{{ stats.invoices_pending|default:0 }}</div>
+                                <small class="text-muted">{% trans "Pending" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">{{ stats.invoices_paid|default:0 }}</div>
+                                <small class="text-muted">{% trans "Paid" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">{{ stats.invoices_partial|default:0 }}</div>
+                                <small class="text-muted">{% trans "Partial" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded">
+                                <div class="h4 mb-1">{{ stats.invoices_overdue|default:0 }}</div>
+                                <small class="text-muted">{% trans "Overdue" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <canvas id="invoiceStatusChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Invoices -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Recent Invoices" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Invoice #" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Amount" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for invoice in recent_invoices %}
+                                <tr>
+                                    <td>
+                                        <a href="#" class="text-decoration-none">
+                                            {{ invoice.invoice_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ invoice.customer|default:"-" }}</td>
+                                    <td>{{ invoice.invoice_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>DZD {{ invoice.total_amount|default:0|floatformat:0 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ invoice.get_payment_status_display|lower }}">
+                                            {% trans invoice.get_payment_status_display %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        {% trans "No invoices found" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Expense Summary -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Expense Summary" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Expenses" %}</th>
+                                    <th class="text-end">{% trans "Amount" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in expense_categories %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>{{ category.expenses_count|default:0 }}</td>
+                                    <td class="text-end">DZD {{ category.total_amount|default:0|floatformat:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">
+                                        {% trans "No expense categories found" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>{% trans "Total" %}</td>
+                                    <td>{{ stats.total_expenses_count|default:0 }}</td>
+                                    <td class="text-end">DZD {{ stats.total_expenses|default:0|floatformat:0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Payment Methods" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Method" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Active" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for method in payment_methods %}
+                                <tr>
+                                    <td>{{ method.name }}</td>
+                                    <td><code>{{ method.code }}</code></td>
+                                    <td>
+                                        <span class="badge bg-{{ method.get_type_display|lower }}">
+                                            {% trans method.get_type_display %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if method.is_active %}
+                                        <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        {% trans "No payment methods found" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Actions -->
+        <div class="col-lg-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block mb-2 fs-2"></i>
+                                {% trans "Create Invoice" %}
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-receipt d-block mb-2 fs-2"></i>
+                                {% trans "Record Expense" %}
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-credit-card d-block mb-2 fs-2"></i>
+                                {% trans "Record Payment" %}
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-tags d-block mb-2 fs-2"></i>
+                                {% trans "Expense Categories" %}
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-percent d-block mb-2 fs-2"></i>
+                                {% trans "Tax Rates" %}
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-currency-exchange d-block mb-2 fs-2"></i>
+                                {% trans "Budget Categories" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Invoice Status Chart
+    const ctx = document.getElementById('invoiceStatusChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['{% trans "Pending" %}', '{% trans "Paid" %}', '{% trans "Partial" %}', '{% trans "Overdue" %}'],
+                datasets: [{
+                    data: [{{ stats.invoices_pending|default:0 }}, {{ stats.invoices_paid|default:0 }}, {{ stats.invoices_partial|default:0 }}, {{ stats.invoices_overdue|default:0 }}],
+                    backgroundColor: [
+                        '#ffc107',
+                        '#28a745',
+                        '#17a2b8',
+                        '#dc3545'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

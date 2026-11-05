@@ -1,0 +1,320 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{{ customer.full_name }}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ customer.full_name }}</h1>
+        <p class="page-subtitle">
+            {% trans "Customer" %} #{{ customer.customer_number|default:customer.pk }} |
+            {% trans "Status" %}: <span class="badge 
+                {% if customer.status == 'active' %}bg-success
+                {% elif customer.status == 'inactive' %}bg-secondary
+                {% elif customer.status == 'pending' %}bg-warning
+                {% elif customer.status == 'blocked' %}bg-danger{% endif %}">
+                {% trans customer.get_status_display %}
+            </span>
+        </p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'crm:customer_edit' customer.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'crm:customer_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- Customer Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            {% if customer.avatar %}
+                            <img src="{{ customer.avatar.url }}" alt="{{ customer.full_name }}" class="rounded-circle w-100 h-100">
+                            {% else %}
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center w-100 h-100">
+                                <span class="text-primary fs-1">{{ customer.first_name|slice:":1"|upper }}{{ customer.last_name|slice:":1"|upper }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-1">{{ customer.full_name }}</h4>
+                        <p class="text-muted mb-3">{{ customer.customer_number|default:"-" }}</p>
+                        
+                        {% if customer.is_vip %}
+                        <span class="badge bg-warning text-dark me-2">{% trans "VIP" %}</span>
+                        {% endif %}
+                        {% if customer.is_wholesale %}
+                        <span class="badge bg-info text-dark me-2">{% trans "Wholesale" %}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        <a href="tel:{{ customer.phone }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-telephone me-2"></i>{{ customer.phone|default:"-" }}
+                        </a>
+                        <a href="mailto:{{ customer.email }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-envelope me-2"></i>{{ customer.email|default:"-" }}
+                        </a>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Address" %}</h6>
+                        <p class="mb-0">
+                            {{ customer.address|default:"-" }}<br>
+                            {% if customer.city %}{{ customer.city }}, {% endif %}
+                            {% if customer.state %}{{ customer.state }}, {% endif %}
+                            {{ customer.postal_code|default:"" }}<br>
+                            {{ customer.country|default:"" }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Additional Info" %}</h6>
+                        <p class="mb-1">
+                            <strong>{% trans "Customer Type" %}:</strong> {{ customer.customer_type|default:"-" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Source" %}:</strong> {{ customer.source|default:"-" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Group" %}:</strong> {{ customer.group|default:"-" }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>{% trans "Tax ID" %}:</strong> {{ customer.tax_id|default:"-" }}
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h6 class="text-muted mb-3">{% trans "Statistics" %}</h6>
+                        <div class="row text-center">
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ stats.total_devices|default:0 }}</div>
+                                <small class="text-muted">{% trans "Devices" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ stats.total_repairs|default:0 }}</div>
+                                <small class="text-muted">{% trans "Repairs" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">DZD {{ stats.total_spent|default:0|floatformat:0 }}</div>
+                                <small class="text-muted">{% trans "Total Spent" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">DZD {{ stats.balance|default:0|floatformat:0 }}</div>
+                                <small class="text-muted">{% trans "Balance" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Details Tabs -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="customerTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="devices-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#devices" type="button" role="tab">
+                                <i class="bi bi-phone me-2"></i>{% trans "Devices" %} ({{ devices.count|default:0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="communications-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#communications" type="button" role="tab">
+                                <i class="bi bi-chat me-2"></i>{% trans "Communications" %} ({{ communications.count|default:0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="documents-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#documents" type="button" role="tab">
+                                <i class="bi bi-file-earmark me-2"></i>{% trans "Documents" %} ({{ documents.count|default:0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#notes" type="button" role="tab">
+                                <i class="bi bi-sticky me-2"></i>{% trans "Notes" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="customerTabsContent">
+                        <!-- Devices Tab -->
+                        <div class="tab-pane fade show active" id="devices" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>{% trans "Devices" %}</h5>
+                                <a href="{% url 'crm:device_create' %}?customer={{ customer.pk }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-plus me-2"></i>{% trans "Add Device" %}
+                                </a>
+                            </div>
+                            {% if devices %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{% trans "Device" %}</th>
+                                            <th>{% trans "Brand" %}</th>
+                                            <th>{% trans "Model" %}</th>
+                                            <th>{% trans "Serial" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Actions" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for device in devices %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'crm:device_detail' device.pk %}">
+                                                    {{ device.name|default:device.device_type|default:"-" }}
+                                                </a>
+                                            </td>
+                                            <td>{{ device.brand|default:"-" }}</td>
+                                            <td>{{ device.model|default:"-" }}</td>
+                                            <td>{{ device.serial_number|default:"-" }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ device.get_status_display|lower }}">
+                                                    {% trans device.get_status_display %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'crm:device_detail' device.pk %}" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">
+                                {% trans "No devices found for this customer." %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Communications Tab -->
+                        <div class="tab-pane fade" id="communications" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>{% trans "Communications" %}</h5>
+                                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                   data-bs-target="#addCommunicationModal">
+                                    <i class="bi bi-plus me-2"></i>{% trans "Add Communication" %}
+                                </a>
+                            </div>
+                            {% if communications %}
+                            <div class="list-group">
+                                {% for comm in communications %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-{{ comm.get_type_display|lower }} me-2">
+                                                    {% trans comm.get_type_display %}
+                                                </span>
+                                                <small class="text-muted">{{ comm.created_at|date:"Y-m-d H:i" }}</small>
+                                            </div>
+                                            <p class="mb-1">{{ comm.subject }}</p>
+                                            <p class="mb-0 text-muted small">{{ comm.message|truncatechars:100 }}</p>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                                    data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#">{% trans "View" %}</a></li>
+                                                <li><a class="dropdown-item" href="#">{% trans "Edit" %}</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#">{% trans "Delete" %}</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">
+                                {% trans "No communications found for this customer." %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Documents Tab -->
+                        <div class="tab-pane fade" id="documents" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>{% trans "Documents" %}</h5>
+                                <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                   data-bs-target="#addDocumentModal">
+                                    <i class="bi bi-plus me-2"></i>{% trans "Add Document" %}
+                                </a>
+                            </div>
+                            {% if documents %}
+                            <div class="row">
+                                {% for doc in documents %}
+                                <div class="col-md-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                                                <h6 class="mb-0">{{ doc.name|truncatechars:30 }}</h6>
+                                            </div>
+                                            <p class="text-muted small mb-2">{{ doc.document_type|default:"-" }}</p>
+                                            <p class="text-muted small mb-2">{{ doc.created_at|date:"Y-m-d" }}</p>
+                                            <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" download>
+                                                <i class="bi bi-download me-2"></i>{% trans "Download" %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">
+                                {% trans "No documents found for this customer." %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Notes Tab -->
+                        <div class="tab-pane fade" id="notes" role="tabpanel">
+                            <div class="mb-3">
+                                <h5>{% trans "Notes" %}</h5>
+                                <textarea class="form-control" rows="3" placeholder="{% trans 'Add a note...' %}"></textarea>
+                                <button class="btn btn-primary btn-sm mt-2">
+                                    <i class="bi bi-save me-2"></i>{% trans "Save Note" %}
+                                </button>
+                            </div>
+                            {% if customer.notes %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <p class="mb-0">{{ customer.notes }}</p>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">
+                                {% trans "No notes for this customer." %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

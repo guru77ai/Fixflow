@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Delete Customer" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Delete Customer" %}</h1>
+    <p class="page-subtitle">{% trans "Confirm deletion of customer" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="icon-lg bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">{% trans "Are you sure?" %}</h4>
+                    <p class="text-muted mb-4">
+                        {% trans "You are about to delete the following customer:" %}
+                    </p>
+                    <div class="bg-light p-3 rounded mb-4">
+                        <h5>{{ customer.full_name }}</h5>
+                        <p class="mb-0 text-muted">
+                            {% trans "Customer Number" %}: {{ customer.customer_number|default:"-" }}<br>
+                            {% trans "Email" %}: {{ customer.email|default:"-" }}<br>
+                            {% trans "Phone" %}: {{ customer.phone|default:"-" }}
+                        </p>
+                    </div>
+                    <p class="text-danger mb-4">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        {% trans "This action cannot be undone. All related data (devices, repairs, communications) will also be affected." %}
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'crm:customer_detail' customer.pk %}" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-arrow-left me-2"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-trash me-2"></i>{% trans "Delete Customer" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

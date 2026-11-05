@@ -1,0 +1,289 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Accounting Dashboard" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Accounting Dashboard" %}</h1>
+    <p class="page-subtitle">{% trans "Overview of your financial accounts and transactions" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Accounts" %}</h6>
+                            <h3 class="stat-value mb-0">{{ stats.total_accounts|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Balance" %}</h6>
+                            <h3 class="stat-value mb-0">DZD {{ stats.total_balance|default:0|floatformat:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Journal Entries" %}</h6>
+                            <h3 class="stat-value mb-0">{{ stats.journal_entries|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-bank"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Bank Accounts" %}</h6>
+                            <h3 class="stat-value mb-0">{{ stats.bank_accounts|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Account Balance Summary -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Account Balances" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Account" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th class="text-end">{% trans "Balance" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in recent_accounts %}
+                                <tr>
+                                    <td>
+                                        <a href="#" class="text-decoration-none">
+                                            {{ account.code }} - {{ account.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ account.get_account_type_display|lower }}">
+                                            {{ account.get_account_type_display }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        DZD {{ account.current_balance|floatformat:0 }}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted py-3">
+                                        {% trans "No accounts found" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="2">{% trans "Total" %}</td>
+                                    <td class="text-end">DZD {{ stats.total_balance|default:0|floatformat:0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Journal Entries -->
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{% trans "Recent Journal Entries" %}</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">{% trans "View All" %}</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Entry #" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in recent_entries %}
+                                <tr>
+                                    <td>
+                                        <a href="#" class="text-decoration-none">
+                                            {{ entry.entry_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ entry.entry_date|date:"Y-m-d" }}</td>
+                                    <td>{{ entry.description|truncatechars:50 }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ entry.get_is_posted_display|lower }}">
+                                            {% if entry.is_posted %}{% trans "Posted" %}{% else %}{% trans "Draft" %}{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-3">
+                                        {% trans "No journal entries found" %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Chart of Accounts Tree -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Chart of Accounts" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="tree-view">
+                        {% for account_type in account_types %}
+                        <div class="tree-node mb-3">
+                            <div class="tree-header d-flex justify-content-between align-items-center">
+                                <strong>{{ account_type.name }}</strong>
+                                <span class="badge bg-primary">{{ account_type.normal_balance|upper }}</span>
+                            </div>
+                            {% for category in account_type.categories.all %}
+                            <div class="tree-child ms-3 mt-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>{{ category.name }} ({{ category.code }})</span>
+                                    <span class="text-muted small">{{ category.accounts.count }} accounts</span>
+                                </div>
+                                {% for account in category.accounts.all|slice:":5" %}
+                                <div class="tree-grandchild ms-4 mt-1 text-muted small">
+                                    {{ account.code }} - {{ account.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block mb-2 fs-2"></i>
+                                {% trans "Create Journal Entry" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-plus-circle d-block mb-2 fs-2"></i>
+                                {% trans "Add Account" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-bank d-block mb-2 fs-2"></i>
+                                {% trans "Bank Reconciliation" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-file-earmark-text d-block mb-2 fs-2"></i>
+                                {% trans "Financial Statements" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-graph-up d-block mb-2 fs-2"></i>
+                                {% trans "Trial Balance" %}
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="#" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-currency-exchange d-block mb-2 fs-2"></i>
+                                {% trans "Currency Exchange" %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.tree-view {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.tree-node {
+    border-left: 3px solid #dee2e6;
+    padding-left: 15px;
+}
+.tree-child {
+    border-left: 2px solid #adb5bd;
+    padding-left: 15px;
+}
+.tree-grandchild {
+    border-left: 1px solid #ced4da;
+    padding-left: 15px;
+}
+</style>
+{% endblock %}

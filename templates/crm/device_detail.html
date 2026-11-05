@@ -1,0 +1,247 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{{ device.name|default:device.device_type|default:"Device" }}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ device.name|default:device.device_type|default:"Device" }}</h1>
+        <p class="page-subtitle">
+            {% trans "Device" %} #{{ device.device_number|default:device.pk }} |
+            {% trans "Status" %}: <span class="badge bg-{{ device.get_status_display|lower }}">
+                {% trans device.get_status_display %}
+            </span>
+        </p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'crm:device_edit' device.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'crm:device_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- Device Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="device-icon-lg mx-auto mb-3 bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-phone text-primary fs-1"></i>
+                        </div>
+                        <h4 class="mb-1">{{ device.name|default:device.device_type|default:"Unknown Device" }}</h4>
+                        <p class="text-muted mb-3">{{ device.device_number|default:"-" }}</p>
+                        <span class="badge bg-{{ device.get_status_display|lower }} me-2">
+                            {% trans device.get_status_display %}
+                        </span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Identification" %}</h6>
+                        <p class="mb-1">
+                            <strong>{% trans "Device Type" %}:</strong> {{ device.device_type|default:"-" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Brand" %}:</strong> {{ device.brand|default:"-" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Model" %}:</strong> {{ device.model|default:"-" }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Serial Number" %}:</strong> {{ device.serial_number|default:"-" }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>{% trans "IMEI" %}:</strong> {{ device.imei|default:"-" }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Ownership" %}</h6>
+                        <p class="mb-1">
+                            <strong>{% trans "Customer" %}:</strong>
+                            {% if device.customer %}
+                            <a href="{% url 'crm:customer_detail' device.customer.pk %}" class="text-decoration-none">
+                                {{ device.customer.full_name }}
+                            </a>
+                            {% else %}
+                            {% trans "None" %}
+                            {% endif %}
+                        </p>
+                        <p class="mb-0">
+                            <strong>{% trans "Purchase Date" %}:</strong> {{ device.purchase_date|date:"Y-m-d"|default:"-" }}
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h6 class="text-muted mb-3">{% trans "Warranty" %}</h6>
+                        <p class="mb-1">
+                            <strong>{% trans "Warranty Status" %}:</strong>
+                            <span class="badge bg-{{ device.get_warranty_status_display|lower }}">
+                                {% trans device.get_warranty_status_display %}
+                            </span>
+                        </p>
+                        <p class="mb-1">
+                            <strong>{% trans "Warranty Expiry" %}:</strong> {{ device.warranty_expiry|date:"Y-m-d"|default:"-" }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>{% trans "Warranty Provider" %}:</strong> {{ device.warranty_provider|default:"-" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Device Details Tabs -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="deviceTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="details-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#details" type="button" role="tab">
+                                <i class="bi bi-info-circle me-2"></i>{% trans "Details" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="repairs-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#repairs" type="button" role="tab">
+                                <i class="bi bi-tools me-2"></i>{% trans "Repairs" %} ({{ repairs.count|default:0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#notes" type="button" role="tab">
+                                <i class="bi bi-sticky me-2"></i>{% trans "Notes" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="deviceTabsContent">
+                        <!-- Details Tab -->
+                        <div class="tab-pane fade show active" id="details" role="tabpanel">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "Device Category" %}</label>
+                                        <p>{{ device.category|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "Color" %}</label>
+                                        <p>{{ device.color|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "Storage" %}</label>
+                                        <p>{{ device.storage|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "OS/Version" %}</label>
+                                        <p>{{ device.os_version|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "Description" %}</label>
+                                        <p>{{ device.description|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group">
+                                        <label class="form-label fw-bold">{% trans "Accessories" %}</label>
+                                        <p>{{ device.accessories|default:"-" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Repairs Tab -->
+                        <div class="tab-pane fade" id="repairs" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5>{% trans "Repair History" %}</h5>
+                                <a href="#" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-plus me-2"></i>{% trans "New Repair" %}
+                                </a>
+                            </div>
+                            {% if repairs %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{% trans "Repair #" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Issue" %}</th>
+                                            <th>{% trans "Date" %}</th>
+                                            <th>{% trans "Cost" %}</th>
+                                            <th>{% trans "Actions" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for repair in repairs %}
+                                        <tr>
+                                            <td>
+                                                <a href="#">
+                                                    {{ repair.repair_number|default:repair.pk }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-{{ repair.get_status_display|lower }}">
+                                                    {% trans repair.get_status_display %}
+                                                </span>
+                                            </td>
+                                            <td>{{ repair.issue|truncatechars:50 }}</td>
+                                            <td>{{ repair.created_at|date:"Y-m-d" }}</td>
+                                            <td>DZD {{ repair.total_cost|default:0|floatformat:0 }}</td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center py-4">
+                                {% trans "No repair history for this device." %}
+                            </p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Notes Tab -->
+                        <div class="tab-pane fade" id="notes" role="tabpanel">
+                            <div class="mb-3">
+                                <h5>{% trans "Notes" %}</h5>
+                                {% if device.notes %}
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="mb-0">{{ device.notes }}</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted text-center py-4">
+                                    {% trans "No notes for this device." %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
