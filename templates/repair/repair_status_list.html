@@ -1,0 +1,96 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Repair Statuses" %}{% endblock %}
+{% block page_header %}{% trans "Repair Statuses" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Repair Statuses" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'repair:repair_status_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Status" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="statusTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Color" %}</th>
+                                    <th>{% trans "Sequence" %}</th>
+                                    <th>{% trans "Initial" %}</th>
+                                    <th>{% trans "Final" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for status in object_list %}
+                                <tr>
+                                    <td>{{ status.name }}</td>
+                                    <td>{{ status.code }}</td>
+                                    <td>{{ status.description|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ status.color }}; color: white;">
+                                            {{ status.color }}
+                                        </span>
+                                    </td>
+                                    <td>{{ status.sequence }}</td>
+                                    <td>
+                                        {% if status.is_initial %}
+                                        <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if status.is_final %}
+                                        <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'repair:repair_status_update' status.uuid %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'repair:repair_status_delete' status.uuid %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#statusTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[4, 'asc']]
+    });
+});
+</script>
+{% endblock %}

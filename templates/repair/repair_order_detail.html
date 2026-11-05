@@ -1,0 +1,65 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Repair Order" %} {{ object.order_number }}{% endblock %}
+{% block page_header %}{% trans "Repair Order" %} {{ object.order_number }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Order Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'repair:repair_order_list' %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Order Information" %}</h4>
+                            <p><strong>{% trans "Order Number" %}:</strong> {{ object.order_number }}</p>
+                            <p><strong>{% trans "Order Type" %}:</strong> {{ object.get_order_type_display }}</p>
+                            <p><strong>{% trans "Status" %}:</strong> {{ object.status }}</p>
+                            <p><strong>{% trans "Priority" %}:</strong> {{ object.priority }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Customer Information" %}</h4>
+                            <p><strong>{% trans "Customer" %}:</strong> {{ object.customer }}</p>
+                            <p><strong>{% trans "Phone" %}:</strong> {{ object.customer.phone }}</p>
+                            <p><strong>{% trans "Email" %}:</strong> {{ object.customer.email }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>{% trans "Device Information" %}</h4>
+                            <p><strong>{% trans "Device" %}:</strong> {{ object.device_display }}</p>
+                            <p><strong>{% trans "IMEI" %}:</strong> {{ object.device_imei|default:"-" }}</p>
+                            <p><strong>{% trans "Serial" %}:</strong> {{ object.device_serial|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Financial Information" %}</h4>
+                            <p><strong>{% trans "Quotation" %}:</strong> {{ object.quotation_amount }}</p>
+                            <p><strong>{% trans "Total Cost" %}:</strong> {{ object.total_cost }}</p>
+                            <p><strong>{% trans "Final Amount" %}:</strong> {{ object.final_amount }}</p>
+                            <p><strong>{% trans "Amount Paid" %}:</strong> {{ object.amount_paid }}</p>
+                            <p><strong>{% trans "Balance" %}:</strong> {{ object.balance }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Issue Description" %}</h4>
+                            <p>{{ object.issue_description }}</p>
+                            <h4>{% trans "Diagnosis" %}</h4>
+                            <p>{{ object.diagnosis|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'repair:repair_order_update' object.uuid %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'repair:repair_order_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

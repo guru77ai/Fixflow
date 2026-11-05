@@ -1,0 +1,53 @@
+[{
+  "model": "repair.RepairPriority",
+  "pk": "31000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "31000000-0000-0000-0000-000000000001",
+    "name": "Low",
+    "code": "LOW",
+    "level": 1,
+    "color": "#2ECC71",
+    "estimated_hours": 72,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairPriority",
+  "pk": "31000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "31000000-0000-0000-0000-000000000002",
+    "name": "Medium",
+    "code": "MED",
+    "level": 2,
+    "color": "#FFA500",
+    "estimated_hours": 48,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairPriority",
+  "pk": "31000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "31000000-0000-0000-0000-000000000003",
+    "name": "High",
+    "code": "HIGH",
+    "level": 3,
+    "color": "#FF6B6B",
+    "estimated_hours": 24,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairPriority",
+  "pk": "31000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "31000000-0000-0000-0000-000000000004",
+    "name": "Urgent",
+    "code": "URGENT",
+    "level": 4,
+    "color": "#E74C3C",
+    "estimated_hours": 6,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

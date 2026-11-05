@@ -1,0 +1,84 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Repair Types" %}{% endblock %}
+{% block page_header %}{% trans "Repair Types" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Repair Types" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'repair:repair_type_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Type" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="typeTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Estimated Cost" %}</th>
+                                    <th>{% trans "Duration (min)" %}</th>
+                                    <th>{% trans "Active" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair_type in object_list %}
+                                <tr>
+                                    <td>{{ repair_type.name }}</td>
+                                    <td>{{ repair_type.code }}</td>
+                                    <td>{{ repair_type.category|default:"-" }}</td>
+                                    <td>{{ repair_type.estimated_cost }}</td>
+                                    <td>{{ repair_type.estimated_duration }}</td>
+                                    <td>
+                                        {% if repair_type.is_active %}
+                                        <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'repair:repair_type_update' repair_type.uuid %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'repair:repair_type_delete' repair_type.uuid %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#typeTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'asc']]
+    });
+});
+</script>
+{% endblock %}

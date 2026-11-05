@@ -1,0 +1,81 @@
+[{
+  "model": "accounting.AccountCategory",
+  "pk": "71000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "71000000-0000-0000-0000-000000000001",
+    "name": "Current Assets",
+    "code": "CURRENT_ASSETS",
+    "description": "Assets expected to be converted to cash within one year",
+    "account_type": "70000000-0000-0000-0000-000000000001",
+    "parent": null,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountCategory",
+  "pk": "71000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "71000000-0000-0000-0000-000000000002",
+    "name": "Fixed Assets",
+    "code": "FIXED_ASSETS",
+    "description": "Long-term tangible assets",
+    "account_type": "70000000-0000-0000-0000-000000000001",
+    "parent": null,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountCategory",
+  "pk": "71000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "71000000-0000-0000-0000-000000000003",
+    "name": "Current Liabilities",
+    "code": "CURRENT_LIABILITIES",
+    "description": "Liabilities due within one year",
+    "account_type": "70000000-0000-0000-0000-000000000002",
+    "parent": null,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountCategory",
+  "pk": "71000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "71000000-0000-0000-0000-000000000004",
+    "name": "Revenue",
+    "code": "REVENUE",
+    "description": "Income from business operations",
+    "account_type": "70000000-0000-0000-0000-000000000004",
+    "parent": null,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountCategory",
+  "pk": "71000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "71000000-0000-0000-0000-000000000005",
+    "name": "Operating Expenses",
+    "code": "OPERATING_EXPENSES",
+    "description": "Day-to-day business expenses",
+    "account_type": "70000000-0000-0000-0000-000000000005",
+    "parent": null,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

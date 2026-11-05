@@ -1,0 +1,81 @@
+[{
+  "model": "pos.PaymentMethod",
+  "pk": "60000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "60000000-0000-0000-0000-000000000001",
+    "name": "Cash",
+    "code": "CASH",
+    "description": "Cash payment",
+    "is_active": true,
+    "is_default": true,
+    "requires_change": true,
+    "color": "#2ECC71",
+    "icon": "cash",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.PaymentMethod",
+  "pk": "60000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "60000000-0000-0000-0000-000000000002",
+    "name": "Credit Card",
+    "code": "CREDIT_CARD",
+    "description": "Credit card payment",
+    "is_active": true,
+    "is_default": false,
+    "requires_change": false,
+    "color": "#3498DB",
+    "icon": "credit-card",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.PaymentMethod",
+  "pk": "60000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "60000000-0000-0000-0000-000000000003",
+    "name": "Debit Card",
+    "code": "DEBIT_CARD",
+    "description": "Debit card payment",
+    "is_active": true,
+    "is_default": false,
+    "requires_change": false,
+    "color": "#9B59B6",
+    "icon": "debit-card",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.PaymentMethod",
+  "pk": "60000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "60000000-0000-0000-0000-000000000004",
+    "name": "Mobile Payment",
+    "code": "MOBILE",
+    "description": "Mobile wallet payment",
+    "is_active": true,
+    "is_default": false,
+    "requires_change": false,
+    "color": "#E74C3C",
+    "icon": "mobile",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.PaymentMethod",
+  "pk": "60000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "60000000-0000-0000-0000-000000000005",
+    "name": "Bank Transfer",
+    "code": "BANK_TRANSFER",
+    "description": "Bank transfer payment",
+    "is_active": true,
+    "is_default": false,
+    "requires_change": false,
+    "color": "#F39C12",
+    "icon": "bank",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

@@ -1,0 +1,73 @@
+[{
+  "model": "pos.SaleItem",
+  "pk": "63000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "63000000-0000-0000-0000-000000000001",
+    "sale": "62000000-0000-0000-0000-000000000001",
+    "product": "44000000-0000-0000-0000-000000000001",
+    "product_name": "Samsung Galaxy S20 LCD Screen",
+    "product_code": "LCD-SAM-001",
+    "quantity": 1.000,
+    "unit_price": 150.00,
+    "total_price": 150.00,
+    "discount": 0.00,
+    "tax_amount": 15.00,
+    "notes": "Screen replacement",
+    "created_at": "2023-01-15T10:00:00Z",
+    "updated_at": "2023-01-15T10:00:00Z"
+  }
+}, {
+  "model": "pos.SaleItem",
+  "pk": "63000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "63000000-0000-0000-0000-000000000002",
+    "sale": "62000000-0000-0000-0000-000000000002",
+    "product": "44000000-0000-0000-0000-000000000002",
+    "product_name": "Generic Li-ion Battery 4000mAh",
+    "product_code": "BAT-GEN-001",
+    "quantity": 1.000,
+    "unit_price": 60.00,
+    "total_price": 60.00,
+    "discount": 0.00,
+    "tax_amount": 6.00,
+    "notes": "Battery replacement",
+    "created_at": "2023-01-11T12:00:00Z",
+    "updated_at": "2023-01-11T12:00:00Z"
+  }
+}, {
+  "model": "pos.SaleItem",
+  "pk": "63000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "63000000-0000-0000-0000-000000000003",
+    "sale": "62000000-0000-0000-0000-000000000002",
+    "product": null,
+    "product_name": "Labor - Battery Replacement",
+    "product_code": "LABOR",
+    "quantity": 1.000,
+    "unit_price": 20.00,
+    "total_price": 20.00,
+    "discount": 0.00,
+    "tax_amount": 2.00,
+    "notes": "Labor charge for battery replacement",
+    "created_at": "2023-01-11T12:00:00Z",
+    "updated_at": "2023-01-11T12:00:00Z"
+  }
+}, {
+  "model": "pos.SaleItem",
+  "pk": "63000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "63000000-0000-0000-0000-000000000004",
+    "sale": "62000000-0000-0000-0000-000000000003",
+    "product": "44000000-0000-0000-0000-000000000003",
+    "product_name": "USB Type-C Charging Cable",
+    "product_code": "CHG-CABLE-001",
+    "quantity": 1.000,
+    "unit_price": 15.00,
+    "total_price": 15.00,
+    "discount": 0.00,
+    "tax_amount": 1.50,
+    "notes": "USB cable sale",
+    "created_at": "2023-01-10T14:00:00Z",
+    "updated_at": "2023-01-10T14:00:00Z"
+  }
+}]

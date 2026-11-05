@@ -1,0 +1,121 @@
+[{
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000001",
+    "name": "Received",
+    "code": "received",
+    "description": "Device has been received and logged into the system",
+    "color": "#FF6B6B",
+    "is_initial": true,
+    "is_final": false,
+    "sequence": 1,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000002",
+    "name": "Diagnosed",
+    "code": "diagnosed",
+    "description": "Initial diagnosis has been completed",
+    "color": "#FFA500",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 2,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000003",
+    "name": "In Progress",
+    "code": "in_progress",
+    "description": "Repair work is currently being performed",
+    "color": "#4ECDC4",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 3,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000004",
+    "name": "Waiting for Parts",
+    "code": "waiting_parts",
+    "description": "Repair is on hold waiting for parts to arrive",
+    "color": "#FFE66D",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 4,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000005",
+    "name": "Quality Check",
+    "code": "quality_check",
+    "description": "Repair is complete and undergoing quality control",
+    "color": "#A8E6CF",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 5,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000006",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000006",
+    "name": "Completed",
+    "code": "completed",
+    "description": "Repair work has been completed successfully",
+    "color": "#2ECC71",
+    "is_initial": false,
+    "is_final": true,
+    "sequence": 6,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000007",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000007",
+    "name": "Delivered",
+    "code": "delivered",
+    "description": "Device has been delivered to the customer",
+    "color": "#9B59B6",
+    "is_initial": false,
+    "is_final": true,
+    "sequence": 7,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairStatus",
+  "pk": "30000000-0000-0000-0000-000000000008",
+  "fields": {
+    "uuid": "30000000-0000-0000-0000-000000000008",
+    "name": "Cancelled",
+    "code": "cancelled",
+    "description": "Repair order has been cancelled",
+    "color": "#999999",
+    "is_initial": false,
+    "is_final": true,
+    "sequence": 8,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

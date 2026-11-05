@@ -1,0 +1,43 @@
+[{
+  "model": "financial.InvoiceType",
+  "pk": "81000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "81000000-0000-0000-0000-000000000001",
+    "name": "Repair Invoice",
+    "code": "REPAIR",
+    "description": "Invoice for repair services",
+    "prefix": "REP-INV",
+    "sequence_format": "{year}{month}{sequence:04d}",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceType",
+  "pk": "81000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "81000000-0000-0000-0000-000000000002",
+    "name": "Product Invoice",
+    "code": "PRODUCT",
+    "description": "Invoice for product sales",
+    "prefix": "PROD-INV",
+    "sequence_format": "{year}{month}{sequence:04d}",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceType",
+  "pk": "81000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "81000000-0000-0000-0000-000000000003",
+    "name": "Service Invoice",
+    "code": "SERVICE",
+    "description": "Invoice for services",
+    "prefix": "SVC-INV",
+    "sequence_format": "{year}{month}{sequence:04d}",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

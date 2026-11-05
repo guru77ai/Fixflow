@@ -1,0 +1,76 @@
+[{
+  "model": "repair.RepairCategory",
+  "pk": "32000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "32000000-0000-0000-0000-000000000001",
+    "name": "Hardware",
+    "code": "HARDWARE",
+    "description": "Physical hardware repairs and replacements",
+    "parent": null,
+    "icon": "hardware",
+    "color": "#3498DB",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairCategory",
+  "pk": "32000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "32000000-0000-0000-0000-000000000002",
+    "name": "Software",
+    "code": "SOFTWARE",
+    "description": "Software-related issues and fixes",
+    "parent": null,
+    "icon": "software",
+    "color": "#9B59B6",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairCategory",
+  "pk": "32000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "32000000-0000-0000-0000-000000000003",
+    "name": "Diagnostic",
+    "code": "DIAGNOSTIC",
+    "description": "Diagnostic and troubleshooting services",
+    "parent": null,
+    "icon": "diagnostic",
+    "color": "#F39C12",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairCategory",
+  "pk": "32000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "32000000-0000-0000-0000-000000000004",
+    "name": "Maintenance",
+    "code": "MAINTENANCE",
+    "description": "Preventive maintenance and cleaning",
+    "parent": null,
+    "icon": "maintenance",
+    "color": "#27AE60",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairCategory",
+  "pk": "32000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "32000000-0000-0000-0000-000000000005",
+    "name": "Screen",
+    "code": "SCREEN",
+    "description": "Screen-related repairs",
+    "parent": "32000000-0000-0000-0000-000000000001",
+    "icon": "screen",
+    "color": "#1ABC9C",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

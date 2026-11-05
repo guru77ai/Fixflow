@@ -1,0 +1,91 @@
+[{
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000001",
+    "name": "Screen Replacement",
+    "code": "SCREEN_REPLACE",
+    "category": "32000000-0000-0000-0000-000000000005",
+    "description": "Replace broken or damaged screen",
+    "estimated_cost": 150.00,
+    "estimated_duration": 90,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000002",
+    "name": "Battery Replacement",
+    "code": "BATTERY_REPLACE",
+    "category": "32000000-0000-0000-0000-000000000001",
+    "description": "Replace old or faulty battery",
+    "estimated_cost": 80.00,
+    "estimated_duration": 45,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000003",
+    "name": "Software Update",
+    "code": "SOFTWARE_UPDATE",
+    "category": "32000000-0000-0000-0000-000000000002",
+    "description": "Update device software to latest version",
+    "estimated_cost": 30.00,
+    "estimated_duration": 30,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000004",
+    "name": "Charging Port Repair",
+    "code": "CHARGING_PORT",
+    "category": "32000000-0000-0000-0000-000000000001",
+    "description": "Repair or replace damaged charging port",
+    "estimated_cost": 60.00,
+    "estimated_duration": 60,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000005",
+    "name": "Data Recovery",
+    "code": "DATA_RECOVERY",
+    "category": "32000000-0000-0000-0000-000000000002",
+    "description": "Recover lost or deleted data from device",
+    "estimated_cost": 200.00,
+    "estimated_duration": 120,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "repair.RepairType",
+  "pk": "33000000-0000-0000-0000-000000000006",
+  "fields": {
+    "uuid": "33000000-0000-0000-0000-000000000006",
+    "name": "Device Cleaning",
+    "code": "DEVICE_CLEANING",
+    "category": "32000000-0000-0000-0000-000000000004",
+    "description": "Clean device interior and exterior",
+    "estimated_cost": 25.00,
+    "estimated_duration": 30,
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

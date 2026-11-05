@@ -1,0 +1,49 @@
+[{
+  "model": "inventory.UnitOfMeasure",
+  "pk": "43000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "43000000-0000-0000-0000-000000000001",
+    "name": "Piece",
+    "code": "PCS",
+    "description": "Individual piece/unit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.UnitOfMeasure",
+  "pk": "43000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "43000000-0000-0000-0000-000000000002",
+    "name": "Box",
+    "code": "BOX",
+    "description": "Box containing multiple pieces",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.UnitOfMeasure",
+  "pk": "43000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "43000000-0000-0000-0000-000000000003",
+    "name": "Meter",
+    "code": "M",
+    "description": "Length in meters",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.UnitOfMeasure",
+  "pk": "43000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "43000000-0000-0000-0000-000000000004",
+    "name": "Liter",
+    "code": "L",
+    "description": "Volume in liters",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

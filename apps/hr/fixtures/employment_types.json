@@ -1,0 +1,49 @@
+[{
+  "model": "hr.EmploymentType",
+  "pk": "92000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "92000000-0000-0000-0000-000000000001",
+    "name": "Full-time",
+    "code": "FULL_TIME",
+    "description": "Full-time employment",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.EmploymentType",
+  "pk": "92000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "92000000-0000-0000-0000-000000000002",
+    "name": "Part-time",
+    "code": "PART_TIME",
+    "description": "Part-time employment",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.EmploymentType",
+  "pk": "92000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "92000000-0000-0000-0000-000000000003",
+    "name": "Contract",
+    "code": "CONTRACT",
+    "description": "Contract-based employment",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.EmploymentType",
+  "pk": "92000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "92000000-0000-0000-0000-000000000004",
+    "name": "Intern",
+    "code": "INTERN",
+    "description": "Internship employment",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Warehouses" %}{% endblock %}
+{% block page_header %}{% trans "Warehouses" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Warehouses" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:warehouse_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> {% trans "Add Warehouse" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="warehouseTable">
+                            <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Code" %}</th><th>{% trans "Address" %}</th><th>{% trans "Phone" %}</th><th>{% trans "Active" %}</th><th>{% trans "Actions" %}</th></tr></thead>
+                            <tbody>{% for warehouse in object_list %}<tr><td>{{ warehouse.name }}</td><td>{{ warehouse.code }}</td><td>{{ warehouse.address }}</td><td>{{ warehouse.phone }}</td><td>{% if warehouse.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</td><td><a href="{% url 'inventory:warehouse_update' warehouse.uuid %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a><a href="{% url 'inventory:warehouse_delete' warehouse.uuid %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a></td></tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>$(document).ready(function() { $('#warehouseTable').DataTable({responsive: true, autoWidth: false}); });</script>
+{% endblock %}

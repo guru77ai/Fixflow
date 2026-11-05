@@ -1,0 +1,57 @@
+[{
+  "model": "inventory.ProductBrand",
+  "pk": "42000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "42000000-0000-0000-0000-000000000001",
+    "name": "Generic",
+    "code": "GENERIC",
+    "logo": "",
+    "website": "",
+    "description": "Generic brand for non-branded parts",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductBrand",
+  "pk": "42000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "42000000-0000-0000-0000-000000000002",
+    "name": "Samsung",
+    "code": "SAMSUNG",
+    "logo": "",
+    "website": "https://www.samsung.com",
+    "description": "Samsung original parts",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductBrand",
+  "pk": "42000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "42000000-0000-0000-0000-000000000003",
+    "name": "Apple",
+    "code": "APPLE",
+    "logo": "",
+    "website": "https://www.apple.com",
+    "description": "Apple original parts",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductBrand",
+  "pk": "42000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "42000000-0000-0000-0000-000000000004",
+    "name": "Huawei",
+    "code": "HUAWEI",
+    "logo": "",
+    "website": "https://www.huawei.com",
+    "description": "Huawei original parts",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

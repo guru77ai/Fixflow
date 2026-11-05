@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Sales" %}{% endblock %}
+{% block page_header %}{% trans "Sales" %}{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Sales" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'pos:sale_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> {% trans "Add Sale" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="saleTable">
+                            <thead><tr><th>{% trans "Sale Number" %}</th><th>{% trans "Customer" %}</th><th>{% trans "Date" %}</th><th>{% trans "Total" %}</th><th>{% trans "Status" %}</th><th>{% trans "Actions" %}</th></tr></thead>
+                            <tbody>{% for sale in object_list %}<tr><td>{{ sale.sale_number }}</td><td>{{ sale.customer|default:"Walk-in" }}</td><td>{{ sale.created_at|date:"Y-m-d H:i" }}</td><td>{{ sale.total }}</td><td>{{ sale.get_status_display }}</td><td><a href="{% url 'pos:sale_detail' sale.uuid %}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a><a href="{% url 'pos:sale_delete' sale.uuid %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a></td></tr>{% endfor %}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>$(document).ready(function() { $('#saleTable').DataTable({responsive: true, autoWidth: false, order: [[2, 'desc']]}); });</script>
+{% endblock %}

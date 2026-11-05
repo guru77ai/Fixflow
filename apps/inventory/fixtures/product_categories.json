@@ -1,0 +1,86 @@
+[{
+  "model": "inventory.ProductCategory",
+  "pk": "41000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "41000000-0000-0000-0000-000000000001",
+    "name": "Parts",
+    "code": "PARTS",
+    "description": "Replacement parts for devices",
+    "parent": null,
+    "icon": "parts",
+    "color": "#3498DB",
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductCategory",
+  "pk": "41000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "41000000-0000-0000-0000-000000000002",
+    "name": "Accessories",
+    "code": "ACCESSORIES",
+    "description": "Device accessories",
+    "parent": null,
+    "icon": "accessories",
+    "color": "#9B59B6",
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductCategory",
+  "pk": "41000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "41000000-0000-0000-0000-000000000003",
+    "name": "Consumables",
+    "code": "CONSUMABLES",
+    "description": "Consumable items",
+    "parent": null,
+    "icon": "consumables",
+    "color": "#E74C3C",
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductCategory",
+  "pk": "41000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "41000000-0000-0000-0000-000000000004",
+    "name": "Screens",
+    "code": "SCREENS",
+    "description": "LCD and touch screens",
+    "parent": "41000000-0000-0000-0000-000000000001",
+    "icon": "screen",
+    "color": "#1ABC9C",
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.ProductCategory",
+  "pk": "41000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "41000000-0000-0000-0000-000000000005",
+    "name": "Batteries",
+    "code": "BATTERIES",
+    "description": "Batteries for various devices",
+    "parent": "41000000-0000-0000-0000-000000000001",
+    "icon": "battery",
+    "color": "#F39C12",
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

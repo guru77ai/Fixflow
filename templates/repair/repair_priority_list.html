@@ -1,0 +1,80 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Repair Priorities" %}{% endblock %}
+{% block page_header %}{% trans "Repair Priorities" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Repair Priorities" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'repair:repair_priority_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Priority" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="priorityTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Level" %}</th>
+                                    <th>{% trans "Color" %}</th>
+                                    <th>{% trans "Estimated Hours" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for priority in object_list %}
+                                <tr>
+                                    <td>{{ priority.name }}</td>
+                                    <td>{{ priority.code }}</td>
+                                    <td>{{ priority.level }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ priority.color }}; color: white;">
+                                            {{ priority.color }}
+                                        </span>
+                                    </td>
+                                    <td>{{ priority.estimated_hours }}</td>
+                                    <td>
+                                        <a href="{% url 'repair:repair_priority_update' priority.uuid %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'repair:repair_priority_delete' priority.uuid %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#priorityTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[2, 'desc']]
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+[{
+  "model": "inventory.Warehouse",
+  "pk": "40000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "40000000-0000-0000-0000-000000000001",
+    "name": "Main Warehouse",
+    "code": "MAIN_WH",
+    "address": "123 Main Street, Industrial Area",
+    "phone": "+213123456789",
+    "email": "warehouse@fixsoftrepair.com",
+    "manager": null,
+    "is_active": true,
+    "is_central": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.Warehouse",
+  "pk": "40000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "40000000-0000-0000-0000-000000000002",
+    "name": "Downtown Warehouse",
+    "code": "DTN_WH",
+    "address": "456 Downtown Ave, Commercial District",
+    "phone": "+213987654321",
+    "email": "downtown.warehouse@fixsoftrepair.com",
+    "manager": null,
+    "is_active": true,
+    "is_central": false,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000002",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "inventory.Warehouse",
+  "pk": "40000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "40000000-0000-0000-0000-000000000003",
+    "name": "Test Warehouse",
+    "code": "TEST_WH",
+    "address": "789 Test Street, Test City",
+    "phone": "+1234567890",
+    "email": "test.warehouse@test.com",
+    "manager": null,
+    "is_active": true,
+    "is_central": false,
+    "organization": "00000000-0000-0000-0000-000000000002",
+    "branch": "10000000-0000-0000-0000-000000000003",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

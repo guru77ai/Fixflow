@@ -1,0 +1,86 @@
+[{
+  "model": "hr.Position",
+  "pk": "91000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "91000000-0000-0000-0000-000000000001",
+    "name": "Technician",
+    "code": "TECHNICIAN",
+    "description": "Device repair technician",
+    "department": "90000000-0000-0000-0000-000000000001",
+    "level": 1,
+    "is_managerial": false,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.Position",
+  "pk": "91000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "91000000-0000-0000-0000-000000000002",
+    "name": "Senior Technician",
+    "code": "SENIOR_TECH",
+    "description": "Senior device repair technician",
+    "department": "90000000-0000-0000-0000-000000000001",
+    "level": 2,
+    "is_managerial": false,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.Position",
+  "pk": "91000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "91000000-0000-0000-0000-000000000003",
+    "name": "Sales Representative",
+    "code": "SALES_REP",
+    "description": "Sales and customer service representative",
+    "department": "90000000-0000-0000-0000-000000000002",
+    "level": 1,
+    "is_managerial": false,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.Position",
+  "pk": "91000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "91000000-0000-0000-0000-000000000004",
+    "name": "Inventory Manager",
+    "code": "INV_MGR",
+    "description": "Manages inventory and stock",
+    "department": "90000000-0000-0000-0000-000000000003",
+    "level": 2,
+    "is_managerial": true,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "hr.Position",
+  "pk": "91000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "91000000-0000-0000-0000-000000000005",
+    "name": "Accountant",
+    "code": "ACCOUNTANT",
+    "description": "Handles financial accounting",
+    "department": "90000000-0000-0000-0000-000000000004",
+    "level": 2,
+    "is_managerial": false,
+    "is_active": true,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

@@ -1,0 +1,66 @@
+[{
+  "model": "accounting.AccountType",
+  "pk": "70000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "70000000-0000-0000-0000-000000000001",
+    "name": "Asset",
+    "code": "ASSET",
+    "description": "Asset accounts",
+    "normal_balance": "debit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountType",
+  "pk": "70000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "70000000-0000-0000-0000-000000000002",
+    "name": "Liability",
+    "code": "LIABILITY",
+    "description": "Liability accounts",
+    "normal_balance": "credit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountType",
+  "pk": "70000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "70000000-0000-0000-0000-000000000003",
+    "name": "Equity",
+    "code": "EQUITY",
+    "description": "Equity accounts",
+    "normal_balance": "credit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountType",
+  "pk": "70000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "70000000-0000-0000-0000-000000000004",
+    "name": "Revenue",
+    "code": "REVENUE",
+    "description": "Revenue accounts",
+    "normal_balance": "credit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "accounting.AccountType",
+  "pk": "70000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "70000000-0000-0000-0000-000000000005",
+    "name": "Expense",
+    "code": "EXPENSE",
+    "description": "Expense accounts",
+    "normal_balance": "debit",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

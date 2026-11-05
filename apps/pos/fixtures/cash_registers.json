@@ -1,0 +1,55 @@
+[{
+  "model": "pos.CashRegister",
+  "pk": "61000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "61000000-0000-0000-0000-000000000001",
+    "name": "Register 1",
+    "code": "REG001",
+    "description": "Main cash register at front desk",
+    "is_active": true,
+    "is_open": false,
+    "current_balance": 0.00,
+    "initial_balance": 1000.00,
+    "daily_target": 5000.00,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.CashRegister",
+  "pk": "61000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "61000000-0000-0000-0000-000000000002",
+    "name": "Register 2",
+    "code": "REG002",
+    "description": "Secondary cash register for repair counter",
+    "is_active": true,
+    "is_open": false,
+    "current_balance": 0.00,
+    "initial_balance": 500.00,
+    "daily_target": 3000.00,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000001",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "pos.CashRegister",
+  "pk": "61000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "61000000-0000-0000-0000-000000000003",
+    "name": "Downtown Register",
+    "code": "REG003",
+    "description": "Cash register at downtown branch",
+    "is_active": true,
+    "is_open": false,
+    "current_balance": 0.00,
+    "initial_balance": 800.00,
+    "daily_target": 4000.00,
+    "organization": "00000000-0000-0000-0000-000000000001",
+    "branch": "10000000-0000-0000-0000-000000000002",
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]

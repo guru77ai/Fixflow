@@ -1,0 +1,88 @@
+{% extends "base/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Repair Categories" %}{% endblock %}
+{% block page_header %}{% trans "Repair Categories" %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Repair Categories" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'repair:repair_category_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Add Category" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="categoryTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Code" %}</th>
+                                    <th>{% trans "Parent" %}</th>
+                                    <th>{% trans "Icon" %}</th>
+                                    <th>{% trans "Color" %}</th>
+                                    <th>{% trans "Active" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for category in object_list %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>{{ category.code }}</td>
+                                    <td>{{ category.parent|default:"-" }}</td>
+                                    <td>{{ category.icon|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                                            {{ category.color }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if category.is_active %}
+                                        <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'repair:repair_category_update' category.uuid %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'repair:repair_category_delete' category.uuid %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#categoryTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'asc']]
+    });
+});
+</script>
+{% endblock %}

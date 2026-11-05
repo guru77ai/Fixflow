@@ -1,0 +1,76 @@
+[{
+  "model": "financial.InvoiceStatus",
+  "pk": "80000000-0000-0000-0000-000000000001",
+  "fields": {
+    "uuid": "80000000-0000-0000-0000-000000000001",
+    "name": "Draft",
+    "code": "draft",
+    "description": "Invoice is being prepared",
+    "color": "#999999",
+    "is_initial": true,
+    "is_final": false,
+    "sequence": 1,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceStatus",
+  "pk": "80000000-0000-0000-0000-000000000002",
+  "fields": {
+    "uuid": "80000000-0000-0000-0000-000000000002",
+    "name": "Sent",
+    "code": "sent",
+    "description": "Invoice has been sent to customer",
+    "color": "#3498DB",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 2,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceStatus",
+  "pk": "80000000-0000-0000-0000-000000000003",
+  "fields": {
+    "uuid": "80000000-0000-0000-0000-000000000003",
+    "name": "Paid",
+    "code": "paid",
+    "description": "Invoice has been fully paid",
+    "color": "#2ECC71",
+    "is_initial": false,
+    "is_final": true,
+    "sequence": 3,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceStatus",
+  "pk": "80000000-0000-0000-0000-000000000004",
+  "fields": {
+    "uuid": "80000000-0000-0000-0000-000000000004",
+    "name": "Partial",
+    "code": "partial",
+    "description": "Invoice has been partially paid",
+    "color": "#F39C12",
+    "is_initial": false,
+    "is_final": false,
+    "sequence": 4,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}, {
+  "model": "financial.InvoiceStatus",
+  "pk": "80000000-0000-0000-0000-000000000005",
+  "fields": {
+    "uuid": "80000000-0000-0000-0000-000000000005",
+    "name": "Cancelled",
+    "code": "cancelled",
+    "description": "Invoice has been cancelled",
+    "color": "#E74C3C",
+    "is_initial": false,
+    "is_final": true,
+    "sequence": 5,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}]
