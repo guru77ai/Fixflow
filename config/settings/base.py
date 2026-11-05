@@ -6,7 +6,7 @@ from pathlib import Path
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-change-this-in-production-to-a-strong-secret-key')
@@ -121,7 +121,7 @@ DATABASES = {
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+# https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/#password-validation
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -294,7 +294,6 @@ LOGGING = {
 }
 
 # Create logs directory
-import os
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Audit log settings
