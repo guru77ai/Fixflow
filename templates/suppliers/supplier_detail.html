@@ -1,0 +1,62 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Supplier" %} {{ object.name }}{% endblock %}
+{% block page_header %}{% trans "Supplier" %} {{ object.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Supplier Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Basic Information" %}</h4>
+                            <p><strong>{% trans "Supplier Number" %}:</strong> {{ object.supplier_number }}</p>
+                            <p><strong>{% trans "Name" %}:</strong> {{ object.name }}</p>
+                            <p><strong>{% trans "Code" %}:</strong> {{ object.code }}</p>
+                            <p><strong>{% trans "Category" %}:</strong> {{ object.category|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Contact Information" %}</h4>
+                            <p><strong>{% trans "Phone" %}:</strong> {{ object.phone }}</p>
+                            <p><strong>{% trans "Mobile" %}:</strong> {{ object.mobile|default:"-" }}</p>
+                            <p><strong>{% trans "Email" %}:</strong> {{ object.email }}</p>
+                            <p><strong>{% trans "Website" %}:</strong> {{ object.website|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Address" %}</h4>
+                            <p>{{ object.address }}, {{ object.city }}, {{ object.state }} {{ object.postal_code }}, {{ object.country }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>{% trans "Financial Information" %}</h4>
+                            <p><strong>{% trans "Payment Terms" %}:</strong> {{ object.payment_terms }}</p>
+                            <p><strong>{% trans "Credit Limit" %}:</strong> {{ object.credit_limit }}</p>
+                            <p><strong>{% trans "Currency" %}:</strong> {{ object.currency }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Status" %}</h4>
+                            <p><strong>{% trans "Active" %}:</strong> {% if object.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+                            <p><strong>{% trans "Approved" %}:</strong> {% if object.is_approved %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</p>
+                            <p><strong>{% trans "Rating" %}:</strong> {{ object.rating }}/5</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'suppliers:supplier_update' object.uuid %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'suppliers:supplier_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

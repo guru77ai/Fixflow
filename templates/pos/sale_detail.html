@@ -1,0 +1,86 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sale" %} {{ object.sale_number }}{% endblock %}
+{% block page_header %}{% trans "Sale" %} {{ object.sale_number }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Sale Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'pos:sale_list' %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Sale Information" %}</h4>
+                            <p><strong>{% trans "Sale Number" %}:</strong> {{ object.sale_number }}</p>
+                            <p><strong>{% trans "Date" %}:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>{% trans "Status" %}:</strong> {{ object.get_status_display }}</p>
+                            <p><strong>{% trans "Sale Type" %}:</strong> {{ object.get_sale_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Customer Information" %}</h4>
+                            <p><strong>{% trans "Customer" %}:</strong> {{ object.customer|default:"Walk-in" }}</p>
+                            <p><strong>{% trans "Cash Register" %}:</strong> {{ object.cash_register|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>{% trans "Financial Summary" %}</h4>
+                            <p><strong>{% trans "Subtotal" %}:</strong> {{ object.subtotal }}</p>
+                            <p><strong>{% trans "Tax" %}:</strong> {{ object.tax_amount }}</p>
+                            <p><strong>{% trans "Discount" %}:</strong> {{ object.discount }}</p>
+                            <p><strong>{% trans "Total" %}:</strong> {{ object.total }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Payment Information" %}</h4>
+                            <p><strong>{% trans "Amount Paid" %}:</strong> {{ object.amount_paid }}</p>
+                            <p><strong>{% trans "Balance" %}:</strong> {{ object.balance }}</p>
+                            <p><strong>{% trans "Payment Status" %}:</strong> {{ object.get_payment_status_display }}</p>
+                            <p><strong>{% trans "Payment Method" %}:</strong> {{ object.payment_method|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Items" %}</h4>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Product" %}</th>
+                                        <th>{% trans "Quantity" %}</th>
+                                        <th>{% trans "Unit Price" %}</th>
+                                        <th>{% trans "Total" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in object.items.all %}
+                                    <tr>
+                                        <td>{{ item.product_name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{{ item.unit_price }}</td>
+                                        <td>{{ item.total_price }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Notes" %}</h4>
+                            <p>{{ object.notes|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'pos:sale_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

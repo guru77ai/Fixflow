@@ -1,0 +1,64 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Product" %} {{ object.name }}{% endblock %}
+{% block page_header %}{% trans "Product" %} {{ object.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Product Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:product_list' %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Basic Information" %}</h4>
+                            <p><strong>{% trans "Code" %}:</strong> {{ object.code }}</p>
+                            <p><strong>{% trans "SKU" %}:</strong> {{ object.sku|default:"-" }}</p>
+                            <p><strong>{% trans "Barcode" %}:</strong> {{ object.barcode|default:"-" }}</p>
+                            <p><strong>{% trans "Name" %}:</strong> {{ object.name }}</p>
+                            <p><strong>{% trans "Product Type" %}:</strong> {{ object.get_product_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Classification" %}</h4>
+                            <p><strong>{% trans "Category" %}:</strong> {{ object.category|default:"-" }}</p>
+                            <p><strong>{% trans "Brand" %}:</strong> {{ object.brand|default:"-" }}</p>
+                            <p><strong>{% trans "Unit" %}:</strong> {{ object.unit|default:"-" }}</p>
+                            <p><strong>{% trans "Stock Type" %}:</strong> {{ object.get_stock_type_display }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>{% trans "Stock Information" %}</h4>
+                            <p><strong>{% trans "Current Stock" %}:</strong> {{ object.current_stock }}</p>
+                            <p><strong>{% trans "Minimum Stock" %}:</strong> {{ object.minimum_stock }}</p>
+                            <p><strong>{% trans "Maximum Stock" %}:</strong> {{ object.maximum_stock }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Pricing" %}</h4>
+                            <p><strong>{% trans "Purchase Price" %}:</strong> {{ object.purchase_price }}</p>
+                            <p><strong>{% trans "Selling Price" %}:</strong> {{ object.selling_price }}</p>
+                            <p><strong>{% trans "Wholesale Price" %}:</strong> {{ object.wholesale_price|default:"-" }}</p>
+                            <p><strong>{% trans "Cost Price" %}:</strong> {{ object.cost_price }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Description" %}</h4>
+                            <p>{{ object.description|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'inventory:product_update' object.uuid %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'inventory:product_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

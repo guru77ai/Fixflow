@@ -1,0 +1,46 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% if object %}{% trans "Edit Sale" %}{% else %}{% trans "Add Sale" %}{% endif %}{% endblock %}
+{% block page_header %}{% if object %}{% trans "Edit Sale" %}{% else %}{% trans "Add Sale" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% if object %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %} {% trans "Sale" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'pos:sale_list' %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">{{ form.sale_number|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.customer|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.cash_register|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">{{ form.sale_type|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.status|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.payment_method|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">{{ form.subtotal|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.tax_amount|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.discount|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">{{ form.notes|as_crispy_field }}</div>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {% trans "Save" %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
