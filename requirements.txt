@@ -1,6 +1,8 @@
 # Django and Framework
 Django>=5.2,<5.3
 djangorestframework>=3.15.0
+djangorestframework-simplejwt>=5.0.0
+django-filter>=24.0.0
 
 # Database
 # SQLite is built-in, but we'll use django-db-geventpool for connection pooling
