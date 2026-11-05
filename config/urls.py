@@ -51,6 +51,9 @@ urlpatterns += [
         path('inventory/', include('apps.inventory.urls')),
         path('suppliers/', include('apps.suppliers.urls')),
         path('pos/', include('apps.pos.urls')),
+        path('financial/', include('apps.financial.urls')),
+        path('accounting/', include('apps.accounting.urls')),
+        path('hr/', include('apps.hr.urls')),
     ])),
 ]
 
@@ -61,6 +64,9 @@ urlpatterns += [
     path('inventory/', include('apps.inventory.urls')),
     path('suppliers/', include('apps.suppliers.urls')),
     path('pos/', include('apps.pos.urls')),
+    path('financial/', include('apps.financial.urls')),
+    path('accounting/', include('apps.accounting.urls')),
+    path('hr/', include('apps.hr.urls')),
 ]
 
 # Frontend URLs
