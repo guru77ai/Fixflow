@@ -12,22 +12,22 @@ from .models import (
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('customer_number', 'full_name', 'email', 'phone', 'status', 'is_vip', 'created_at')
-    list_filter = ('status', 'is_vip', 'is_wholesale', 'customer_type', 'source', 'group', 'organization', 'branch')
-    search_fields = ('customer_number', 'first_name', 'last_name', 'email', 'phone', 'tax_id')
+    list_display = ('code', 'full_name', 'email', 'phone', 'status', 'customer_group', 'created_at')
+    list_filter = ('status', 'customer_type', 'source', 'customer_group', 'organization', 'branch')
+    search_fields = ('code', 'first_name', 'last_name', 'email', 'phone', 'tax_id')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
         (_('Basic Information'), {
-            'fields': ('customer_number', 'first_name', 'last_name', 'email', 'phone', 'mobile')
+            'fields': ('code', 'first_name', 'last_name', 'email', 'phone', 'mobile')
         }),
         (_('Classification'), {
-            'fields': ('customer_type', 'source', 'group', 'is_vip', 'is_wholesale')
+            'fields': ('customer_type', 'source', 'customer_group')
         }),
         (_('Address'), {
-            'fields': ('address', 'city', 'state', 'postal_code', 'country')
+            'fields': ('address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country')
         }),
         (_('Additional Info'), {
-            'fields': ('tax_id', 'notes', 'avatar')
+            'fields': ('tax_id', 'notes', 'profile_image')
         }),
         (_('Metadata'), {
             'fields': ('status', 'uuid', 'created_at', 'updated_at')
@@ -38,31 +38,31 @@ class CustomerAdmin(admin.ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ('device_number', 'name', 'device_type', 'customer', 'brand', 'model', 'serial_number', 'status')
-    list_filter = ('status', 'device_type', 'category', 'brand', 'model', 'warranty_status', 'organization', 'branch')
-    search_fields = ('device_number', 'name', 'serial_number', 'imei', 'customer__first_name', 'customer__last_name')
+    list_display = ('name', 'customer', 'brand', 'model', 'serial_number', 'status')
+    list_filter = ('status', 'category', 'brand', 'model', 'organization', 'branch')
+    search_fields = ('name', 'serial_number', 'imei_1', 'imei_2', 'customer__first_name', 'customer__last_name')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
         (_('Basic Information'), {
-            'fields': ('device_number', 'name', 'device_type', 'category')
+            'fields': ('name', 'category')
         }),
         (_('Manufacturer Info'), {
             'fields': ('brand', 'model')
         }),
         (_('Identification'), {
-            'fields': ('serial_number', 'imei')
+            'fields': ('serial_number', 'imei_1', 'imei_2', 'mac_address')
         }),
         (_('Specifications'), {
-            'fields': ('color', 'storage', 'os_version', 'description', 'accessories')
+            'fields': ('color', 'storage', 'ram', 'os_version')
         }),
         (_('Ownership'), {
-            'fields': ('customer', 'purchase_date')
+            'fields': ('customer', 'purchase_date', 'purchase_price')
         }),
         (_('Warranty'), {
-            'fields': ('warranty_status', 'warranty_expiry', 'warranty_provider')
+            'fields': ('warranty_expiry',)
         }),
         (_('Metadata'), {
-            'fields': ('status', 'notes', 'uuid', 'created_at', 'updated_at')
+            'fields': ('status', 'is_active', 'notes', 'uuid', 'created_at', 'updated_at')
         }),
     )
     raw_id_fields = ('customer', 'organization', 'branch')
@@ -70,7 +70,7 @@ class DeviceAdmin(admin.ModelAdmin):
 
 @admin.register(CustomerType)
 class CustomerTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
@@ -79,14 +79,14 @@ class CustomerTypeAdmin(admin.ModelAdmin):
             'fields': ('name', 'code', 'description')
         }),
         (_('Settings'), {
-            'fields': ('sequence', 'is_active', 'uuid')
+            'fields': ('is_active', 'color', 'uuid')
         }),
     )
 
 
 @admin.register(CustomerSource)
 class CustomerSourceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
@@ -102,7 +102,7 @@ class CustomerGroupAdmin(admin.ModelAdmin):
 
 @admin.register(DeviceBrand)
 class DeviceBrandAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'website', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'website', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name', 'code', 'description', 'website')
     readonly_fields = ('uuid',)
@@ -111,40 +111,40 @@ class DeviceBrandAdmin(admin.ModelAdmin):
             'fields': ('name', 'code', 'description', 'website', 'logo')
         }),
         (_('Settings'), {
-            'fields': ('sequence', 'is_active', 'uuid')
+            'fields': ('is_active', 'uuid')
         }),
     )
 
 
 @admin.register(DeviceModel)
 class DeviceModelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'brand', 'category', 'is_active')
-    list_filter = ('brand', 'category', 'is_active')
-    search_fields = ('name', 'code', 'description')
+    list_display = ('name', 'code', 'brand', 'is_active')
+    list_filter = ('brand', 'is_active')
+    search_fields = ('name', 'code')
     readonly_fields = ('uuid',)
 
 
 @admin.register(DeviceCategory)
 class DeviceCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'is_active')
-    list_filter = ('parent', 'is_active')
+    list_display = ('name', 'code', 'is_active')
+    list_filter = ('is_active',)
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
 
 
 @admin.register(CustomerCommunication)
 class CustomerCommunicationAdmin(admin.ModelAdmin):
-    list_display = ('customer', 'communication_type', 'subject', 'communication_date', 'created_by')
-    list_filter = ('communication_type', 'communication_date', 'created_by')
+    list_display = ('customer', 'communication_type', 'subject', 'created_at')
+    list_filter = ('communication_type', 'direction', 'status', 'organization', 'branch')
     search_fields = ('customer__first_name', 'customer__last_name', 'subject', 'message')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('customer', 'created_by')
+    raw_id_fields = ('customer', 'assigned_to')
 
 
 @admin.register(CustomerDocument)
 class CustomerDocumentAdmin(admin.ModelAdmin):
-    list_display = ('customer', 'name', 'document_type', 'uploaded_at')
-    list_filter = ('document_type', 'uploaded_at')
-    search_fields = ('customer__first_name', 'customer__last_name', 'name', 'description')
-    readonly_fields = ('uploaded_at', 'uuid')
-    raw_id_fields = ('customer', 'uploaded_by')
+    list_display = ('customer', 'title', 'document_type', 'created_at')
+    list_filter = ('document_type', 'is_verified', 'organization', 'branch')
+    search_fields = ('customer__first_name', 'customer__last_name', 'title', 'description')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
+    raw_id_fields = ('customer',)

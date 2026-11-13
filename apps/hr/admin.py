@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from .models import (
     Department, Position, EmploymentType, Employee, Attendance,
     LeaveType, LeaveRequest, LeaveBalance, Payroll, Overtime,
-    Commission, Holiday, Shift, EmployeeDocument
+    Commission, EmployeeDocument
 )
 
 
@@ -44,7 +44,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
         (_('Personal Information'), {
-            'fields': ('employee_number', 'first_name', 'last_name', 'date_of_birth', 'gender', 'avatar')
+            'fields': ('employee_number', 'first_name', 'last_name', 'date_of_birth', 'gender', 'profile_image')
         }),
         (_('Contact Information'), {
             'fields': ('email', 'phone', 'mobile', 'emergency_contact')
@@ -56,7 +56,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             'fields': ('position', 'department', 'employment_type', 'manager', 'hire_date', 'termination_date', 'status')
         }),
         (_('Compensation'), {
-            'fields': ('base_salary', 'hourly_rate', 'currency')
+            'fields': ('base_salary', 'hourly_rate')
         }),
         (_('Identification'), {
             'fields': ('national_id', 'tax_id', 'social_security_number')
@@ -65,7 +65,7 @@ class EmployeeAdmin(admin.ModelAdmin):
             'fields': ('bank_name', 'bank_account_number')
         }),
         (_('Status & Notes'), {
-            'fields': ('is_active', 'notes', 'tags')
+            'fields': ('is_active', 'notes')
         }),
         (_('Metadata'), {
             'fields': ('uuid', 'created_at', 'updated_at')
@@ -80,7 +80,7 @@ class AttendanceAdmin(admin.ModelAdmin):
     list_filter = ('employee', 'date', 'status', 'organization', 'branch')
     search_fields = ('employee__first_name', 'employee__last_name', 'notes')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('employee', 'approved_by', 'organization', 'branch')
+    raw_id_fields = ('employee', 'organization', 'branch')
 
 
 @admin.register(LeaveType)
@@ -130,10 +130,10 @@ class PayrollAdmin(admin.ModelAdmin):
             'fields': ('payroll_number', 'period_start', 'period_end')
         }),
         (_('Financial Summary'), {
-            'fields': ('total_gross', 'total_deductions', 'total_net', 'currency')
+            'fields': ('total_gross', 'total_deductions', 'total_net')
         }),
         (_('Payment'), {
-            'fields': ('payment_date', 'payment_method')
+            'fields': ('payment_date',)
         }),
         (_('Status & Approval'), {
             'fields': ('status', 'created_by', 'approved_by', 'paid_by')
@@ -142,12 +142,12 @@ class PayrollAdmin(admin.ModelAdmin):
             'fields': ('notes', 'uuid', 'created_at', 'updated_at')
         }),
     )
-    raw_id_fields = ('payment_method', 'created_by', 'approved_by', 'paid_by', 'organization', 'branch')
+    raw_id_fields = ('created_by', 'approved_by', 'paid_by', 'organization', 'branch')
 
 
 @admin.register(Overtime)
 class OvertimeAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'date', 'hours', 'rate', 'is_approved', 'is_paid')
+    list_display = ('employee', 'date', 'hours', 'rate', 'amount', 'is_approved', 'is_paid')
     list_filter = ('employee', 'date', 'is_approved', 'is_paid', 'organization', 'branch')
     search_fields = ('employee__first_name', 'employee__last_name', 'notes')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
@@ -163,26 +163,10 @@ class CommissionAdmin(admin.ModelAdmin):
     raw_id_fields = ('employee', 'organization', 'branch')
 
 
-@admin.register(Holiday)
-class HolidayAdmin(admin.ModelAdmin):
-    list_display = ('name', 'holiday_date', 'type', 'is_recurring', 'is_active')
-    list_filter = ('type', 'is_recurring', 'is_active')
-    search_fields = ('name', 'description')
-    readonly_fields = ('uuid',)
-
-
-@admin.register(Shift)
-class ShiftAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'start_time', 'end_time', 'is_active')
-    list_filter = ('is_active')
-    search_fields = ('name', 'code', 'description')
-    readonly_fields = ('uuid',)
-
-
 @admin.register(EmployeeDocument)
 class EmployeeDocumentAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'name', 'document_type', 'uploaded_at')
-    list_filter = ('document_type', 'uploaded_at')
-    search_fields = ('employee__first_name', 'employee__last_name', 'name', 'description')
-    readonly_fields = ('uploaded_at', 'uuid')
-    raw_id_fields = ('employee', 'uploaded_by', 'organization', 'branch')
+    list_display = ('employee', 'title', 'document_type', 'created_at')
+    list_filter = ('document_type', 'is_verified')
+    search_fields = ('employee__first_name', 'employee__last_name', 'title', 'description')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
+    raw_id_fields = ('employee',)

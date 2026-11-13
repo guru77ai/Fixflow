@@ -5,8 +5,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from .models import (
     InvoiceStatus, InvoiceType, Invoice, InvoiceItem, InvoicePayment,
-    Payment, PaymentMethod, Expense, ExpenseCategory, TaxRate,
-    BudgetCategory, Budget, Currency
+    Payment, Expense, ExpenseCategory, ExpenseAttachment, FinancialReport
 )
 
 
@@ -59,16 +58,16 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 @admin.register(InvoiceItem)
 class InvoiceItemAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'description', 'quantity', 'unit_price', 'tax_amount', 'total')
+    list_display = ('invoice', 'description', 'quantity', 'unit_price', 'tax_amount', 'total_price')
     list_filter = ('invoice',)
     readonly_fields = ('uuid',)
-    raw_id_fields = ('invoice', 'product', 'service', 'tax_rate')
+    raw_id_fields = ('invoice', 'product', 'service')
 
 
 @admin.register(InvoicePayment)
 class InvoicePaymentAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'payment_method', 'amount', 'payment_date', 'reference')
-    list_filter = ('invoice', 'payment_method', 'payment_date')
+    list_display = ('invoice', 'amount', 'payment_date', 'reference')
+    list_filter = ('invoice', 'payment_date')
     readonly_fields = ('created_at', 'uuid')
     raw_id_fields = ('invoice', 'payment_method', 'processed_by')
 
@@ -76,7 +75,7 @@ class InvoicePaymentAdmin(admin.ModelAdmin):
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('payment_number', 'payment_type', 'amount', 'customer', 'supplier', 'payment_date')
-    list_filter = ('payment_type', 'payment_method', 'status', 'customer', 'supplier', 'payment_date', 'organization', 'branch')
+    list_filter = ('payment_type', 'status', 'customer', 'supplier', 'payment_date', 'organization', 'branch')
     search_fields = ('payment_number', 'reference', 'related_to')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
@@ -96,22 +95,13 @@ class PaymentAdmin(admin.ModelAdmin):
             'fields': ('notes', 'uuid', 'created_at', 'updated_at')
         }),
     )
-    raw_id_fields = ('payment_method', 'customer', 'supplier', 'processed_by', 'approved_by', 'organization', 'branch')
-
-
-@admin.register(PaymentMethod)
-class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'type', 'account', 'is_active')
-    list_filter = ('type', 'is_active')
-    search_fields = ('name', 'code', 'description')
-    readonly_fields = ('uuid',)
-    raw_id_fields = ('account',)
+    raw_id_fields = ('customer', 'supplier', 'payment_method', 'processed_by', 'approved_by', 'organization', 'branch')
 
 
 @admin.register(Expense)
 class ExpenseAdmin(admin.ModelAdmin):
     list_display = ('expense_number', 'category', 'title', 'amount', 'expense_date', 'status')
-    list_filter = ('category', 'status', 'payment_method', 'supplier', 'expense_date', 'paid_date', 'organization', 'branch')
+    list_filter = ('category', 'status', 'supplier', 'expense_date', 'paid_date', 'organization', 'branch')
     search_fields = ('expense_number', 'title', 'description', 'supplier__name')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
@@ -119,10 +109,10 @@ class ExpenseAdmin(admin.ModelAdmin):
             'fields': ('expense_number', 'category', 'title', 'description')
         }),
         (_('Financial'), {
-            'fields': ('amount', 'tax_amount', 'total_amount', 'currency')
+            'fields': ('amount', 'tax_amount', 'total_amount', 'currency', 'payment_method')
         }),
         (_('Payment'), {
-            'fields': ('payment_method', 'payment_reference', 'expense_date', 'paid_date')
+            'fields': ('payment_reference', 'expense_date', 'paid_date')
         }),
         (_('Supplier'), {
             'fields': ('supplier',)
@@ -131,48 +121,34 @@ class ExpenseAdmin(admin.ModelAdmin):
             'fields': ('status', 'submitted_by', 'approved_by', 'paid_by')
         }),
         (_('Metadata'), {
-            'fields': ('receipt_attached', 'notes', 'uuid', 'created_at', 'updated_at')
+            'fields': ('receipt_attached', 'receipt_file', 'notes', 'uuid', 'created_at', 'updated_at')
         }),
     )
-    raw_id_fields = ('category', 'payment_method', 'supplier', 'submitted_by', 'approved_by', 'paid_by', 'organization', 'branch')
+    raw_id_fields = ('category', 'supplier', 'payment_method', 'submitted_by', 'approved_by', 'paid_by', 'organization', 'branch')
 
 
 @admin.register(ExpenseCategory)
 class ExpenseCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'budget_code', 'is_active')
-    list_filter = ('parent', 'is_active')
+    list_display = ('name', 'code', 'parent', 'is_active')
+    list_filter = ('parent', 'is_active', 'organization', 'branch')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('organization', 'branch')
 
 
-@admin.register(TaxRate)
-class TaxRateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'rate', 'type', 'is_default', 'is_active')
-    list_filter = ('type', 'is_default', 'is_active')
-    search_fields = ('name', 'code', 'description')
-    readonly_fields = ('uuid',)
+@admin.register(ExpenseAttachment)
+class ExpenseAttachmentAdmin(admin.ModelAdmin):
+    list_display = ('expense', 'title', 'created_at')
+    list_filter = ('expense',)
+    search_fields = ('title', 'description')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
+    raw_id_fields = ('expense', 'uploaded_by')
 
 
-@admin.register(BudgetCategory)
-class BudgetCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'description', 'is_active')
-    list_filter = ('parent', 'is_active')
-    search_fields = ('name', 'code', 'description')
-    readonly_fields = ('uuid',)
-
-
-@admin.register(Budget)
-class BudgetAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'period_start', 'period_end', 'allocated_amount', 'used_amount')
-    list_filter = ('category', 'status', 'period_start', 'period_end', 'organization', 'branch')
+@admin.register(FinancialReport)
+class FinancialReportAdmin(admin.ModelAdmin):
+    list_display = ('name', 'report_type', 'start_date', 'end_date', 'created_at')
+    list_filter = ('report_type', 'start_date', 'end_date', 'organization', 'branch')
     search_fields = ('name', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('category', 'created_by', 'approved_by', 'organization', 'branch')
-
-
-@admin.register(Currency)
-class CurrencyAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'symbol', 'is_active', 'is_default')
-    list_filter = ('is_active', 'is_default')
-    search_fields = ('code', 'name', 'symbol')
-    readonly_fields = ('uuid',)
+    raw_id_fields = ('generated_by', 'organization', 'branch')

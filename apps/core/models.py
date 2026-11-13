@@ -36,6 +36,11 @@ class UUIDModel(models.Model):
         unique=True
     )
     
+    @property
+    def uuid(self):
+        """Alias for id to maintain compatibility with existing code."""
+        return self.id
+    
     class Meta:
         abstract = True
 

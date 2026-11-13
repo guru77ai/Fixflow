@@ -6,7 +6,7 @@ from .models import SupplierCategory, Supplier, SupplierContact, SupplierDocumen
 
 
 class SupplierCategorySerializer(serializers.ModelSerializer):
-    parent = serializers.StringField(source='parent.name', read_only=True)
+    parent = serializers.CharField(source='parent.name', read_only=True)
     parent_id = serializers.UUIDField(source='parent.uuid', write_only=True, required=False)
     
     class Meta:
@@ -25,7 +25,7 @@ class SupplierSerializer(serializers.ModelSerializer):
 
 
 class SupplierContactSerializer(serializers.ModelSerializer):
-    supplier = serializers.StringField(source='supplier.name', read_only=True)
+    supplier = serializers.CharField(source='supplier.name', read_only=True)
     supplier_id = serializers.UUIDField(source='supplier.uuid', write_only=True)
     
     class Meta:
@@ -35,9 +35,9 @@ class SupplierContactSerializer(serializers.ModelSerializer):
 
 
 class SupplierDocumentSerializer(serializers.ModelSerializer):
-    supplier = serializers.StringField(source='supplier.name', read_only=True)
+    supplier = serializers.CharField(source='supplier.name', read_only=True)
     supplier_id = serializers.UUIDField(source='supplier.uuid', write_only=True)
-    uploaded_by = serializers.StringField(source='uploaded_by.get_full_name', read_only=True)
+    uploaded_by = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     
     class Meta:
         model = SupplierDocument

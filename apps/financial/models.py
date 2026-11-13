@@ -172,7 +172,7 @@ class Payment(UUIDModel, TimeStampedModel, OrganizationAndBranchScopedModel):
     status = models.CharField(_('Status'), max_length=20, choices=[('pending', 'Pending'), ('completed', 'Completed'), ('failed', 'Failed'), ('cancelled', 'Cancelled')], default='completed')
     
     payment_date = models.DateTimeField(_('Payment Date'), auto_now_add=True)
-    processed_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_payments', verbose_name=_('Processed By'))
+    processed_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='financial_processed_payments', verbose_name=_('Processed By'))
     approved_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_payments', verbose_name=_('Approved By'))
     
     notes = models.TextField(_('Notes'), blank=True, null=True)

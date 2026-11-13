@@ -81,7 +81,7 @@ class DeviceSerializer(serializers.ModelSerializer):
 class CustomerCommunicationSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True)
-    created_by = serializers.StringField(source='created_by.get_full_name', read_only=True)
+    created_by = serializers.CharField(source='created_by.get_full_name', read_only=True)
     
     class Meta:
         model = CustomerCommunication
@@ -92,7 +92,7 @@ class CustomerCommunicationSerializer(serializers.ModelSerializer):
 class CustomerDocumentSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer(read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True)
-    uploaded_by = serializers.StringField(source='uploaded_by.get_full_name', read_only=True)
+    uploaded_by = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     
     class Meta:
         model = CustomerDocument

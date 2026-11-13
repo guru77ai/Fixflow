@@ -38,8 +38,8 @@ class ChartOfAccountsAdmin(admin.ModelAdmin):
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('code', 'name', 'account_type', 'category', 'current_balance', 'status', 'is_active')
-    list_filter = ('account_type', 'category', 'status', 'is_active', 'is_bank', 'is_cash', 'organization', 'branch')
+    list_display = ('code', 'name', 'account_type', 'category', 'current_balance', 'status')
+    list_filter = ('account_type', 'category', 'status', 'is_bank', 'is_cash', 'organization', 'branch')
     search_fields = ('code', 'name', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
@@ -56,7 +56,7 @@ class AccountAdmin(admin.ModelAdmin):
             'fields': ('opening_balance', 'current_balance')
         }),
         (_('Settings'), {
-            'fields': ('status', 'allow_reconciliation', 'is_active')
+            'fields': ('status', 'allow_reconciliation')
         }),
         (_('Metadata'), {
             'fields': ('notes', 'uuid', 'created_at', 'updated_at')
@@ -67,8 +67,8 @@ class AccountAdmin(admin.ModelAdmin):
 
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
-    list_display = ('entry_number', 'reference', 'description', 'entry_date', 'is_posted', 'created_by')
-    list_filter = ('is_posted', 'entry_date', 'created_by', 'approved_by', 'organization', 'branch')
+    list_display = ('entry_number', 'reference', 'description', 'entry_date', 'is_posted', 'created_at')
+    list_filter = ('is_posted', 'entry_date', 'organization', 'branch')
     search_fields = ('entry_number', 'reference', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
@@ -104,8 +104,8 @@ class LedgerAdmin(admin.ModelAdmin):
 
 @admin.register(BankAccount)
 class BankAccountAdmin(admin.ModelAdmin):
-    list_display = ('account', 'bank_name', 'account_number', 'account_holder', 'current_balance', 'is_active')
-    list_filter = ('bank_name', 'is_active', 'organization', 'branch')
+    list_display = ('account', 'bank_name', 'account_number', 'account_holder', 'current_balance')
+    list_filter = ('bank_name', 'organization', 'branch')
     search_fields = ('bank_name', 'account_number', 'account_holder')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     raw_id_fields = ('account', 'organization', 'branch')

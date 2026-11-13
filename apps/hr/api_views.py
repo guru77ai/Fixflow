@@ -6,16 +6,19 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
-    Department, Position, EmploymentType, Employee, Attendance,
-    LeaveType, LeaveRequest, LeaveBalance, Payroll, Overtime,
-    Commission, Holiday, Shift, EmployeeDocument
+    Department, Position, EmploymentType, Employee, EmployeeDocument,
+    Attendance, LeaveType, LeaveRequest, LeaveBalance, SalaryComponent,
+    SalaryStructure, SalaryComponentValue, Payroll, PayrollItem,
+    PayrollComponent, Commission, Overtime, HRReport
 )
 from .serializers import (
     DepartmentSerializer, PositionSerializer, EmploymentTypeSerializer,
-    EmployeeSerializer, AttendanceSerializer, LeaveTypeSerializer,
-    LeaveRequestSerializer, LeaveBalanceSerializer, PayrollSerializer,
-    OvertimeSerializer, CommissionSerializer, HolidaySerializer,
-    ShiftSerializer, EmployeeDocumentSerializer
+    EmployeeSerializer, EmployeeDocumentSerializer, AttendanceSerializer,
+    LeaveTypeSerializer, LeaveRequestSerializer, LeaveBalanceSerializer,
+    SalaryComponentSerializer, SalaryStructureSerializer,
+    SalaryComponentValueSerializer, PayrollSerializer, PayrollItemSerializer,
+    PayrollComponentSerializer, CommissionSerializer, OvertimeSerializer,
+    HRReportSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
 
@@ -192,26 +195,6 @@ class CommissionViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class HolidayViewSet(viewsets.ModelViewSet):
-    queryset = Holiday.objects.all()
-    serializer_class = HolidaySerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'is_recurring', 'is_active']
-    search_fields = ['name', 'description']
-    ordering_fields = ['name', 'holiday_date']
-    pagination_class = StandardResultsSetPagination
-
-
-class ShiftViewSet(viewsets.ModelViewSet):
-    queryset = Shift.objects.all()
-    serializer_class = ShiftSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_active']
-    search_fields = ['name', 'code', 'description']
-    ordering_fields = ['name', 'code', 'start_time']
-    pagination_class = StandardResultsSetPagination
-
-
 class EmployeeDocumentViewSet(viewsets.ModelViewSet):
     queryset = EmployeeDocument.objects.all()
     serializer_class = EmployeeDocumentSerializer
@@ -219,4 +202,64 @@ class EmployeeDocumentViewSet(viewsets.ModelViewSet):
     filterset_fields = ['employee', 'document_type']
     search_fields = ['employee__first_name', 'employee__last_name', 'name', 'description']
     ordering_fields = ['uploaded_at', 'name']
+    pagination_class = StandardResultsSetPagination
+
+
+class SalaryComponentViewSet(viewsets.ModelViewSet):
+    queryset = SalaryComponent.objects.all()
+    serializer_class = SalaryComponentSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    search_fields = ['name', 'code', 'description']
+    ordering_fields = ['name', 'code']
+    pagination_class = StandardResultsSetPagination
+
+
+class SalaryStructureViewSet(viewsets.ModelViewSet):
+    queryset = SalaryStructure.objects.all()
+    serializer_class = SalaryStructureSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active']
+    search_fields = ['name', 'code', 'description']
+    ordering_fields = ['name', 'code']
+    pagination_class = StandardResultsSetPagination
+
+
+class SalaryComponentValueViewSet(viewsets.ModelViewSet):
+    queryset = SalaryComponentValue.objects.all()
+    serializer_class = SalaryComponentValueSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['salary_structure', 'salary_component']
+    search_fields = ['salary_structure__name', 'salary_component__name']
+    ordering_fields = ['salary_structure', 'salary_component', 'amount']
+    pagination_class = StandardResultsSetPagination
+
+
+class PayrollItemViewSet(viewsets.ModelViewSet):
+    queryset = PayrollItem.objects.all()
+    serializer_class = PayrollItemSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['payroll', 'salary_component']
+    search_fields = ['payroll__payroll_number', 'salary_component__name']
+    ordering_fields = ['payroll', 'salary_component', 'amount']
+    pagination_class = StandardResultsSetPagination
+
+
+class PayrollComponentViewSet(viewsets.ModelViewSet):
+    queryset = PayrollComponent.objects.all()
+    serializer_class = PayrollComponentSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['payroll', 'salary_component']
+    search_fields = ['payroll__payroll_number', 'salary_component__name']
+    ordering_fields = ['payroll', 'salary_component', 'amount']
+    pagination_class = StandardResultsSetPagination
+
+
+class HRReportViewSet(viewsets.ModelViewSet):
+    queryset = HRReport.objects.all()
+    serializer_class = HRReportSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['report_type', 'generated_by']
+    search_fields = ['name', 'report_type']
+    ordering_fields = ['name', 'generated_at']
     pagination_class = StandardResultsSetPagination

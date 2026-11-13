@@ -22,7 +22,7 @@ class RepairPrioritySerializer(serializers.ModelSerializer):
 
 
 class RepairCategorySerializer(serializers.ModelSerializer):
-    parent = RepairCategorySerializer(read_only=True)
+    parent = serializers.CharField(source='parent.name', read_only=True)
     parent_id = serializers.UUIDField(source='parent.uuid', write_only=True, required=False)
     
     class Meta:
@@ -40,9 +40,9 @@ class RepairTypeSerializer(serializers.ModelSerializer):
 
 
 class RepairOrderSerializer(serializers.ModelSerializer):
-    customer = serializers.StringField(source='customer.full_name', read_only=True)
+    customer = serializers.CharField(source='customer.full_name', read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True, required=False)
-    device = serializers.StringField(source='device.name', read_only=True)
+    device = serializers.CharField(source='device.name', read_only=True)
     device_id = serializers.UUIDField(source='device.uuid', write_only=True, required=False)
     status = RepairStatusSerializer(read_only=True)
     status_id = serializers.UUIDField(source='status.uuid', write_only=True, required=False)
@@ -52,7 +52,7 @@ class RepairOrderSerializer(serializers.ModelSerializer):
     category_id = serializers.UUIDField(source='category.uuid', write_only=True, required=False)
     type = RepairTypeSerializer(read_only=True)
     type_id = serializers.UUIDField(source='type.uuid', write_only=True, required=False)
-    technician = serializers.StringField(source='technician.get_full_name', read_only=True)
+    technician = serializers.CharField(source='technician.get_full_name', read_only=True)
     technician_id = serializers.UUIDField(source='technician.uuid', write_only=True, required=False)
     
     class Meta:
@@ -62,9 +62,9 @@ class RepairOrderSerializer(serializers.ModelSerializer):
 
 
 class RepairOrderHistorySerializer(serializers.ModelSerializer):
-    repair_order = serializers.StringField(source='repair_order.repair_number', read_only=True)
+    repair_order = serializers.CharField(source='repair_order.repair_number', read_only=True)
     repair_order_id = serializers.UUIDField(source='repair_order.uuid', write_only=True)
-    performed_by = serializers.StringField(source='performed_by.get_full_name', read_only=True)
+    performed_by = serializers.CharField(source='performed_by.get_full_name', read_only=True)
     
     class Meta:
         model = RepairOrderHistory
@@ -88,9 +88,9 @@ class RepairServiceSerializer(serializers.ModelSerializer):
 
 
 class RepairChecklistSerializer(serializers.ModelSerializer):
-    repair_order = serializers.StringField(source='repair_order.repair_number', read_only=True)
+    repair_order = serializers.CharField(source='repair_order.repair_number', read_only=True)
     repair_order_id = serializers.UUIDField(source='repair_order.uuid', write_only=True)
-    completed_by = serializers.StringField(source='completed_by.get_full_name', read_only=True)
+    completed_by = serializers.CharField(source='completed_by.get_full_name', read_only=True)
     
     class Meta:
         model = RepairChecklist
@@ -99,9 +99,9 @@ class RepairChecklistSerializer(serializers.ModelSerializer):
 
 
 class RepairAttachmentSerializer(serializers.ModelSerializer):
-    repair_order = serializers.StringField(source='repair_order.repair_number', read_only=True)
+    repair_order = serializers.CharField(source='repair_order.repair_number', read_only=True)
     repair_order_id = serializers.UUIDField(source='repair_order.uuid', write_only=True)
-    uploaded_by = serializers.StringField(source='uploaded_by.get_full_name', read_only=True)
+    uploaded_by = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
     
     class Meta:
         model = RepairAttachment

@@ -13,16 +13,16 @@ from .models import (
 
 @admin.register(Warehouse)
 class WarehouseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'manager', 'location', 'is_active')
-    list_filter = ('is_active', 'organization', 'branch')
-    search_fields = ('name', 'code', 'location', 'manager__first_name', 'manager__last_name')
+    list_display = ('name', 'code', 'manager', 'is_central', 'is_active')
+    list_filter = ('is_active', 'is_central', 'organization', 'branch')
+    search_fields = ('name', 'code', 'address', 'phone', 'email')
     readonly_fields = ('uuid',)
     raw_id_fields = ('manager', 'organization', 'branch')
 
 
 @admin.register(ProductCategory)
 class ProductCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'parent', 'is_active')
     list_filter = ('parent', 'is_active', 'organization', 'branch')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
@@ -39,68 +39,77 @@ class ProductBrandAdmin(admin.ModelAdmin):
 
 @admin.register(UnitOfMeasure)
 class UnitOfMeasureAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'symbol', 'is_active')
+    list_display = ('name', 'code', 'is_active')
     list_filter = ('is_active',)
-    search_fields = ('name', 'code', 'symbol')
+    search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('sku', 'name', 'category', 'brand', 'current_stock', 'unit_cost', 'selling_price', 'is_active')
-    list_filter = ('category', 'brand', 'uom', 'is_active', 'is_serialized', 'is_service', 'organization', 'branch')
-    search_fields = ('sku', 'name', 'barcode', 'description')
+    list_display = ('code', 'sku', 'name', 'category', 'brand', 'current_stock', 'purchase_price', 'selling_price', 'is_active')
+    list_filter = ('category', 'brand', 'unit', 'is_active', 'stock_type', 'is_serialized', 'is_for_sale', 'organization', 'branch')
+    search_fields = ('code', 'sku', 'name', 'barcode', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
         (_('Basic Information'), {
-            'fields': ('sku', 'name', 'barcode', 'category', 'brand', 'uom')
+            'fields': ('code', 'sku', 'barcode', 'name', 'category', 'brand', 'unit')
         }),
         (_('Pricing'), {
-            'fields': ('unit_cost', 'selling_price', 'tax_rate', 'discount_rate')
+            'fields': ('purchase_price', 'selling_price', 'wholesale_price', 'cost_price', 'tax_rate', 'is_taxable')
         }),
         (_('Inventory'), {
-            'fields': ('initial_stock', 'current_stock', 'minimum_stock', 'maximum_stock', 'is_serialized')
+            'fields': ('stock_type', 'initial_stock', 'current_stock', 'minimum_stock', 'maximum_stock', 'is_serialized')
         }),
         (_('Product Details'), {
-            'fields': ('description', 'specifications', 'is_active', 'is_service')
+            'fields': ('product_type', 'description', 'specifications', 'is_active', 'is_for_sale', 'is_for_purchase', 'is_for_repair')
+        }),
+        (_('Warehouse'), {
+            'fields': ('warehouse', 'location')
+        }),
+        (_('Supplier Info'), {
+            'fields': ('supplier_code',)
+        }),
+        (_('Physical Attributes'), {
+            'fields': ('weight', 'dimensions', 'color', 'model', 'part_number')
         }),
         (_('Metadata'), {
             'fields': ('notes', 'tags', 'uuid', 'created_at', 'updated_at')
         }),
     )
-    raw_id_fields = ('organization', 'branch')
+    raw_id_fields = ('category', 'brand', 'unit', 'warehouse', 'organization', 'branch')
 
 
 @admin.register(ProductSerialNumber)
 class ProductSerialNumberAdmin(admin.ModelAdmin):
-    list_display = ('product', 'serial_number', 'status', 'purchase_date', 'warranty_expiry')
-    list_filter = ('product', 'status', 'purchase_date', 'warranty_expiry')
-    search_fields = ('serial_number', 'product__name', 'product__sku')
+    list_display = ('product', 'serial_number', 'batch_number', 'status', 'purchase_date', 'expiry_date')
+    list_filter = ('product', 'status', 'purchase_date')
+    search_fields = ('serial_number', 'batch_number', 'product__name', 'product__code')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('product', 'purchase_order', 'sales_order', 'organization', 'branch')
+    raw_id_fields = ('product', 'organization', 'branch')
 
 
 @admin.register(StockMovement)
 class StockMovementAdmin(admin.ModelAdmin):
-    list_display = ('product', 'movement_type', 'quantity', 'reference', 'date', 'created_by')
-    list_filter = ('movement_type', 'date', 'created_by', 'organization', 'branch')
-    search_fields = ('product__name', 'product__sku', 'reference', 'notes')
-    readonly_fields = ('created_at', 'uuid')
-    raw_id_fields = ('product', 'created_by', 'organization', 'branch')
+    list_display = ('product', 'movement_type', 'quantity', 'reference_type', 'reference_number', 'created_at')
+    list_filter = ('movement_type', 'reference_type', 'product', 'organization', 'branch')
+    search_fields = ('product__name', 'product__code', 'reference_number', 'notes')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
+    raw_id_fields = ('product', 'source_warehouse', 'destination_warehouse', 'performed_by', 'organization', 'branch')
 
 
 @admin.register(StockTransfer)
 class StockTransferAdmin(admin.ModelAdmin):
-    list_display = ('transfer_number', 'from_warehouse', 'to_warehouse', 'status', 'transfer_date', 'created_by')
-    list_filter = ('status', 'from_warehouse', 'to_warehouse', 'transfer_date', 'created_by', 'organization', 'branch')
+    list_display = ('transfer_number', 'source_warehouse', 'destination_warehouse', 'status', 'transfer_date', 'created_by')
+    list_filter = ('status', 'source_warehouse', 'destination_warehouse', 'transfer_date', 'organization', 'branch')
     search_fields = ('transfer_number', 'notes')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('from_warehouse', 'to_warehouse', 'created_by', 'approved_by', 'received_by', 'organization', 'branch')
+    raw_id_fields = ('source_warehouse', 'destination_warehouse', 'created_by', 'received_by', 'organization', 'branch')
 
 
 @admin.register(StockTransferItem)
 class StockTransferItemAdmin(admin.ModelAdmin):
-    list_display = ('transfer', 'product', 'quantity', 'batch_number')
+    list_display = ('transfer', 'product', 'quantity', 'quantity_received', 'unit_cost', 'total_cost')
     list_filter = ('transfer', 'product')
     readonly_fields = ('uuid',)
     raw_id_fields = ('transfer', 'product')
@@ -108,16 +117,16 @@ class StockTransferItemAdmin(admin.ModelAdmin):
 
 @admin.register(StockAdjustment)
 class StockAdjustmentAdmin(admin.ModelAdmin):
-    list_display = ('adjustment_number', 'warehouse', 'adjustment_type', 'status', 'adjustment_date', 'created_by')
-    list_filter = ('adjustment_type', 'status', 'warehouse', 'adjustment_date', 'created_by', 'organization', 'branch')
+    list_display = ('adjustment_number', 'date', 'reason', 'performed_by')
+    list_filter = ('reason', 'date', 'performed_by', 'organization', 'branch')
     search_fields = ('adjustment_number', 'notes')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('warehouse', 'created_by', 'approved_by', 'organization', 'branch')
+    raw_id_fields = ('performed_by', 'approved_by', 'organization', 'branch')
 
 
 @admin.register(StockAdjustmentItem)
 class StockAdjustmentItemAdmin(admin.ModelAdmin):
-    list_display = ('adjustment', 'product', 'quantity', 'reason')
+    list_display = ('adjustment', 'product', 'old_quantity', 'new_quantity', 'difference', 'unit_cost', 'total_value')
     list_filter = ('adjustment', 'product')
     readonly_fields = ('uuid',)
     raw_id_fields = ('adjustment', 'product')
@@ -125,16 +134,16 @@ class StockAdjustmentItemAdmin(admin.ModelAdmin):
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('service_number', 'name', 'category', 'duration', 'price', 'is_active')
-    list_filter = ('category', 'is_active', 'organization', 'branch')
-    search_fields = ('service_number', 'name', 'description')
+    list_display = ('code', 'name', 'category', 'estimated_duration', 'price', 'is_active')
+    list_filter = ('category', 'service_type', 'is_active', 'is_taxable', 'organization', 'branch')
+    search_fields = ('code', 'name', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     raw_id_fields = ('category', 'organization', 'branch')
 
 
 @admin.register(ServiceCategory)
 class ServiceCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'parent', 'is_active')
     list_filter = ('parent', 'is_active', 'organization', 'branch')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)

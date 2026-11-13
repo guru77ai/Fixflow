@@ -99,9 +99,9 @@ class ServiceForm(forms.ModelForm):
         model = Service
         fields = [
             'code', 'name', 'description', 'category',
-            'service_type', 'duration_minutes', 'price',
+            'service_type', 'estimated_duration', 'price',
             'cost', 'is_taxable', 'tax_rate',
-            'is_active', 'is_for_sale',
+            'is_active',
             'organization', 'branch'
         ]
         widgets = {
@@ -116,7 +116,7 @@ class ServiceCategoryForm(forms.ModelForm):
         model = ServiceCategory
         fields = [
             'name', 'code', 'description', 'parent',
-            'icon', 'color', 'is_active',
+            'is_active',
             'organization', 'branch'
         ]
         widgets = {

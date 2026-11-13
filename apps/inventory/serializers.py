@@ -11,7 +11,7 @@ from .models import (
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
-    manager = serializers.StringField(source='manager.get_full_name', read_only=True)
+    manager = serializers.CharField(source='manager.get_full_name', read_only=True)
     manager_id = serializers.UUIDField(source='manager.uuid', write_only=True, required=False)
     
     class Meta:
@@ -20,7 +20,7 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):
-    parent = serializers.StringField(source='parent.name', read_only=True)
+    parent = serializers.CharField(source='parent.name', read_only=True)
     parent_id = serializers.UUIDField(source='parent.uuid', write_only=True, required=False)
     
     class Meta:
@@ -67,7 +67,7 @@ class ProductSerialNumberSerializer(serializers.ModelSerializer):
 class StockMovementSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     product_id = serializers.UUIDField(source='product.uuid', write_only=True)
-    created_by = serializers.StringField(source='created_by.get_full_name', read_only=True)
+    created_by = serializers.CharField(source='created_by.get_full_name', read_only=True)
     
     class Meta:
         model = StockMovement
@@ -80,9 +80,9 @@ class StockTransferSerializer(serializers.ModelSerializer):
     from_warehouse_id = serializers.UUIDField(source='from_warehouse.uuid', write_only=True)
     to_warehouse = WarehouseSerializer(read_only=True)
     to_warehouse_id = serializers.UUIDField(source='to_warehouse.uuid', write_only=True)
-    created_by = serializers.StringField(source='created_by.get_full_name', read_only=True)
-    approved_by = serializers.StringField(source='approved_by.get_full_name', read_only=True)
-    received_by = serializers.StringField(source='received_by.get_full_name', read_only=True)
+    created_by = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    approved_by = serializers.CharField(source='approved_by.get_full_name', read_only=True)
+    received_by = serializers.CharField(source='received_by.get_full_name', read_only=True)
     
     class Meta:
         model = StockTransfer
@@ -91,7 +91,7 @@ class StockTransferSerializer(serializers.ModelSerializer):
 
 
 class StockTransferItemSerializer(serializers.ModelSerializer):
-    transfer = serializers.StringField(source='transfer.transfer_number', read_only=True)
+    transfer = serializers.CharField(source='transfer.transfer_number', read_only=True)
     transfer_id = serializers.UUIDField(source='transfer.uuid', write_only=True)
     product = ProductSerializer(read_only=True)
     product_id = serializers.UUIDField(source='product.uuid', write_only=True)
@@ -105,8 +105,8 @@ class StockTransferItemSerializer(serializers.ModelSerializer):
 class StockAdjustmentSerializer(serializers.ModelSerializer):
     warehouse = WarehouseSerializer(read_only=True)
     warehouse_id = serializers.UUIDField(source='warehouse.uuid', write_only=True)
-    created_by = serializers.StringField(source='created_by.get_full_name', read_only=True)
-    approved_by = serializers.StringField(source='approved_by.get_full_name', read_only=True)
+    created_by = serializers.CharField(source='created_by.get_full_name', read_only=True)
+    approved_by = serializers.CharField(source='approved_by.get_full_name', read_only=True)
     
     class Meta:
         model = StockAdjustment
@@ -115,7 +115,7 @@ class StockAdjustmentSerializer(serializers.ModelSerializer):
 
 
 class StockAdjustmentItemSerializer(serializers.ModelSerializer):
-    adjustment = serializers.StringField(source='adjustment.adjustment_number', read_only=True)
+    adjustment = serializers.CharField(source='adjustment.adjustment_number', read_only=True)
     adjustment_id = serializers.UUIDField(source='adjustment.uuid', write_only=True)
     product = ProductSerializer(read_only=True)
     product_id = serializers.UUIDField(source='product.uuid', write_only=True)
@@ -127,7 +127,7 @@ class StockAdjustmentItemSerializer(serializers.ModelSerializer):
 
 
 class ServiceCategorySerializer(serializers.ModelSerializer):
-    parent = serializers.StringField(source='parent.name', read_only=True)
+    parent = serializers.CharField(source='parent.name', read_only=True)
     parent_id = serializers.UUIDField(source='parent.uuid', write_only=True, required=False)
     
     class Meta:

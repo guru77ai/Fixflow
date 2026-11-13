@@ -22,11 +22,11 @@ class CashRegisterSerializer(serializers.ModelSerializer):
 
 
 class SaleSerializer(serializers.ModelSerializer):
-    customer = serializers.StringField(source='customer.full_name', read_only=True)
+    customer = serializers.CharField(source='customer.full_name', read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True, required=False)
-    cash_register = serializers.StringField(source='cash_register.name', read_only=True)
+    cash_register = serializers.CharField(source='cash_register.name', read_only=True)
     cash_register_id = serializers.UUIDField(source='cash_register.uuid', write_only=True, required=False)
-    technician = serializers.StringField(source='technician.get_full_name', read_only=True)
+    technician = serializers.CharField(source='technician.get_full_name', read_only=True)
     technician_id = serializers.UUIDField(source='technician.uuid', write_only=True, required=False)
     
     class Meta:
@@ -36,11 +36,11 @@ class SaleSerializer(serializers.ModelSerializer):
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
-    sale = serializers.StringField(source='sale.sale_number', read_only=True)
+    sale = serializers.CharField(source='sale.sale_number', read_only=True)
     sale_id = serializers.UUIDField(source='sale.uuid', write_only=True)
-    product = serializers.StringField(source='product.name', read_only=True)
+    product = serializers.CharField(source='product.name', read_only=True)
     product_id = serializers.UUIDField(source='product.uuid', write_only=True, required=False)
-    service = serializers.StringField(source='service.name', read_only=True)
+    service = serializers.CharField(source='service.name', read_only=True)
     service_id = serializers.UUIDField(source='service.uuid', write_only=True, required=False)
     
     class Meta:
@@ -50,11 +50,11 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
 
 class SalePaymentSerializer(serializers.ModelSerializer):
-    sale = serializers.StringField(source='sale.sale_number', read_only=True)
+    sale = serializers.CharField(source='sale.sale_number', read_only=True)
     sale_id = serializers.UUIDField(source='sale.uuid', write_only=True)
     payment_method = PaymentMethodSerializer(read_only=True)
     payment_method_id = serializers.UUIDField(source='payment_method.uuid', write_only=True)
-    processed_by = serializers.StringField(source='processed_by.get_full_name', read_only=True)
+    processed_by = serializers.CharField(source='processed_by.get_full_name', read_only=True)
     
     class Meta:
         model = SalePayment
@@ -63,11 +63,11 @@ class SalePaymentSerializer(serializers.ModelSerializer):
 
 
 class ReceiptSerializer(serializers.ModelSerializer):
-    sale = serializers.StringField(source='sale.sale_number', read_only=True)
+    sale = serializers.CharField(source='sale.sale_number', read_only=True)
     sale_id = serializers.UUIDField(source='sale.uuid', write_only=True)
-    customer = serializers.StringField(source='customer.full_name', read_only=True)
+    customer = serializers.CharField(source='customer.full_name', read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True, required=False)
-    created_by = serializers.StringField(source='created_by.get_full_name', read_only=True)
+    created_by = serializers.CharField(source='created_by.get_full_name', read_only=True)
     
     class Meta:
         model = Receipt
@@ -76,12 +76,12 @@ class ReceiptSerializer(serializers.ModelSerializer):
 
 
 class RefundSerializer(serializers.ModelSerializer):
-    sale = serializers.StringField(source='sale.sale_number', read_only=True)
+    sale = serializers.CharField(source='sale.sale_number', read_only=True)
     sale_id = serializers.UUIDField(source='sale.uuid', write_only=True)
-    customer = serializers.StringField(source='customer.full_name', read_only=True)
+    customer = serializers.CharField(source='customer.full_name', read_only=True)
     customer_id = serializers.UUIDField(source='customer.uuid', write_only=True, required=False)
-    processed_by = serializers.StringField(source='processed_by.get_full_name', read_only=True)
-    approved_by = serializers.StringField(source='approved_by.get_full_name', read_only=True)
+    processed_by = serializers.CharField(source='processed_by.get_full_name', read_only=True)
+    approved_by = serializers.CharField(source='approved_by.get_full_name', read_only=True)
     
     class Meta:
         model = Refund
@@ -90,11 +90,11 @@ class RefundSerializer(serializers.ModelSerializer):
 
 
 class RefundItemSerializer(serializers.ModelSerializer):
-    refund = serializers.StringField(source='refund.refund_number', read_only=True)
+    refund = serializers.CharField(source='refund.refund_number', read_only=True)
     refund_id = serializers.UUIDField(source='refund.uuid', write_only=True)
-    sale_item = serializers.StringField(source='sale_item.pk', read_only=True)
+    sale_item = serializers.CharField(source='sale_item.pk', read_only=True)
     sale_item_id = serializers.UUIDField(source='sale_item.uuid', write_only=True, required=False)
-    product = serializers.StringField(source='product.name', read_only=True)
+    product = serializers.CharField(source='product.name', read_only=True)
     product_id = serializers.UUIDField(source='product.uuid', write_only=True, required=False)
     
     class Meta:
@@ -106,7 +106,7 @@ class RefundItemSerializer(serializers.ModelSerializer):
 class POSSessionSerializer(serializers.ModelSerializer):
     cash_register = CashRegisterSerializer(read_only=True)
     cash_register_id = serializers.UUIDField(source='cash_register.uuid', write_only=True)
-    user = serializers.StringField(source='user.get_full_name', read_only=True)
+    user = serializers.CharField(source='user.get_full_name', read_only=True)
     user_id = serializers.UUIDField(source='user.uuid', write_only=True)
     
     class Meta:

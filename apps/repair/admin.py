@@ -12,23 +12,22 @@ from .models import (
 
 @admin.register(RepairStatus)
 class RepairStatusAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'sequence', 'is_default', 'is_final', 'is_active')
-    list_filter = ('is_default', 'is_final', 'is_active')
+    list_display = ('name', 'code', 'sequence', 'is_initial', 'is_final')
+    list_filter = ('is_initial', 'is_final')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
 
 
 @admin.register(RepairPriority)
 class RepairPriorityAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'level', 'sequence', 'color', 'is_active')
-    list_filter = ('is_active',)
+    list_display = ('name', 'code', 'level', 'estimated_hours', 'color')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
 
 
 @admin.register(RepairCategory)
 class RepairCategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'parent', 'sequence', 'is_active')
+    list_display = ('name', 'code', 'parent', 'is_active')
     list_filter = ('parent', 'is_active')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
@@ -36,86 +35,105 @@ class RepairCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(RepairType)
 class RepairTypeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'category', 'estimated_duration', 'base_price', 'is_active')
+    list_display = ('name', 'code', 'category', 'estimated_duration', 'estimated_cost', 'is_active')
     list_filter = ('category', 'is_active')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('category',)
 
 
 @admin.register(RepairOrder)
 class RepairOrderAdmin(admin.ModelAdmin):
-    list_display = ('repair_number', 'customer', 'device', 'status', 'priority', 'received_date', 'total_cost')
-    list_filter = ('status', 'priority', 'category', 'type', 'technician', 'branch', 'organization', 'received_date', 'completed_date')
-    search_fields = ('repair_number', 'customer__first_name', 'customer__last_name', 'device__name', 'device__serial_number', 'issue')
+    list_display = ('order_number', 'customer', 'device_display', 'status', 'priority', 'received_date', 'final_amount')
+    list_filter = ('status', 'priority', 'repair_category', 'repair_type', 'assigned_to', 'organization', 'branch', 'received_date', 'completed_date', 'is_approved', 'is_warranty_claim')
+    search_fields = ('order_number', 'customer__first_name', 'customer__last_name', 'device__name', 'device_imei', 'device_serial', 'issue_description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
     fieldsets = (
         (_('Basic Information'), {
-            'fields': ('repair_number', 'customer', 'device', 'received_date')
+            'fields': ('order_number', 'order_type', 'customer', 'device', 'received_date')
+        }),
+        (_('Device Details'), {
+            'fields': ('device_name', 'device_imei', 'device_serial', 'device_brand', 'device_model')
         }),
         (_('Repair Details'), {
-            'fields': ('status', 'priority', 'category', 'type', 'issue', 'diagnosis', 'solution')
+            'fields': ('repair_type', 'repair_category', 'status', 'priority', 'issue_description', 'reported_issue', 'diagnosis')
         }),
         (_('Assignment'), {
-            'fields': ('technician', 'assigned_to', 'assigned_at')
+            'fields': ('assigned_to',)
+        }),
+        (_('Dates'), {
+            'fields': ('promised_date', 'started_date', 'completed_date', 'delivered_date')
         }),
         (_('Financial'), {
-            'fields': ('subtotal', 'tax_amount', 'discount', 'total_cost', 'amount_paid', 'balance', 'payment_status')
+            'fields': ('quotation_amount', 'labor_cost', 'parts_cost', 'final_amount', 'discount', 'tax_amount', 'amount_paid', 'balance', 'payment_status', 'payment_method')
         }),
-        (_('Completion'), {
-            'fields': ('completed_date', 'completed_by', 'is_warranty', 'warranty_period')
+        (_('Warranty'), {
+            'fields': ('warranty_type', 'warranty_period', 'warranty_expiry', 'is_warranty_claim')
         }),
-        (_('Notes & Metadata'), {
-            'fields': ('notes', 'tags', 'uuid', 'created_at', 'updated_at')
+        (_('Approval'), {
+            'fields': ('is_approved', 'approval_date', 'approved_by')
+        }),
+        (_('Status Tracking'), {
+            'fields': ('is_urgent', 'status_changed_at', 'status_changed_by')
+        }),
+        (_('Notes'), {
+            'fields': ('internal_notes', 'customer_notes', 'notes', 'tags')
+        }),
+        (_('Metadata'), {
+            'fields': ('uuid', 'created_at', 'updated_at')
         }),
     )
-    raw_id_fields = ('customer', 'device', 'technician', 'assigned_to', 'completed_by', 'organization', 'branch')
+    raw_id_fields = ('customer', 'device', 'device_brand', 'device_model', 'repair_type', 'repair_category', 'status', 'priority', 'assigned_to', 'approved_by', 'status_changed_by', 'organization', 'branch')
 
 
 @admin.register(RepairOrderHistory)
 class RepairOrderHistoryAdmin(admin.ModelAdmin):
-    list_display = ('repair_order', 'action', 'performed_by', 'performed_at', 'notes')
-    list_filter = ('action', 'performed_at', 'performed_by')
-    search_fields = ('repair_order__repair_number', 'notes')
-    readonly_fields = ('created_at', 'uuid')
-    raw_id_fields = ('repair_order', 'performed_by')
+    list_display = ('repair_order', 'change_type', 'changed_by', 'created_at', 'comments')
+    list_filter = ('change_type', 'created_at', 'changed_by')
+    search_fields = ('repair_order__order_number', 'comments')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
+    raw_id_fields = ('repair_order', 'changed_by')
 
 
 @admin.register(RepairPart)
 class RepairPartAdmin(admin.ModelAdmin):
-    list_display = ('name', 'part_number', 'category', 'quantity', 'unit_cost', 'total_cost')
-    list_filter = ('category',)
-    search_fields = ('name', 'part_number', 'description')
+    list_display = ('repair_order', 'part_name', 'part_code', 'quantity', 'unit_cost', 'total_cost')
+    list_filter = ('repair_order',)
+    search_fields = ('repair_order__order_number', 'part_name', 'part_code', 'serial_number')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('repair_order', 'part')
 
 
 @admin.register(RepairService)
 class RepairServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'category', 'duration', 'price', 'is_active')
-    list_filter = ('category', 'is_active')
-    search_fields = ('name', 'code', 'description')
+    list_display = ('repair_order', 'service_name', 'service_code', 'quantity', 'unit_price', 'total_price', 'duration_minutes')
+    list_filter = ('repair_order',)
+    search_fields = ('repair_order__order_number', 'service_name', 'service_code')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('repair_order', 'service', 'technician')
 
 
 @admin.register(RepairChecklist)
 class RepairChecklistAdmin(admin.ModelAdmin):
-    list_display = ('repair_order', 'checklist_template', 'completed_by', 'completed_at', 'is_complete')
-    list_filter = ('is_complete', 'completed_at', 'completed_by')
+    list_display = ('repair_order', 'item', 'description', 'is_completed', 'completed_at', 'completed_by')
+    list_filter = ('is_completed', 'completed_at', 'completed_by')
+    search_fields = ('repair_order__order_number', 'item', 'description')
     readonly_fields = ('created_at', 'updated_at', 'uuid')
-    raw_id_fields = ('repair_order', 'checklist_template', 'completed_by')
+    raw_id_fields = ('repair_order', 'completed_by')
 
 
 @admin.register(RepairAttachment)
 class RepairAttachmentAdmin(admin.ModelAdmin):
-    list_display = ('repair_order', 'name', 'file_type', 'uploaded_at')
-    list_filter = ('file_type', 'uploaded_at')
-    readonly_fields = ('uploaded_at', 'uuid')
+    list_display = ('repair_order', 'title', 'file_type', 'created_at')
+    list_filter = ('file_type', 'created_at')
+    readonly_fields = ('created_at', 'updated_at', 'uuid')
     raw_id_fields = ('repair_order', 'uploaded_by')
 
 
 @admin.register(RepairTemplate)
 class RepairTemplateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'code', 'category', 'estimated_duration', 'base_price', 'is_active')
-    list_filter = ('category', 'is_active')
+    list_display = ('name', 'code', 'repair_type', 'estimated_duration', 'estimated_cost', 'is_active')
+    list_filter = ('repair_type', 'is_active', 'organization', 'branch')
     search_fields = ('name', 'code', 'description')
     readonly_fields = ('uuid',)
-    raw_id_fields = ('organization', 'branch')
+    raw_id_fields = ('repair_type', 'organization', 'branch')

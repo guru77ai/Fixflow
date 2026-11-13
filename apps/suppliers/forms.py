@@ -13,7 +13,7 @@ class SupplierCategoryForm(forms.ModelForm):
         model = SupplierCategory
         fields = [
             'name', 'code', 'description',
-            'color', 'icon', 'is_active'
+            'is_active'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
@@ -26,19 +26,19 @@ class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
         fields = [
-            'supplier_number', 'name', 'code', 'description',
-            'category', 'address', 'city', 'state', 'postal_code', 'country',
-            'phone', 'mobile', 'email', 'website',
-            'tax_id', 'registration_number',
-            'contact_person', 'contact_phone', 'contact_email',
-            'payment_terms', 'credit_limit', 'currency',
-            'is_active', 'is_approved', 'rating',
-            'notes', 'tags',
+            'code', 'name', 'company_name',
+            'category', 'email', 'phone', 'mobile', 'website',
+            'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country',
+            'tax_id',
+            'payment_terms', 'credit_limit', 'credit_balance',
+            'status', 'quality_rating', 'delivery_rating',
+            'account_manager', 'is_verified', 'is_preferred',
+            'notes',
             'organization', 'branch'
         ]
         widgets = {
-            'address': forms.Textarea(attrs={'rows': 3}),
-            'description': forms.Textarea(attrs={'rows': 3}),
+            'address_line_1': forms.Textarea(attrs={'rows': 3}),
+            'address_line_2': forms.Textarea(attrs={'rows': 3}),
             'notes': forms.Textarea(attrs={'rows': 3}),
         }
 
@@ -64,13 +64,12 @@ class SupplierDocumentForm(forms.ModelForm):
     class Meta:
         model = SupplierDocument
         fields = [
-            'supplier', 'document_type', 'document_number',
+            'supplier', 'document_type',
             'file', 'title', 'description',
-            'issue_date', 'expiry_date', 'is_active',
+            'expiry_date',
             'organization', 'branch'
         ]
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
-            'issue_date': forms.DateInput(attrs={'type': 'date'}),
             'expiry_date': forms.DateInput(attrs={'type': 'date'}),
         }

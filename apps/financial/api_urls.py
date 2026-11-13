@@ -6,9 +6,8 @@ from rest_framework.routers import DefaultRouter
 from .api_views import (
     InvoiceStatusViewSet, InvoiceTypeViewSet, InvoiceViewSet,
     InvoiceItemViewSet, InvoicePaymentViewSet, PaymentViewSet,
-    PaymentMethodViewSet, ExpenseViewSet, ExpenseCategoryViewSet,
-    TaxRateViewSet, BudgetCategoryViewSet, BudgetViewSet,
-    CurrencyViewSet
+    ExpenseViewSet, ExpenseCategoryViewSet,
+    ExpenseAttachmentViewSet, FinancialReportViewSet
 )
 
 router = DefaultRouter()
@@ -19,13 +18,10 @@ router.register(r'invoices', InvoiceViewSet, basename='invoice')
 router.register(r'invoice-items', InvoiceItemViewSet, basename='invoiceitem')
 router.register(r'invoice-payments', InvoicePaymentViewSet, basename='invoicepayment')
 router.register(r'payments', PaymentViewSet, basename='payment')
-router.register(r'payment-methods', PaymentMethodViewSet, basename='paymentmethod')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
 router.register(r'expense-categories', ExpenseCategoryViewSet, basename='expensecategory')
-router.register(r'tax-rates', TaxRateViewSet, basename='taxrate')
-router.register(r'budget-categories', BudgetCategoryViewSet, basename='budgetcategory')
-router.register(r'budgets', BudgetViewSet, basename='budget')
-router.register(r'currencies', CurrencyViewSet, basename='currency')
+router.register(r'expense-attachments', ExpenseAttachmentViewSet, basename='expenseattachment')
+router.register(r'financial-reports', FinancialReportViewSet, basename='financialreport')
 
 urlpatterns = [
     path('', include(router.urls)),
