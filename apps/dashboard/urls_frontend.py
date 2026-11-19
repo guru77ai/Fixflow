@@ -27,48 +27,48 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', accounts_views.password_reset_confirm_view, name='password_reset_confirm'),
     path('reset/done/', accounts_views.password_reset_complete_view, name='password_reset_complete'),
     path('profile/', accounts_views.profile_view, name='profile'),
-    path('settings/', accounts_views.settings_view, name='settings'),
+    path('account/settings/', accounts_views.settings_view, name='account_settings'),
     
     # Organizations
-    path('organizations/', org_views.organization_list_view, name='organizations:list'),
-    path('organizations/create/', org_views.organization_create_view, name='organizations:create'),
-    path('organizations/<uuid:pk>/', org_views.organization_detail_view, name='organizations:detail'),
-    path('organizations/<uuid:pk>/edit/', org_views.organization_edit_view, name='organizations:edit'),
-    path('organizations/<uuid:pk>/delete/', org_views.organization_delete_view, name='organizations:delete'),
+    path('organizations/', org_views.organization_list_view, name='organization_list'),
+    path('organizations/create/', org_views.organization_create_view, name='organization_create'),
+    path('organizations/<uuid:pk>/', org_views.organization_detail_view, name='organization_detail'),
+    path('organizations/<uuid:pk>/edit/', org_views.organization_edit_view, name='organization_edit'),
+    path('organizations/<uuid:pk>/delete/', org_views.organization_delete_view, name='organization_delete'),
     
     # Branches
-    path('branches/', branch_views.branch_list_view, name='branches:list'),
-    path('branches/create/', branch_views.branch_create_view, name='branches:create'),
-    path('branches/<uuid:pk>/', branch_views.branch_detail_view, name='branches:detail'),
-    path('branches/<uuid:pk>/edit/', branch_views.branch_edit_view, name='branches:edit'),
-    path('branches/<uuid:pk>/delete/', branch_views.branch_delete_view, name='branches:delete'),
+    path('branches/', branch_views.branch_list_view, name='branch_list'),
+    path('branches/create/', branch_views.branch_create_view, name='branch_create'),
+    path('branches/<uuid:pk>/', branch_views.branch_detail_view, name='branch_detail'),
+    path('branches/<uuid:pk>/edit/', branch_views.branch_edit_view, name='branch_edit'),
+    path('branches/<uuid:pk>/delete/', branch_views.branch_delete_view, name='branch_delete'),
     
     # Licensing
-    path('license/', license_views.license_view, name='licensing:view'),
+    path('license/', license_views.license_view, name='license_view'),
     
     # Audit Logs
-    path('audit-logs/', audit_views.audit_log_list_view, name='audit_logs:list'),
+    path('audit-logs/', audit_views.audit_log_list_view, name='audit_log_list'),
     
     # Backups
-    path('backups/', backup_views.backup_list_view, name='backups:list'),
-    path('backups/create/', backup_views.backup_create_view, name='backups:create'),
-    path('backups/<uuid:pk>/download/', backup_views.backup_download_view, name='backups:download'),
-    path('backups/<uuid:pk>/delete/', backup_views.backup_delete_view, name='backups:delete'),
+    path('backups/', backup_views.backup_list_view, name='backup_list'),
+    path('backups/create/', backup_views.backup_create_view, name='backup_create'),
+    path('backups/<uuid:pk>/download/', backup_views.backup_download_view, name='backup_download'),
+    path('backups/<uuid:pk>/delete/', backup_views.backup_delete_view, name='backup_delete'),
     
     # Notifications
-    path('notifications/', notification_views.notification_list_view, name='notifications:list'),
-    path('notifications/<uuid:pk>/', notification_views.notification_detail_view, name='notifications:detail'),
+    path('notifications/', notification_views.notification_list_view, name='notification_list'),
+    path('notifications/<uuid:pk>/', notification_views.notification_detail_view, name='notification_detail'),
     
     # Zakat
-    path('zakat/', zakat_views.zakat_calculator_view, name='zakat:calculator'),
+    path('zakat/', zakat_views.zakat_calculator_view, name='zakat_calculator'),
     
     # Settings
-    path('settings/general/', settings_views.general_settings_view, name='settings:general'),
+    path('settings/general/', settings_views.general_settings_view, name='general_settings'),
     
     # Reports
-    path('reports/', report_views.report_dashboard_view, name='reports:dashboard'),
-    path('reports/sales/', report_views.sales_report_view, name='reports:sales'),
-    path('reports/repairs/', report_views.repair_report_view, name='reports:repairs'),
-    path('reports/inventory/', report_views.inventory_report_view, name='reports:inventory'),
-    path('reports/financial/', report_views.financial_report_view, name='reports:financial'),
+    path('reports/', report_views.report_dashboard_view, name='report_dashboard'),
+    path('reports/sales/', report_views.sales_report_view, name='sales_report'),
+    path('reports/repairs/', report_views.repair_report_view, name='repair_report'),
+    path('reports/inventory/', report_views.inventory_report_view, name='inventory_report'),
+    path('reports/financial/', report_views.financial_report_view, name='financial_report'),
 ]

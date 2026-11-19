@@ -13,14 +13,26 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 # Override ALLOWED_HOSTS
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
 
-# Database - can be overridden to PostgreSQL
+# Database - PostgreSQL recommended for production
+# Configure via environment variables
+DB_ENGINE = os.environ.get('DATABASE_ENGINE', 'django.db.backends.postgresql')
+DB_NAME = os.environ.get('DATABASE_NAME', 'fixsoftrepair')
+DB_USER = os.environ.get('DATABASE_USER', 'postgres')
+DB_PASSWORD = os.environ.get('DATABASE_PASSWORD', '')
+DB_HOST = os.environ.get('DATABASE_HOST', 'localhost')
+DB_PORT = os.environ.get('DATABASE_PORT', '5432')
+
+if not DB_PASSWORD:
+    raise ValueError("DATABASE_PASSWORD must be set in environment for production")
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 30,
-        }
+        'ENGINE': DB_ENGINE,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
@@ -51,7 +63,9 @@ CACHES = {
 
 # Static files in production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+STORAGES['staticfiles'] = {
+    'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage',
+}
 
 # Media files in production
 MEDIA_ROOT = BASE_DIR / 'media'

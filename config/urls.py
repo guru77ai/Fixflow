@@ -32,25 +32,9 @@ urlpatterns = [
     path('i18n/setlang/', set_language, name='set_language'),
 ]
 
-# API v1 endpoints - mount API routers for business modules
-# For system modules that don't have api_urls.py, use their urls.py which contain API endpoints
+# API v1 endpoints - mount API routers for business modules only
 urlpatterns += [
     path('api/v1/', include([
-        # Core and system modules (using urls.py as they contain API endpoints)
-        path('accounts/', include('apps.accounts.urls')),
-        path('organizations/', include('apps.organizations.urls')),
-        path('branches/', include('apps.branches.urls')),
-        path('licensing/', include('apps.licensing.urls')),
-        path('audit-logs/', include('apps.audit_logs.urls')),
-        path('settings/', include('apps.settings.urls')),
-        path('dashboard/', include('apps.dashboard.urls')),
-        path('notifications/', include('apps.notifications.urls')),
-        path('backups/', include('apps.backups.urls')),
-        path('reports/', include('apps.reports.urls')),
-        path('documents/', include('apps.documents.urls')),
-        path('barcode/', include('apps.barcode.urls')),
-        path('zakat/', include('apps.zakat.urls')),
-        
         # Business modules (using api_urls.py which contain DRF routers)
         path('crm/', include('apps.crm.api_urls')),
         path('repair/', include('apps.repair.api_urls')),
@@ -74,6 +58,20 @@ frontend_urlpatterns = [
     # Main application frontend
     path('', include('apps.dashboard.urls_frontend')),
     
+    # System modules frontend URLs
+    path('accounts/', include('apps.accounts.urls')),
+    path('organizations/', include('apps.organizations.urls')),
+    path('branches/', include('apps.branches.urls')),
+    path('licensing/', include('apps.licensing.urls')),
+    path('audit-logs/', include('apps.audit_logs.urls')),
+    path('settings/', include('apps.settings.urls')),
+    path('notifications/', include('apps.notifications.urls')),
+    path('backups/', include('apps.backups.urls')),
+    path('reports/', include('apps.reports.urls')),
+    path('documents/', include('apps.documents.urls')),
+    path('barcode/', include('apps.barcode.urls')),
+    path('zakat/', include('apps.zakat.urls')),
+    
     # Business module frontend URLs
     path('crm/', include('apps.crm.urls')),
     path('repair/', include('apps.repair.urls')),
@@ -86,6 +84,7 @@ frontend_urlpatterns = [
 ]
 
 # Wrap frontend URLs with i18n patterns
+# Note: API, admin, and auth URLs are NOT localized
 urlpatterns += i18n_patterns(*frontend_urlpatterns)
 
 # Serve static and media files in development

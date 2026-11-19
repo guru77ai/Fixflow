@@ -7,7 +7,7 @@ from .base import *
 DEBUG = True
 
 # Override ALLOWED_HOSTS
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]']
 
 # Database - use in-memory for testing or file-based for development
 DATABASES = {
@@ -23,6 +23,7 @@ DATABASES = {
 # CORS settings for development
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+# Note: CORS_ALLOW_ALL_ORIGINS should be False in production
 
 # Email backend for development (console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

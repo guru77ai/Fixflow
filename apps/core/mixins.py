@@ -90,13 +90,6 @@ class OrganizationContextMixin(AccessMixin):
         """
         Set the organization on the request before dispatching.
         """
-        # First, let parent classes (like LoginRequiredMixin) do their checks
-        response = super().dispatch(request, *args, **kwargs)
-        
-        # If parent returned a response (e.g., redirect to login), return it
-        if response is not None:
-            return response
-        
         # Get and validate organization
         organization = self.get_organization()
         
@@ -228,13 +221,6 @@ class BranchContextMixin(AccessMixin):
         """
         Set the branch on the request before dispatching.
         """
-        # First, let parent classes do their checks
-        response = super().dispatch(request, *args, **kwargs)
-        
-        # If parent returned a response (e.g., redirect to login), return it
-        if response is not None:
-            return response
-        
         # Get and validate branch
         branch = self.get_branch()
         
