@@ -9,9 +9,11 @@ from .serializers import (
     SupplierContactSerializer, SupplierDocumentSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
 class SupplierCategoryViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = SupplierCategory.objects.all()
     serializer_class = SupplierCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -21,7 +23,8 @@ class SupplierCategoryViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class SupplierViewSet(viewsets.ModelViewSet):
+class SupplierViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -29,9 +32,13 @@ class SupplierViewSet(viewsets.ModelViewSet):
     search_fields = ['supplier_number', 'name', 'email', 'phone', 'tax_id', 'website']
     ordering_fields = ['supplier_number', 'name', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class SupplierContactViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Supplier"""
     queryset = SupplierContact.objects.all()
     serializer_class = SupplierContactSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -41,7 +48,8 @@ class SupplierContactViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class SupplierDocumentViewSet(viewsets.ModelViewSet):
+class SupplierDocumentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = SupplierDocument.objects.all()
     serializer_class = SupplierDocumentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -49,3 +57,6 @@ class SupplierDocumentViewSet(viewsets.ModelViewSet):
     search_fields = ['supplier__name', 'name', 'description']
     ordering_fields = ['uploaded_at', 'name']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())

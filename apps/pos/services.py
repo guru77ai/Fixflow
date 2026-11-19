@@ -67,6 +67,39 @@ class SaleService:
             receipt_type=data.get('receipt_type', 'thermal')
         )
         
+        # Create invoice if requested
+        if data.get('is_invoice', False):
+            from apps.financial.services import InvoiceService
+            invoice_data = {
+                'invoice_type_id': data.get('invoice_type_id'),
+                'status_id': data.get('invoice_status_id'),
+                'customer_id': data.get('customer_id'),
+                'reference': f'Sale: {sale_number}',
+                'reference_type': 'sale',
+                'subtotal': data.get('subtotal', 0),
+                'discount': data.get('discount', 0),
+                'tax_amount': data.get('tax_amount', 0),
+                'total_amount': data.get('total_amount', 0),
+                'amount_paid': data.get('amount_paid', 0),
+                'balance': data.get('balance', 0),
+                'payment_status': data.get('payment_status', 'pending'),
+                'due_date': data.get('due_date'),
+                'payment_method_id': data.get('payment_method_id'),
+                'payment_reference': data.get('payment_reference'),
+                'notes': data.get('notes'),
+            }
+            invoice = InvoiceService.create_invoice(
+                data=invoice_data,
+                organization=organization,
+                branch=branch,
+                created_by=created_by
+            )
+            
+            # Link invoice to sale
+            sale.invoice = invoice
+            sale.invoice_number = invoice.invoice_number
+            sale.save()
+        
         return sale
     
     @staticmethod

@@ -96,10 +96,55 @@ class JournalEntryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def post(self, request, pk=None):
+        """
+        Post a journal entry to the ledger.
+        
+        Validates:
+        - Entry belongs to current tenant
+        - Entry is not already posted
+        - Entry has lines
+        - Debits equal credits (balanced)
+        - All accounts are valid and active
+        - User has permission to post
+        """
+        from .services import JournalEntryService
+        from rest_framework.exceptions import PermissionDenied, ValidationError
+        from decimal import Decimal
+        
         entry = self.get_object()
         self.validate_tenant(entry)
-        entry.is_posted = True
-        entry.save()
+        
+        # Validate entry is not already posted
+        if entry.is_posted:
+            raise ValidationError({'error': 'Journal entry is already posted'})
+        
+        # Validate entry has lines
+        if not entry.lines.exists():
+            raise ValidationError({'error': 'Cannot post journal entry with no lines'})
+        
+        # Validate all accounts belong to the same organization
+        for line in entry.lines.all():
+            if line.account.organization_id != entry.organization_id:
+                raise PermissionDenied('Journal entry line references an account from another organization')
+            if not line.account.is_active:
+                raise ValidationError({'error': f'Account {line.account.code} is inactive'})
+        
+        # Validate debits equal credits
+        total_debit = sum(Decimal(line.debit) for line in entry.lines.all())
+        total_credit = sum(Decimal(line.credit) for line in entry.lines.all())
+        
+        if total_debit != total_credit:
+            raise ValidationError({
+                'error': 'Journal entry is not balanced',
+                'details': f'Total debit ({total_debit}) does not equal total credit ({total_credit})'
+            })
+        
+        # Use domain service to post
+        try:
+            JournalEntryService.post_to_ledger(entry)
+        except Exception as e:
+            raise ValidationError({'error': f'Failed to post journal entry: {str(e)}'})
+        
         serializer = JournalEntrySerializer(entry, context={'request': request})
         return Response(serializer.data)
 

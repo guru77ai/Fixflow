@@ -19,9 +19,11 @@ from .serializers import (
     ServiceSerializer, ServiceCategorySerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
-class WarehouseViewSet(viewsets.ModelViewSet):
+class WarehouseViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Warehouse.objects.all()
     serializer_class = WarehouseSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -29,9 +31,13 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'location', 'manager__first_name', 'manager__last_name']
     ordering_fields = ['name', 'code', 'location']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class ProductCategoryViewSet(viewsets.ModelViewSet):
+class ProductCategoryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = ProductCategory.objects.all()
     serializer_class = ProductCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -39,9 +45,13 @@ class ProductCategoryViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code', 'sequence']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class ProductBrandViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = ProductBrand.objects.all()
     serializer_class = ProductBrandSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -52,6 +62,7 @@ class ProductBrandViewSet(viewsets.ModelViewSet):
 
 
 class UnitOfMeasureViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = UnitOfMeasure.objects.all()
     serializer_class = UnitOfMeasureSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -61,7 +72,8 @@ class UnitOfMeasureViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -69,6 +81,9 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ['sku', 'name', 'barcode', 'description']
     ordering_fields = ['sku', 'name', 'unit_cost', 'selling_price', 'current_stock']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def stock(self, request, pk=None):
@@ -94,7 +109,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ProductSerialNumberViewSet(viewsets.ModelViewSet):
+class ProductSerialNumberViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = ProductSerialNumber.objects.all()
     serializer_class = ProductSerialNumberSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -102,9 +118,13 @@ class ProductSerialNumberViewSet(viewsets.ModelViewSet):
     search_fields = ['serial_number', 'product__name', 'product__sku']
     ordering_fields = ['serial_number', 'purchase_date', 'warranty_expiry']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class StockMovementViewSet(viewsets.ModelViewSet):
+class StockMovementViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = StockMovement.objects.all()
     serializer_class = StockMovementSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -112,9 +132,13 @@ class StockMovementViewSet(viewsets.ModelViewSet):
     search_fields = ['product__name', 'product__sku', 'reference', 'notes']
     ordering_fields = ['date', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class StockTransferViewSet(viewsets.ModelViewSet):
+class StockTransferViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = StockTransfer.objects.all()
     serializer_class = StockTransferSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -122,6 +146,9 @@ class StockTransferViewSet(viewsets.ModelViewSet):
     search_fields = ['transfer_number', 'notes']
     ordering_fields = ['transfer_number', 'transfer_date', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
@@ -132,6 +159,7 @@ class StockTransferViewSet(viewsets.ModelViewSet):
 
 
 class StockTransferItemViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent StockTransfer"""
     queryset = StockTransferItem.objects.all()
     serializer_class = StockTransferItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -140,7 +168,8 @@ class StockTransferItemViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class StockAdjustmentViewSet(viewsets.ModelViewSet):
+class StockAdjustmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = StockAdjustment.objects.all()
     serializer_class = StockAdjustmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -148,6 +177,9 @@ class StockAdjustmentViewSet(viewsets.ModelViewSet):
     search_fields = ['adjustment_number', 'notes']
     ordering_fields = ['adjustment_number', 'adjustment_date', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
@@ -158,6 +190,7 @@ class StockAdjustmentViewSet(viewsets.ModelViewSet):
 
 
 class StockAdjustmentItemViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent StockAdjustment"""
     queryset = StockAdjustmentItem.objects.all()
     serializer_class = StockAdjustmentItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -166,7 +199,8 @@ class StockAdjustmentItemViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class ServiceCategoryViewSet(viewsets.ModelViewSet):
+class ServiceCategoryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = ServiceCategory.objects.all()
     serializer_class = ServiceCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -174,9 +208,13 @@ class ServiceCategoryViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code', 'sequence']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class ServiceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -184,3 +222,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
     search_fields = ['service_number', 'name', 'description']
     ordering_fields = ['service_number', 'name', 'duration', 'price']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
