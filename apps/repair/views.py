@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from .models import (
     RepairOrder, RepairPart, RepairService, RepairChecklist,
@@ -212,10 +212,26 @@ class RepairDashboardView(LoginRequiredMixin, OrganizationContextMixin, BranchCo
 
 
 # Quick repair creation
-@csrf_exempt
+@csrf_protect
 @transaction.atomic
 def quick_create_repair_order(request):
-    """Quick repair order creation endpoint."""
+    """Quick repair order creation endpoint.
+    
+    Requires authentication, organization context, and branch context.
+    Uses CSRF protection.
+    """
+    # Validate authentication
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Authentication required'}, status=401)
+    
+    # Validate organization context
+    if not hasattr(request, 'organization') or not request.organization:
+        return JsonResponse({'success': False, 'error': 'Organization context required'}, status=403)
+    
+    # Validate branch context
+    if not hasattr(request, 'branch') or not request.branch:
+        return JsonResponse({'success': False, 'error': 'Branch context required'}, status=403)
+    
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
