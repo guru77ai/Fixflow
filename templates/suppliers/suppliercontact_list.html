@@ -1,0 +1,91 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Supplier Contacts" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Supplier Contacts" %}</h1>
+        <p class="page-subtitle">{% trans "Manage contact persons for suppliers" %}</p>
+    </div>
+    <a href="{% url 'suppliers:suppliercontact_form' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Contact" %}
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Supplier Contacts" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="suppliercontact-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Supplier" %}</th>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Position" %}</th>
+                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Phone" %}</th>
+                            <th>{% trans "Is Primary" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contact in object_list %}
+                        <tr>
+                            <td>{{ contact.supplier.name }}</td>
+                            <td>{{ contact.first_name }} {{ contact.last_name }}</td>
+                            <td>{{ contact.position|default:"-" }}</td>
+                            <td>{{ contact.email|default:"-" }}</td>
+                            <td>{{ contact.phone|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{{ contact.is_primary|yesno:'success,secondary' }}">
+                                    {{ contact.is_primary|yesno:"Primary,Secondary" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'suppliers:suppliercontact_detail' contact.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'suppliers:suppliercontact_form' contact.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'suppliers:suppliercontact_confirm_delete' contact.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                {% trans "No supplier contacts found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#suppliercontact-table').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
+            }
+        });
+    });
+</script>
+{% endblock %}

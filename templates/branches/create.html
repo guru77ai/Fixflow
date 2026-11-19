@@ -1,0 +1,93 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Create Branch" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Create Branch" %}</h1>
+    <p class="page-subtitle">{% trans "Add a new branch to your organization" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10 col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Create New Branch" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="code" class="form-label fw-semibold">{% trans "Code" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="code" name="code" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="name" class="form-label fw-semibold">{% trans "Name" %} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="address" class="form-label fw-semibold">{% trans "Address" %}</label>
+                                <textarea class="form-control" id="address" name="address" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="city" class="form-label fw-semibold">{% trans "City" %}</label>
+                                <input type="text" class="form-control" id="city" name="city">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="state" class="form-label fw-semibold">{% trans "State/Province" %}</label>
+                                <input type="text" class="form-control" id="state" name="state">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="postal_code" class="form-label fw-semibold">{% trans "Postal Code" %}</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="country" class="form-label fw-semibold">{% trans "Country" %}</label>
+                                <input type="text" class="form-control" id="country" name="country">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="phone" class="form-label fw-semibold">{% trans "Phone" %}</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">{% trans "Description" %}</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-4 form-check form-switch">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                            <label class="form-check-label" for="is_active">{% trans "Is Active" %}</label>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'branches:list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>{% trans "Create Branch" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

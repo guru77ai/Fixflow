@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Create Backup" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Create Backup" %}</h1>
+    <p class="page-subtitle">{% trans "Create a new database backup" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Create New Backup" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {% trans "This will create a complete backup of your database and media files." %}
+                    </div>
+                    
+                    <form method="post" action="" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Backup Name -->
+                        <div class="mb-4">
+                            <label for="name" class="form-label fw-semibold">{% trans "Backup Name" %}</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="name" 
+                                   name="name" 
+                                   placeholder="{% trans 'Enter backup name (optional)' %}" 
+                                   value="{{ form.name.value|default:'' }}">
+                            <div class="form-text text-muted">{% trans "Optional name for this backup" %}</div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">{% trans "Description" %}</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3" 
+                                      placeholder="{% trans 'Enter backup description (optional)' %}">{{ form.description.value|default:'' }}</textarea>
+                            <div class="form-text text-muted">{% trans "Optional description" %}</div>
+                        </div>
+                        
+                        <!-- Include Media Files -->
+                        <div class="mb-4 form-check form-switch">
+                            <input type="checkbox" 
+                                   class="form-check-input" 
+                                   id="include_media" 
+                                   name="include_media" 
+                                   checked>
+                            <label class="form-check-label" for="include_media">{% trans "Include Media Files" %}</label>
+                            <div class="form-text text-muted">{% trans "Backup will include uploaded media files" %}</div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'backups:list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i>{% trans "Create Backup" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

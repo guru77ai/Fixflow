@@ -1,0 +1,158 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Warehouse Details" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ object.name }}</h1>
+        <p class="page-subtitle">{{ object.description|truncatechars:100 }}</p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'inventory:warehouse_form' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'inventory:warehouse_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- Warehouse Information -->
+        <div class="col-lg-8 col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Warehouse Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Code" %}:</strong> {{ object.code }}</p>
+                            <p><strong>{% trans "Name" %}:</strong> {{ object.name }}</p>
+                            <p><strong>{% trans "Address" %}:</strong> {{ object.address|default:"-" }}</p>
+                            <p><strong>{% trans "City" %}:</strong> {{ object.city|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "State/Province" %}:</strong> {{ object.state|default:"-" }}</p>
+                            <p><strong>{% trans "Postal Code" %}:</strong> {{ object.postal_code|default:"-" }}</p>
+                            <p><strong>{% trans "Country" %}:</strong> {{ object.country|default:"-" }}</p>
+                            <p><strong>{% trans "Phone" %}:</strong> {{ object.phone|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <p><strong>{% trans "Description" %}:</strong></p>
+                    <p>{{ object.description|default:"-" }}</p>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Manager" %}:</strong> {{ object.manager|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>{% trans "Is Active" %}:</strong> 
+                                <span class="badge bg-{{ object.is_active|yesno:'success,danger' }}">
+                                    {{ object.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="col-lg-4 col-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Quick Stats" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div class="stat-card bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 text-muted">{% trans "Total Products" %}</h6>
+                                    <h4 class="mb-0">{{ object.products.count }}</h4>
+                                </div>
+                                <i class="bi bi-box-seam text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 text-muted">{% trans "Current Stock" %}</h6>
+                                    <h4 class="mb-0">{{ object.get_total_stock|default:0 }}</h4>
+                                </div>
+                                <i class="bi bi-inboxes text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 text-muted">{% trans "Low Stock Items" %}</h6>
+                                    <h4 class="mb-0">{{ object.get_low_stock_count|default:0 }}</h4>
+                                </div>
+                                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Stock Movements -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{% trans "Recent Stock Movements" %}</h5>
+            <a href="{% url 'inventory:stock_movement_list' %}?warehouse={{ object.pk }}" class="btn btn-sm btn-outline-primary">
+                {% trans "View All" %}
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% with movements=object.get_recent_movements|default:'' %}
+                        {% if movements %}
+                            {% for movement in movements %}
+                            <tr>
+                                <td>{{ movement.date|date:"Y-m-d H:i" }}</td>
+                                <td>{{ movement.product.name|default:"-" }}</td>
+                                <td>
+                                    <span class="badge bg-{{ movement.get_type_badge_class }}">
+                                        {{ movement.get_type_display }}
+                                    </span>
+                                </td>
+                                <td>{{ movement.quantity }}</td>
+                                <td>{{ movement.reference|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                {% trans "No recent movements." %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endwith %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

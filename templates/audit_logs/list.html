@@ -1,0 +1,75 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Audit Logs" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Audit Logs" %}</h1>
+    <p class="page-subtitle">{% trans "Track all system activities and changes" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Audit Logs" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="audit-log-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Timestamp" %}</th>
+                            <th>{% trans "User" %}</th>
+                            <th>{% trans "Action" %}</th>
+                            <th>{% trans "Model" %}</th>
+                            <th>{% trans "Object ID" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "IP Address" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in object_list %}
+                        <tr>
+                            <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                            <td>{{ log.user.username|default:"System" }}</td>
+                            <td>
+                                <span class="badge bg-{{ log.get_action_badge_class }}">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+                            <td>{{ log.model_name }}</td>
+                            <td>{{ log.object_id|default:"-" }}</td>
+                            <td>{{ log.description|truncatechars:50 }}</td>
+                            <td>{{ log.ip_address|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                {% trans "No audit logs found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#audit-log-table').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
+            },
+            order: [[0, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

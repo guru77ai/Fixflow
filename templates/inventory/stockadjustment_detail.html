@@ -1,0 +1,85 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Stock Adjustment Details" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Stock Adjustment" %} #{{ object.adjustment_number }}</h1>
+        <p class="page-subtitle">{{ object.product.name }} - {{ object.get_type_display }}</p>
+    </div>
+    <a href="{% url 'inventory:stockadjustment_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-lg-8 col-12 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Adjustment Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Adjustment Number" %}:</strong> {{ object.adjustment_number }}</p>
+                            <p><strong>{% trans "Date" %}:</strong> {{ object.date|date:"Y-m-d H:i:s" }}</p>
+                            <p><strong>{% trans "Type" %}:</strong> 
+                                <span class="badge bg-{{ object.get_type_badge_class }}">{{ object.get_type_display }}</span>
+                            </p>
+                            <p><strong>{% trans "Status" %}:</strong> 
+                                <span class="badge bg-{{ object.get_status_badge_class }}">{{ object.get_status_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Product" %}:</strong> {{ object.product.name }} ({{ object.product.code }})</p>
+                            <p><strong>{% trans "Warehouse" %}:</strong> {{ object.warehouse.name|default:"-" }}</p>
+                            <p><strong>{% trans "Quantity" %}:</strong> {{ object.quantity }}</p>
+                            <p><strong>{% trans "Unit" %}:</strong> {{ object.unit.symbol|default:"-" }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <p><strong>{% trans "Reason" %}:</strong></p>
+                        <p>{{ object.reason|default:"-" }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <p><strong>{% trans "Notes" %}:</strong></p>
+                        <p>{{ object.notes|default:"-" }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Created By" %}:</strong> {{ object.created_by|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Created At" %}:</strong> {{ object.created_at|date:"Y-m-d H:i:s" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if object.approved_by %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Approved By" %}:</strong> {{ object.approved_by }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Approved At" %}:</strong> {{ object.approved_at|date:"Y-m-d H:i:s" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

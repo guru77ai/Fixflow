@@ -1,0 +1,174 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if object %}{% trans "Edit Service" %}{% else %}{% trans "Add Service" %}{% endif %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% if object %}{% trans "Edit Service" %}{% else %}{% trans "Add Service" %}{% endif %}</h1>
+    <p class="page-subtitle">{% if object %}{% trans "Update service information" %}{% else %}{% trans "Create a new service" %}{% endif %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <div class="col-lg-8 col-md-10 col-12 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% if object %}{% trans "Edit Service" %}{% else %}{% trans "Add Service" %}{% endif %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="" novalidate enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Code -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.code.id_for_label }}" class="form-label fw-semibold">{% trans "Code" %} <span class="text-danger">*</span></label>
+                                {{ form.code }}
+                                {% if form.code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.code.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text text-muted">{% trans "Unique identifier for the service" %}</div>
+                            </div>
+                            
+                            <!-- Name -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">{% trans "Name" %} <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">{% trans "Description" %}</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text text-muted">{% trans "Detailed description of the service" %}</div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Category -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.category.id_for_label }}" class="form-label fw-semibold">{% trans "Category" %} <span class="text-danger">*</span></label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.category.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Price -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.price.id_for_label }}" class="form-label fw-semibold">{% trans "Price" %} <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">{{ currency_symbol|default:"$" }}</span>
+                                    {{ form.price }}
+                                </div>
+                                {% if form.price.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.price.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text text-muted">{% trans "Service price" %}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Duration -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.duration_minutes.id_for_label }}" class="form-label fw-semibold">{% trans "Duration (Minutes)" %}</label>
+                                <div class="input-group">
+                                    {{ form.duration_minutes }}
+                                    <span class="input-group-text">{% trans "min" %}</span>
+                                </div>
+                                {% if form.duration_minutes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.duration_minutes.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text text-muted">{% trans "Estimated service duration" %}</div>
+                            </div>
+                            
+                            <!-- Warranty Days -->
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.warranty_days.id_for_label }}" class="form-label fw-semibold">{% trans "Warranty (Days)" %}</label>
+                                <div class="input-group">
+                                    {{ form.warranty_days }}
+                                    <span class="input-group-text">{% trans "days" %}</span>
+                                </div>
+                                {% if form.warranty_days.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.warranty_days.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text text-muted">{% trans "Warranty period for this service" %}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Icon/Image -->
+                        <div class="mb-4">
+                            <label for="{{ form.icon.id_for_label }}" class="form-label fw-semibold">{% trans "Icon" %}</label>
+                            {{ form.icon }}
+                            {% if form.icon.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.icon.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text text-muted">{% trans "Service icon or image" %}</div>
+                            {% if object.icon %}
+                            <div class="mt-2">
+                                <img src="{{ object.icon.url }}" alt="Current icon" style="max-height: 100px; max-width: 200px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Is Active -->
+                        <div class="mb-4 form-check form-switch">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{% trans "Is Active" %}</label>
+                            {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-4">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'inventory:service_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>{% if object %}{% trans "Update" %}{% else %}{% trans "Create" %}{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
