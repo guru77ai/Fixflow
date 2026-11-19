@@ -21,9 +21,11 @@ from .serializers import (
     HRReportSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -32,8 +34,12 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'code', 'sequence']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
-class PositionViewSet(viewsets.ModelViewSet):
+
+class PositionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Position.objects.all()
     serializer_class = PositionSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -42,8 +48,12 @@ class PositionViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'code', 'minimum_salary', 'maximum_salary']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
 
 class EmploymentTypeViewSet(viewsets.ModelViewSet):
+    """Global reference data: not tenant-scoped"""
     queryset = EmploymentType.objects.all()
     serializer_class = EmploymentTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -53,7 +63,8 @@ class EmploymentTypeViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class EmployeeViewSet(viewsets.ModelViewSet):
+class EmployeeViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -61,10 +72,14 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     search_fields = ['employee_number', 'first_name', 'last_name', 'email', 'phone', 'national_id']
     ordering_fields = ['employee_number', 'first_name', 'last_name', 'hire_date']
     pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def attendance(self, request, pk=None):
         employee = self.get_object()
+        self.validate_tenant(employee)
         attendance = employee.attendance_records.all()
         serializer = AttendanceSerializer(attendance, many=True, context={'request': request})
         return Response(serializer.data)
@@ -72,6 +87,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def leaves(self, request, pk=None):
         employee = self.get_object()
+        self.validate_tenant(employee)
         leaves = employee.leave_requests.all()
         serializer = LeaveRequestSerializer(leaves, many=True, context={'request': request})
         return Response(serializer.data)
@@ -79,6 +95,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def payrolls(self, request, pk=None):
         employee = self.get_object()
+        self.validate_tenant(employee)
         payrolls = employee.payroll_records.all()
         serializer = PayrollSerializer(payrolls, many=True, context={'request': request})
         return Response(serializer.data)
@@ -86,6 +103,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def overtimes(self, request, pk=None):
         employee = self.get_object()
+        self.validate_tenant(employee)
         overtimes = employee.overtime_records.all()
         serializer = OvertimeSerializer(overtimes, many=True, context={'request': request})
         return Response(serializer.data)
@@ -93,12 +111,14 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def commissions(self, request, pk=None):
         employee = self.get_object()
+        self.validate_tenant(employee)
         commissions = employee.commissions.all()
         serializer = CommissionSerializer(commissions, many=True, context={'request': request})
         return Response(serializer.data)
 
 
-class AttendanceViewSet(viewsets.ModelViewSet):
+class AttendanceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -107,8 +127,12 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date', 'check_in', 'created_at']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
 
 class LeaveTypeViewSet(viewsets.ModelViewSet):
+    """Global reference data: not tenant-scoped"""
     queryset = LeaveType.objects.all()
     serializer_class = LeaveTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -118,7 +142,8 @@ class LeaveTypeViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class LeaveRequestViewSet(viewsets.ModelViewSet):
+class LeaveRequestViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = LeaveRequest.objects.all()
     serializer_class = LeaveRequestSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -126,10 +151,14 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     search_fields = ['employee__first_name', 'employee__last_name', 'reason']
     ordering_fields = ['start_date', 'end_date', 'created_at']
     pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         leave_request = self.get_object()
+        self.validate_tenant(leave_request)
         leave_request.status = 'approved'
         leave_request.approved_by = request.user
         leave_request.save()
@@ -139,6 +168,7 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         leave_request = self.get_object()
+        self.validate_tenant(leave_request)
         leave_request.status = 'rejected'
         leave_request.rejected_by = request.user
         leave_request.rejection_reason = request.data.get('reason', '')
@@ -147,7 +177,8 @@ class LeaveRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class LeaveBalanceViewSet(viewsets.ModelViewSet):
+class LeaveBalanceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch (via employee relationship)"""
     queryset = LeaveBalance.objects.all()
     serializer_class = LeaveBalanceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -155,8 +186,19 @@ class LeaveBalanceViewSet(viewsets.ModelViewSet):
     ordering_fields = ['employee__first_name', 'leave_type__name', 'year']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter by tenant via employee relationship
+        org = self.get_organization()
+        branch = self.get_branch()
+        return queryset.filter(
+            employee__organization=org,
+            employee__branch=branch
+        ).distinct()
 
-class PayrollViewSet(viewsets.ModelViewSet):
+
+class PayrollViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Payroll.objects.all()
     serializer_class = PayrollSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -164,18 +206,24 @@ class PayrollViewSet(viewsets.ModelViewSet):
     search_fields = ['payroll_number', 'notes']
     ordering_fields = ['payroll_number', 'period_start', 'payment_date']
     pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def employees(self, request, pk=None):
         payroll = self.get_object()
-        # Assuming there's a many-to-many relationship with employees
-        # This would need to be adjusted based on actual model structure
-        employees = []
+        self.validate_tenant(payroll)
+        # Get employees from payroll items
+        employees = Employee.objects.filter(
+            payroll_items__payroll=payroll
+        ).distinct()
         serializer = EmployeeSerializer(employees, many=True, context={'request': request})
         return Response(serializer.data)
 
 
-class OvertimeViewSet(viewsets.ModelViewSet):
+class OvertimeViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Overtime.objects.all()
     serializer_class = OvertimeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -184,8 +232,12 @@ class OvertimeViewSet(viewsets.ModelViewSet):
     ordering_fields = ['date', 'hours', 'amount']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
-class CommissionViewSet(viewsets.ModelViewSet):
+
+class CommissionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Commission.objects.all()
     serializer_class = CommissionSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -194,8 +246,12 @@ class CommissionViewSet(viewsets.ModelViewSet):
     ordering_fields = ['period_start', 'amount']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
-class EmployeeDocumentViewSet(viewsets.ModelViewSet):
+
+class EmployeeDocumentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch (via employee relationship)"""
     queryset = EmployeeDocument.objects.all()
     serializer_class = EmployeeDocumentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -204,8 +260,19 @@ class EmployeeDocumentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['uploaded_at', 'name']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter by tenant via employee relationship
+        org = self.get_organization()
+        branch = self.get_branch()
+        return queryset.filter(
+            employee__organization=org,
+            employee__branch=branch
+        ).distinct()
+
 
 class SalaryComponentViewSet(viewsets.ModelViewSet):
+    """Global reference data: not tenant-scoped"""
     queryset = SalaryComponent.objects.all()
     serializer_class = SalaryComponentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -215,7 +282,8 @@ class SalaryComponentViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class SalaryStructureViewSet(viewsets.ModelViewSet):
+class SalaryStructureViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = SalaryStructure.objects.all()
     serializer_class = SalaryStructureSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -224,8 +292,12 @@ class SalaryStructureViewSet(viewsets.ModelViewSet):
     ordering_fields = ['name', 'code']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
-class SalaryComponentValueViewSet(viewsets.ModelViewSet):
+
+class SalaryComponentValueViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch (via salary_structure relationship)"""
     queryset = SalaryComponentValue.objects.all()
     serializer_class = SalaryComponentValueSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -234,8 +306,19 @@ class SalaryComponentValueViewSet(viewsets.ModelViewSet):
     ordering_fields = ['salary_structure', 'salary_component', 'amount']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter by tenant via salary_structure relationship
+        org = self.get_organization()
+        branch = self.get_branch()
+        return queryset.filter(
+            salary_structure__organization=org,
+            salary_structure__branch=branch
+        ).distinct()
 
-class PayrollItemViewSet(viewsets.ModelViewSet):
+
+class PayrollItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch (via payroll relationship)"""
     queryset = PayrollItem.objects.all()
     serializer_class = PayrollItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -244,8 +327,19 @@ class PayrollItemViewSet(viewsets.ModelViewSet):
     ordering_fields = ['payroll', 'salary_component', 'amount']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter by tenant via payroll relationship
+        org = self.get_organization()
+        branch = self.get_branch()
+        return queryset.filter(
+            payroll__organization=org,
+            payroll__branch=branch
+        ).distinct()
 
-class PayrollComponentViewSet(viewsets.ModelViewSet):
+
+class PayrollComponentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch (via payroll_item relationship)"""
     queryset = PayrollComponent.objects.all()
     serializer_class = PayrollComponentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -254,8 +348,19 @@ class PayrollComponentViewSet(viewsets.ModelViewSet):
     ordering_fields = ['payroll', 'salary_component', 'amount']
     pagination_class = StandardResultsSetPagination
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filter by tenant via payroll_item relationship
+        org = self.get_organization()
+        branch = self.get_branch()
+        return queryset.filter(
+            payroll_item__payroll__organization=org,
+            payroll_item__payroll__branch=branch
+        ).distinct()
 
-class HRReportViewSet(viewsets.ModelViewSet):
+
+class HRReportViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = HRReport.objects.all()
     serializer_class = HRReportSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -263,3 +368,6 @@ class HRReportViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'report_type']
     ordering_fields = ['name', 'generated_at']
     pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
