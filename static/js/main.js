@@ -378,17 +378,30 @@ function initFormEnhancements() {
     });
     
     // Form validation feedback
+    // Handle both click and keyboard submission
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('needs-validation')) {
-            e.target.addEventListener('submit', function(event) {
-                if (!this.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                this.classList.add('was-validated');
-            }, { once: true });
+            setupFormValidation(e.target);
         }
     });
+    
+    // Also set up validation for forms that exist on page load
+    document.querySelectorAll('form.needs-validation').forEach(setupFormValidation);
+    
+    function setupFormValidation(form) {
+        // Only add once
+        if (form._validationSetup) return;
+        form._validationSetup = true;
+        
+        form.addEventListener('submit', function(event) {
+            // Don't validate if already validated (allows resubmission after fixes)
+            if (!this.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            this.classList.add('was-validated');
+        });
+    }
     
     // File input styling
     document.querySelectorAll('.custom-file-input').forEach(input => {
@@ -418,26 +431,47 @@ function showToast(message, type = 'info', title = '') {
     const container = document.getElementById('toast-container') || createToastContainer();
     
     const toastId = 'toast-' + Date.now();
-    const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    ${title ? `<strong>${title}</strong><br>` : ''}
-                    ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-        </div>
-    `;
     
-    container.insertAdjacentHTML('beforeend', toastHtml);
+    // Create toast element using DOM methods to prevent XSS
+    const toastDiv = document.createElement('div');
+    toastDiv.id = toastId;
+    toastDiv.className = 'toast align-items-center text-white bg-' + type + ' border-0';
+    toastDiv.setAttribute('role', 'alert');
+    toastDiv.setAttribute('aria-live', 'assertive');
+    toastDiv.setAttribute('aria-atomic', 'true');
     
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+    const flexDiv = document.createElement('div');
+    flexDiv.className = 'd-flex';
+    
+    const toastBody = document.createElement('div');
+    toastBody.className = 'toast-body';
+    
+    // Safely set text content (escapes HTML)
+    if (title) {
+        const strong = document.createElement('strong');
+        strong.textContent = title;
+        toastBody.appendChild(strong);
+        toastBody.appendChild(document.createElement('br'));
+    }
+    toastBody.textContent += message;
+    
+    flexDiv.appendChild(toastBody);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close btn-close-white me-2 m-auto';
+    closeBtn.setAttribute('data-bs-dismiss', 'toast');
+    closeBtn.setAttribute('aria-label', 'Close');
+    flexDiv.appendChild(closeBtn);
+    
+    toastDiv.appendChild(flexDiv);
+    container.appendChild(toastDiv);
+    
+    const toast = new bootstrap.Toast(toastDiv, { delay: 5000 });
     toast.show();
     
-    toastElement.addEventListener('hidden.bs.toast', function() {
-        toastElement.remove();
+    toastDiv.addEventListener('hidden.bs.toast', function() {
+        toastDiv.remove();
     });
 }
 
