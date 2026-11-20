@@ -16,9 +16,11 @@ from .serializers import (
     POSSettingsSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
 class PaymentMethodViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = PaymentMethod.objects.all()
     serializer_class = PaymentMethodSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -28,7 +30,8 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class CashRegisterViewSet(viewsets.ModelViewSet):
+class CashRegisterViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = CashRegister.objects.all()
     serializer_class = CashRegisterSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -36,9 +39,13 @@ class CashRegisterViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code', 'current_balance']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class SaleViewSet(viewsets.ModelViewSet):
+class SaleViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Sale.objects.all()
     serializer_class = SaleSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -46,6 +53,9 @@ class SaleViewSet(viewsets.ModelViewSet):
     search_fields = ['sale_number', 'customer__first_name', 'customer__last_name', 'notes']
     ordering_fields = ['sale_number', 'sale_date', 'total_amount']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
@@ -73,6 +83,7 @@ class SaleViewSet(viewsets.ModelViewSet):
 
 
 class SaleItemViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Sale"""
     queryset = SaleItem.objects.all()
     serializer_class = SaleItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -82,6 +93,7 @@ class SaleItemViewSet(viewsets.ModelViewSet):
 
 
 class SalePaymentViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Sale"""
     queryset = SalePayment.objects.all()
     serializer_class = SalePaymentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -90,7 +102,8 @@ class SalePaymentViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class ReceiptViewSet(viewsets.ModelViewSet):
+class ReceiptViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Receipt.objects.all()
     serializer_class = ReceiptSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -98,9 +111,13 @@ class ReceiptViewSet(viewsets.ModelViewSet):
     search_fields = ['receipt_number', 'sale__sale_number']
     ordering_fields = ['receipt_number', 'uploaded_at', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class RefundViewSet(viewsets.ModelViewSet):
+class RefundViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Refund.objects.all()
     serializer_class = RefundSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -108,6 +125,9 @@ class RefundViewSet(viewsets.ModelViewSet):
     search_fields = ['refund_number', 'sale__sale_number', 'customer__first_name', 'customer__last_name']
     ordering_fields = ['refund_number', 'refund_date', 'total_amount']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def items(self, request, pk=None):
@@ -118,6 +138,7 @@ class RefundViewSet(viewsets.ModelViewSet):
 
 
 class RefundItemViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Refund"""
     queryset = RefundItem.objects.all()
     serializer_class = RefundItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -126,7 +147,8 @@ class RefundItemViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class POSSessionViewSet(viewsets.ModelViewSet):
+class POSSessionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = POSSession.objects.all()
     serializer_class = POSSessionSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -134,11 +156,18 @@ class POSSessionViewSet(viewsets.ModelViewSet):
     search_fields = ['session_number']
     ordering_fields = ['session_number', 'start_time', 'end_time']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class POSSettingsViewSet(viewsets.ModelViewSet):
+class POSSettingsViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = POSSettings.objects.all()
     serializer_class = POSSettingsSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     ordering_fields = ['default_receipt_type', 'auto_print_receipt']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())

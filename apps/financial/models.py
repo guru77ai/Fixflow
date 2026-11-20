@@ -122,8 +122,12 @@ class InvoiceItem(UUIDModel, TimeStampedModel):
         ordering = ['-created_at']
     
     def save(self, *args, **kwargs):
+        from decimal import Decimal
+        
         self.total_price = self.quantity * self.unit_price
-        self.tax_amount = self.total_price * (self.tax_rate / 100)
+        # Use Decimal for precise tax calculation to avoid floating point errors
+        tax_rate_decimal = Decimal(self.tax_rate) / Decimal('100')
+        self.tax_amount = self.total_price * tax_rate_decimal
         super().save(*args, **kwargs)
 
 

@@ -4,6 +4,7 @@ API Views for CRM module
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import (
     Customer, Device, CustomerType, CustomerSource, CustomerGroup,
@@ -17,9 +18,11 @@ from .serializers import (
     CustomerCommunicationSerializer, CustomerDocumentSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
 class CustomerTypeViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = CustomerType.objects.all()
     serializer_class = CustomerTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -30,6 +33,7 @@ class CustomerTypeViewSet(viewsets.ModelViewSet):
 
 
 class CustomerSourceViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = CustomerSource.objects.all()
     serializer_class = CustomerSourceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -39,7 +43,8 @@ class CustomerSourceViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class CustomerGroupViewSet(viewsets.ModelViewSet):
+class CustomerGroupViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = CustomerGroup.objects.all()
     serializer_class = CustomerGroupSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -47,9 +52,13 @@ class CustomerGroupViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code', 'sequence']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class DeviceCategoryViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = DeviceCategory.objects.all()
     serializer_class = DeviceCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -60,6 +69,7 @@ class DeviceCategoryViewSet(viewsets.ModelViewSet):
 
 
 class DeviceBrandViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = DeviceBrand.objects.all()
     serializer_class = DeviceBrandSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -70,6 +80,7 @@ class DeviceBrandViewSet(viewsets.ModelViewSet):
 
 
 class DeviceModelViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = DeviceModel.objects.all()
     serializer_class = DeviceModelSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -79,7 +90,8 @@ class DeviceModelViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -87,6 +99,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
     search_fields = ['customer_number', 'first_name', 'last_name', 'email', 'phone', 'tax_id']
     ordering_fields = ['customer_number', 'first_name', 'last_name', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def stats(self, request, pk=None):
@@ -109,7 +124,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class DeviceViewSet(viewsets.ModelViewSet):
+class DeviceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -117,6 +133,9 @@ class DeviceViewSet(viewsets.ModelViewSet):
     search_fields = ['device_number', 'name', 'serial_number', 'imei', 'customer__first_name', 'customer__last_name']
     ordering_fields = ['device_number', 'name', 'serial_number', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
     
     @action(detail=True, methods=['get'])
     def repairs(self, request, pk=None):
@@ -127,7 +146,8 @@ class DeviceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CustomerCommunicationViewSet(viewsets.ModelViewSet):
+class CustomerCommunicationViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = CustomerCommunication.objects.all()
     serializer_class = CustomerCommunicationSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -135,9 +155,13 @@ class CustomerCommunicationViewSet(viewsets.ModelViewSet):
     search_fields = ['customer__first_name', 'customer__last_name', 'subject', 'message']
     ordering_fields = ['communication_date', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class CustomerDocumentViewSet(viewsets.ModelViewSet):
+class CustomerDocumentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = CustomerDocument.objects.all()
     serializer_class = CustomerDocumentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -145,3 +169,6 @@ class CustomerDocumentViewSet(viewsets.ModelViewSet):
     search_fields = ['customer__first_name', 'customer__last_name', 'name', 'description']
     ordering_fields = ['uploaded_at', 'name']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())

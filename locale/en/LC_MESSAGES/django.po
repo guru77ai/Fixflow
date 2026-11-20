@@ -1,0 +1,132 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: FixFlow ERP\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: FixFlow Team\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/views.py:20
+msgid "Login"
+msgstr "Login"
+
+#: apps/accounts/views.py:21
+msgid "Sign in to your account to access FixSoftRepair Pro"
+msgstr "Sign in to your account to access FixSoftRepair Pro"
+
+#: apps/accounts/views.py:50
+msgid "Username or Email"
+msgstr "Username or Email"
+
+#: apps/accounts/views.py:55
+msgid "Enter your username or email"
+msgstr "Enter your username or email"
+
+#: apps/accounts/views.py:60
+msgid "Password"
+msgstr "Password"
+
+#: apps/accounts/views.py:65
+msgid "Enter your password"
+msgstr "Enter your password"
+
+#: apps/accounts/views.py:70
+msgid "Remember me"
+msgstr "Remember me"
+
+#: apps/accounts/views.py:80
+msgid "Sign In"
+msgstr "Sign In"
+
+#: apps/accounts/views.py:85
+msgid "Forgot password?"
+msgstr "Forgot password?"
+
+#: apps/accounts/views.py:90
+msgid "Don't have an account?"
+msgstr "Don't have an account?"
+
+#: apps/accounts/views.py:91
+msgid "Sign Up"
+msgstr "Sign Up"
+
+#: apps/accounts/views.py:100
+msgid "Create Account"
+msgstr "Create Account"
+
+#: apps/accounts/views.py:101
+msgid "Join FixSoftRepair Pro to start managing your repair business"
+msgstr "Join FixSoftRepair Pro to start managing your repair business"
+
+#: apps/accounts/views.py:110
+msgid "First Name"
+msgstr "First Name"
+
+#: apps/accounts/views.py:115
+msgid "Last Name"
+msgstr "Last Name"
+
+#: apps/accounts/views.py:120
+msgid "Email Address"
+msgstr "Email Address"
+
+#: apps/accounts/views.py:125
+msgid "Username"
+msgstr "Username"
+
+#: apps/accounts/views.py:135
+msgid "Create a password"
+msgstr "Create a password"
+
+#: apps/accounts/views.py:140
+msgid "Confirm your password"
+msgstr "Confirm your password"
+
+#: apps/accounts/views.py:150
+msgid "Mobile"
+msgstr "Mobile"
+
+#: apps/accounts/views.py:160
+msgid "Already have an account?"
+msgstr "Already have an account?"
+
+#: apps/accounts/views.py:170
+msgid "Password Reset"
+msgstr "Password Reset"
+
+#: apps/accounts/views.py:171
+msgid "Enter your email to receive a password reset link"
+msgstr "Enter your email to receive a password reset link"
+
+#: apps/accounts/views.py:185
+msgid "Send Reset Link"
+msgstr "Send Reset Link"
+
+#: apps/accounts/views.py:190
+msgid "Back to Login"
+msgstr "Back to Login"
+
+#: apps/accounts/views.py:200
+msgid "Password Reset Sent"
+msgstr "Password Reset Sent"
+
+#: apps/accounts/views.py:201
+msgid "Check your email for the reset link"
+msgstr "Check your email for the reset link"
+
+#: apps/accounts/views.py:210
+msgid "Email Sent!"
+msgstr "Email Sent!"
+
+#: apps/accounts/views.py:211
+msgid "We've sent a password reset link to your email address. Please check your inbox and follow the instructions."
+msgstr "We've sent a password reset link to your email address. Please check your inbox and follow the instructions."
+
+#: apps/accounts/views.py:220
+msgid "If you don't see the email, check your spam folder."
+msgstr "If you don't see the email, check your spam folder."

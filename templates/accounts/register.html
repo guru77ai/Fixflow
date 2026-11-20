@@ -1,0 +1,219 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Register" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Create Account" %}</h1>
+    <p class="page-subtitle">{% trans "Join FixSoftRepair Pro to start managing your repair business" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-12">
+            <div class="card">
+                <div class="card-body p-5">
+                    <!-- Logo -->
+                    <div class="text-center mb-5">
+                        <img src="{% static 'img/logo.png' %}" alt="FixSoftRepair Pro" class="logo-img mb-3" style="max-height: 60px;">
+                        <h2 class="h3">{% trans "Create Your Account" %}</h2>
+                        <p class="text-muted">{% trans "Fill in the form below to get started" %}</p>
+                    </div>
+                    
+                    <!-- Registration Form -->
+                    <form method="post" action="{% url 'accounts:register' %}" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- First Name -->
+                            <div class="col-md-6 mb-4">
+                                <label for="first_name" class="form-label fw-semibold">{% trans "First Name" %}</label>
+                                <input type="text" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                                       id="first_name" 
+                                       name="first_name" 
+                                       value="{{ form.first_name.value|default:'' }}" 
+                                       placeholder="{% trans 'John' %}" 
+                                       required>
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Last Name -->
+                            <div class="col-md-6 mb-4">
+                                <label for="last_name" class="form-label fw-semibold">{% trans "Last Name" %}</label>
+                                <input type="text" 
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                                       id="last_name" 
+                                       name="last_name" 
+                                       value="{{ form.last_name.value|default:'' }}" 
+                                       placeholder="{% trans 'Doe' %}" 
+                                       required>
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-semibold">{% trans "Email Address" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{{ form.email.value|default:'' }}" 
+                                       placeholder="{% trans 'john@example.com' %}" 
+                                       required>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-semibold">{% trans "Username" %}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                       id="username" 
+                                       name="username" 
+                                       value="{{ form.username.value|default:'' }}" 
+                                       placeholder="{% trans 'johndoe' %}" 
+                                       required>
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <!-- Password -->
+                            <div class="col-md-6 mb-4">
+                                <label for="password1" class="form-label fw-semibold">{% trans "Password" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" 
+                                           class="form-control {% if form.password1.errors %}is-invalid{% endif %}" 
+                                           id="password1" 
+                                           name="password1" 
+                                           placeholder="{% trans 'Create a password' %}" 
+                                           required>
+                                    {% if form.password1.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password1.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-text text-muted">{% trans "Minimum 8 characters" %}</div>
+                            </div>
+                            
+                            <!-- Confirm Password -->
+                            <div class="col-md-6 mb-4">
+                                <label for="password2" class="form-label fw-semibold">{% trans "Confirm Password" %}</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" 
+                                           class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
+                                           id="password2" 
+                                           name="password2" 
+                                           placeholder="{% trans 'Confirm your password' %}" 
+                                           required>
+                                    {% if form.password2.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.password2.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Phone -->
+                        <div class="mb-4">
+                            <label for="phone" class="form-label fw-semibold">{% trans "Phone Number" %} <span class="text-muted">({% trans "optional" %})</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" 
+                                       class="form-control {% if form.phone.errors %}is-invalid{% endif %}" 
+                                       id="phone" 
+                                       name="phone" 
+                                       value="{{ form.phone.value|default:'' }}" 
+                                       placeholder="{% trans '+1234567890' %}">
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-4">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Terms -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" 
+                                   class="form-check-input {% if form.terms.errors %}is-invalid{% endif %}" 
+                                   id="terms" 
+                                   name="terms" 
+                                   {% if form.terms.value %}checked{% endif %}>
+                            <label class="form-check-label" for="terms">
+                                {% trans "I agree to the" %} <a href="#" class="text-decoration-none">{% trans "Terms and Conditions" %}</a>
+                            </label>
+                            {% if form.terms.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.terms.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-person-plus me-2"></i>{% trans "Create Account" %}
+                        </button>
+                        
+                        <!-- Login Link -->
+                        <div class="text-center mt-4">
+                            <span class="text-muted">{% trans "Already have an account?" %}</span>
+                            <a href="{% url 'accounts:login' %}" class="text-decoration-none ms-2">
+                                {% trans "Sign In" %}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .logo-img {
+        max-height: 60px;
+        width: auto;
+    }
+</style>
+{% endblock %}

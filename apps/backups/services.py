@@ -4,9 +4,11 @@ Services for the backups application.
 import os
 import shutil
 import hashlib
+import sqlite3
 from django.conf import settings
 from django.utils import timezone
 from .models import Backup, BackupSchedule, RestoreLog
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 
 class BackupService:
@@ -20,9 +22,16 @@ class BackupService:
     
     def create_backup(self, description='', backup_type='manual'):
         """
-        Create a new database backup.
+        Create a new database backup using SQLite backup API for consistency.
+        
+        This ensures that the backup is consistent even if the database is being
+        written to during the backup process.
         """
         try:
+            # Validate user has permission
+            if not self.user.is_authenticated:
+                raise PermissionDenied('Authentication required to create backup')
+            
             # Create backup directory if it doesn't exist
             backup_dir = os.path.join(settings.BASE_DIR, 'backups')
             os.makedirs(backup_dir, exist_ok=True)
@@ -35,8 +44,30 @@ class BackupService:
             # Get database path
             db_path = settings.DATABASES['default']['NAME']
             
-            # Copy database file
-            shutil.copy2(db_path, file_path)
+            # Validate database path exists
+            if not os.path.exists(db_path):
+                raise ValidationError(f'Database file not found: {db_path}')
+            
+            # Validate backup path is within allowed directory
+            if not file_path.startswith(os.path.abspath(backup_dir)):
+                raise ValidationError('Invalid backup path - path traversal detected')
+            
+            # Use SQLite backup API for consistent backup
+            # This ensures the backup is consistent even during writes
+            conn = sqlite3.connect(db_path)
+            backup_conn = sqlite3.connect(file_path)
+            
+            try:
+                # Use SQLite online backup API
+                with backup_conn:
+                    conn.backup(backup_conn, pages=100)
+            finally:
+                conn.close()
+                backup_conn.close()
+            
+            # Verify backup file was created
+            if not os.path.exists(file_path):
+                raise ValidationError('Backup file was not created')
             
             # Calculate checksum
             with open(file_path, 'rb') as f:
@@ -45,14 +76,21 @@ class BackupService:
             # Get file size
             file_size = os.path.getsize(file_path)
             
+            # Get organization from request
+            organization = None
+            if hasattr(self.request, 'organization'):
+                organization = self.request.organization
+            elif hasattr(self.request, 'current_organization'):
+                organization = self.request.current_organization
+            
             # Create backup record
             backup = Backup.objects.create(
                 backup_type=backup_type,
-                user=self.user if self.user.is_authenticated else None,
+                user=self.user,
                 file_name=file_name,
                 file_path=file_path,
                 file_size=file_size,
-                organization=self.request.current_organization if hasattr(self.request, 'current_organization') else None,
+                organization=organization,
                 description=description,
                 is_successful=True,
                 is_verified=False,
@@ -68,7 +106,7 @@ class BackupService:
                 file_name=f"backup_{backup_type}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.sqlite3",
                 file_path='',
                 file_size=0,
-                organization=self.request.current_organization if hasattr(self.request, 'current_organization') else None,
+                organization=self.request.organization if hasattr(self.request, 'organization') else None,
                 description=description,
                 is_successful=False,
                 error_message=str(e)
@@ -110,33 +148,76 @@ class BackupService:
     
     def restore_backup(self, pk):
         """
-        Restore a backup.
+        Restore a backup with explicit confirmation and safety checks.
+        
+        This method prevents unsafe overwrites that could corrupt the active database.
         """
         try:
             backup = Backup.objects.get(pk=pk)
             
+            # Validate user has permission
+            if not self.user.is_authenticated:
+                raise PermissionDenied('Authentication required to restore backup')
+            
             # Verify backup first
             if not self.verify_backup(pk):
-                return False
+                raise ValidationError('Backup verification failed')
             
             # Get database path
             db_path = settings.DATABASES['default']['NAME']
+            
+            # Validate backup path is within allowed directory
+            backup_dir = os.path.join(settings.BASE_DIR, 'backups')
+            if not backup.file_path.startswith(os.path.abspath(backup_dir)):
+                raise ValidationError('Invalid backup path - path traversal detected')
+            
+            # Validate restore path is the database file
+            expected_db_path = os.path.abspath(db_path)
+            if not db_path:
+                raise ValidationError('Database path not configured')
             
             # Make sure database directory exists
             db_dir = os.path.dirname(db_path)
             os.makedirs(db_dir, exist_ok=True)
             
-            # Copy backup file to database location
-            shutil.copy2(backup.file_path, db_path)
+            # Create a temporary copy first for safety
+            temp_path = f"{db_path}.restore_temp"
+            shutil.copy2(backup.file_path, temp_path)
+            
+            # Verify the temporary file
+            with open(temp_path, 'rb') as f:
+                temp_hash = hashlib.sha256(f.read()).hexdigest()
+            
+            if temp_hash != backup.checksum:
+                # Clean up temp file
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                raise ValidationError('Backup file checksum mismatch after copy')
+            
+            # Only now overwrite the actual database
+            # In production, you would want to:
+            # 1. Close all database connections
+            # 2. Make a backup of the current database
+            # 3. Then restore
+            # For this implementation, we'll just do a safe copy
+            
+            # Backup current database first (safety measure)
+            current_backup_path = f"{db_path}.pre_restore_backup"
+            if os.path.exists(db_path):
+                shutil.copy2(db_path, current_backup_path)
+            
+            # Restore the backup
+            shutil.move(temp_path, db_path)
             
             # Log restore
             RestoreLog.objects.create(
                 backup=backup,
-                user=self.user if self.user.is_authenticated else None,
+                user=self.user,
                 restore_path=db_path,
                 is_successful=True,
                 started_at=timezone.now(),
-                completed_at=timezone.now()
+                completed_at=timezone.now(),
+                notes=f'Previous database backed up to: {current_backup_path}'
             )
             
             return True

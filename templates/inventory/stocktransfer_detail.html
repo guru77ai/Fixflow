@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Stock Transfer Details" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Stock Transfer" %} #{{ object.transfer_number }}</h1>
+        <p class="page-subtitle">{{ object.date|date:"Y-m-d" }} - {{ object.from_warehouse.name }}  {{ object.to_warehouse.name }}</p>
+    </div>
+    <div class="btn-group" role="group">
+        {% if object.status == 'DRAFT' %}
+        <a href="{% url 'inventory:stocktransfer_form' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>{% trans "Edit" %}
+        </a>
+        {% endif %}
+        <a href="{% url 'inventory:stocktransfer_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- Transfer Information -->
+        <div class="col-lg-8 col-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Transfer Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Transfer Number" %}:</strong> {{ object.transfer_number }}</p>
+                            <p><strong>{% trans "Date" %}:</strong> {{ object.date|date:"Y-m-d" }}</p>
+                            <p><strong>{% trans "Status" %}:</strong> 
+                                <span class="badge bg-{{ object.get_status_badge_class }}">{{ object.get_status_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "From Warehouse" %}:</strong> {{ object.from_warehouse.name }}</p>
+                            <p><strong>{% trans "To Warehouse" %}:</strong> {{ object.to_warehouse.name }}</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <p><strong>{% trans "Notes" %}:</strong></p>
+                    <p>{{ object.notes|default:"-" }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Created By" %}:</strong> {{ object.created_by|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <p><strong>{% trans "Created At" %}:</strong> {{ object.created_at|date:"Y-m-d H:i:s" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Summary -->
+        <div class="col-lg-4 col-12 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div class="stat-card bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 text-muted">{% trans "Total Items" %}</h6>
+                                    <h4 class="mb-0">{{ object.items.count }}</h4>
+                                </div>
+                                <i class="bi bi-box-seam text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0 text-muted">{% trans "Total Quantity" %}</h6>
+                                    <h4 class="mb-0">{{ object.get_total_quantity }}</h4>
+                                </div>
+                                <i class="bi bi-inboxes text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transfer Items -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Transfer Items" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "#" %}</th>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Unit" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in object.items.all %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.product.name }} ({{ item.product.code }})</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit.symbol|default:"-" }}</td>
+                            <td>{{ item.notes|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                {% trans "No items in this transfer." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

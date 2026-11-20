@@ -16,9 +16,11 @@ from .serializers import (
     ExpenseAttachmentSerializer, FinancialReportSerializer
 )
 from apps.core.pagination import StandardResultsSetPagination
+from apps.core.api_mixins import TenantScopedMixin
 
 
 class InvoiceStatusViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = InvoiceStatus.objects.all()
     serializer_class = InvoiceStatusSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -29,6 +31,7 @@ class InvoiceStatusViewSet(viewsets.ModelViewSet):
 
 
 class InvoiceTypeViewSet(viewsets.ModelViewSet):
+    """Global reference data - no tenant scoping needed"""
     queryset = InvoiceType.objects.all()
     serializer_class = InvoiceTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -38,7 +41,8 @@ class InvoiceTypeViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class InvoiceViewSet(viewsets.ModelViewSet):
+class InvoiceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -46,9 +50,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     search_fields = ['invoice_number', 'reference', 'customer__first_name', 'customer__last_name', 'supplier__name']
     ordering_fields = ['invoice_number', 'created_at', 'due_date', 'total_amount']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Invoice"""
     queryset = InvoiceItem.objects.all()
     serializer_class = InvoiceItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -59,6 +67,7 @@ class InvoiceItemViewSet(viewsets.ModelViewSet):
 
 
 class InvoicePaymentViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Invoice"""
     queryset = InvoicePayment.objects.all()
     serializer_class = InvoicePaymentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -68,7 +77,8 @@ class InvoicePaymentViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -76,9 +86,13 @@ class PaymentViewSet(viewsets.ModelViewSet):
     search_fields = ['payment_number', 'reference', 'customer__first_name', 'customer__last_name', 'supplier__name']
     ordering_fields = ['payment_number', 'payment_date', 'amount']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class ExpenseCategoryViewSet(viewsets.ModelViewSet):
+class ExpenseCategoryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = ExpenseCategory.objects.all()
     serializer_class = ExpenseCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -86,9 +100,13 @@ class ExpenseCategoryViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class ExpenseViewSet(viewsets.ModelViewSet):
+class ExpenseViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -96,9 +114,13 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     search_fields = ['expense_number', 'title', 'description', 'supplier__name']
     ordering_fields = ['expense_number', 'expense_date', 'amount']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class ExpenseAttachmentViewSet(viewsets.ModelViewSet):
+    """Child items - scoped through parent Expense"""
     queryset = ExpenseAttachment.objects.all()
     serializer_class = ExpenseAttachmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -108,7 +130,8 @@ class ExpenseAttachmentViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class FinancialReportViewSet(viewsets.ModelViewSet):
+class FinancialReportViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped: filtered by organization and branch"""
     queryset = FinancialReport.objects.all()
     serializer_class = FinancialReportSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -116,3 +139,6 @@ class FinancialReportViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'report_type']
     ordering_fields = ['name', 'start_date', 'end_date', 'generated_at']
     pagination_class = StandardResultsSetPagination
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())

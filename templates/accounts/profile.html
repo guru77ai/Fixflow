@@ -1,0 +1,145 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Profile" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "My Profile" %}</h1>
+    <p class="page-subtitle">{% trans "View and manage your profile information" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-lg-4 col-md-5 col-12 mb-4">
+            <div class="card profile-card">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="{% trans 'Profile Image' %}" class="rounded-circle" width="150" height="150">
+                        {% else %}
+                        <div class="avatar-placeholder rounded-circle bg-primary d-inline-flex align-items-center justify-content-center" style="width: 150px; height: 150px;">
+                            <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h3 class="profile-name">{{ user.get_full_name|default:user.username }}</h3>
+                    <p class="profile-email text-muted">{{ user.email }}</p>
+                    <div class="profile-role badge bg-primary">{{ user.get_role_display|default:"User" }}</div>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="bi bi-pencil me-1"></i>{% trans "Edit Profile" %}
+                        </a>
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-key me-1"></i>{% trans "Change Password" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">{% trans "Quick Stats" %}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Last Login" %}</span>
+                            <span>{{ user.last_login|date:"Y-m-d H:i"|default:"Never" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Date Joined" %}</span>
+                            <span>{{ user.date_joined|date:"Y-m-d" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Status" %}</span>
+                            <span><span class="badge bg-success">{% trans "Active" %}</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Details -->
+        <div class="col-lg-8 col-md-7 col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "Profile Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "Username" %}</label>
+                            <p>{{ user.username }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "Email" %}</label>
+                            <p>{{ user.email }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "First Name" %}</label>
+                            <p>{{ user.first_name|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "Last Name" %}</label>
+                            <p>{{ user.last_name|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "Phone" %}</label>
+                            <p>{{ user.phone|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">{% trans "Role" %}</label>
+                            <p>{{ user.get_role_display|default:"-" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Organizations -->
+            {% if user.organizations.all %}
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{% trans "My Organizations" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Organization" %}</th>
+                                    <th>{% trans "Role" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membership in user.organizations.all %}
+                                <tr>
+                                    <td>{{ membership.organization.name }}</td>
+                                    <td><span class="badge bg-primary">{{ membership.role.name|default:membership.role.code }}</span></td>
+                                    <td><span class="badge bg-{{ membership.is_active|yesno:'success,danger' }}">{{ membership.is_active|yesno:"Active,Inactive" }}</span></td>
+                                    <td>
+                                        {% if membership.organization.pk == request.session.organization_id %}
+                                        <span class="badge bg-success">{% trans "Current" %}</span>
+                                        {% else %}
+                                        <a href="{% url 'organizations:switch' membership.organization.pk %}" class="btn btn-sm btn-outline-primary">{% trans "Switch" %}</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

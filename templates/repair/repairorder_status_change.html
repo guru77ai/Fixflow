@@ -1,0 +1,101 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Change Repair Order Status" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Change Status" %}</h1>
+    <p class="page-subtitle">{% trans "Update repair order status" %}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8 col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">{% trans "Change Status for Repair Order" %} #{{ repair_order.order_number }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Current Status -->
+                    <div class="mb-4">
+                        <h6>{% trans "Current Status" %}</h6>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <span class="badge bg-{{ repair_order.status.get_badge_class|default:'secondary' }}">
+                                {{ repair_order.status.name|default:repair_order.status }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Repair Order Info -->
+                    <div class="mb-4">
+                        <h6>{% trans "Repair Order Information" %}</h6>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>{% trans "Order Number" %}:</strong> {{ repair_order.order_number }}</p>
+                                <p><strong>{% trans "Customer" %}:</strong> {{ repair_order.customer.name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>{% trans "Device" %}:</strong> {{ repair_order.device.name|default:"-" }}</p>
+                                <p><strong>{% trans "Date" %}:</strong> {{ repair_order.date|date:"Y-m-d" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Change Form -->
+                    <form method="post" action="" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- New Status -->
+                        <div class="mb-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label fw-semibold">{% trans "New Status" %} <span class="text-danger">*</span></label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text text-muted">{% trans "Select the new status for this repair order" %}</div>
+                        </div>
+                        
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label fw-semibold">{% trans "Notes" %}</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text text-muted">{% trans "Optional notes about this status change" %}</div>
+                        </div>
+                        
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-4">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'repair:repairorder_detail' repair_order.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>{% trans "Change Status" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

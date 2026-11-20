@@ -1,0 +1,135 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Stock Movements" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Stock Movements" %}</h1>
+        <p class="page-subtitle">{% trans "Track all inventory movements across warehouses" %}</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Filters" %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="" class="row g-3">
+                <div class="col-md-3">
+                    <label for="product" class="form-label">{% trans "Product" %}</label>
+                    <input type="text" class="form-control" id="product" name="product" value="{{ request.GET.product }}" placeholder="{% trans 'Product name' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="warehouse" class="form-label">{% trans "Warehouse" %}</label>
+                    <select class="form-select" id="warehouse" name="warehouse">
+                        <option value="">{% trans "All Warehouses" %}</option>
+                        {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.pk }}" {% if request.GET.warehouse == warehouse.pk|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="movement_type" class="form-label">{% trans "Type" %}</label>
+                    <select class="form-select" id="movement_type" name="movement_type">
+                        <option value="">{% trans "All Types" %}</option>
+                        <option value="IN" {% if request.GET.movement_type == 'IN' %}selected{% endif %}>{% trans "In" %}</option>
+                        <option value="OUT" {% if request.GET.movement_type == 'OUT' %}selected{% endif %}>{% trans "Out" %}</option>
+                        <option value="TRANSFER" {% if request.GET.movement_type == 'TRANSFER' %}selected{% endif %}>{% trans "Transfer" %}</option>
+                        <option value="ADJUSTMENT" {% if request.GET.movement_type == 'ADJUSTMENT' %}selected{% endif %}>{% trans "Adjustment" %}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label">{% trans "From" %}</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.GET.date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label">{% trans "To" %}</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.GET.date_to }}">
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>{% trans "Reset" %}
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel me-1"></i>{% trans "Filter" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Stock Movements" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="stockmovement-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Warehouse" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Unit" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movement in object_list %}
+                        <tr>
+                            <td>{{ movement.date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ movement.product.name }}</td>
+                            <td>{{ movement.warehouse.name|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{{ movement.get_type_badge_class }}">
+                                    {{ movement.get_type_display }}
+                                </span>
+                            </td>
+                            <td>{{ movement.quantity }}</td>
+                            <td>{{ movement.unit.symbol|default:"-" }}</td>
+                            <td>{{ movement.reference|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'inventory:stockmovement_detail' movement.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                {% trans "No stock movements found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#stockmovement-table').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
+            },
+            order: [[0, 'desc']]
+        });
+    });
+</script>
+{% endblock %}

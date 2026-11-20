@@ -23,98 +23,56 @@
                 </li>
                 
                 <!-- Repairs -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'repairs' %}active{% endif %}">
-                    <a href="#" class="menu-link has-submenu" x-data="{ expanded: false }" @click.prevent="expanded = !expanded">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':5' == 'repair' %}active{% endif %}">
+                    <a href="{% url 'repair:dashboard' %}" class="menu-link">
                         <i class="bi bi-tools menu-icon"></i>
                         <span class="menu-text">{% trans "Repairs" %}</span>
-                        <i class="bi bi-chevron-right menu-arrow" :class="{ 'rotate-90': expanded }"></i>
                     </a>
-                    <ul class="submenu" x-show="expanded" x-transition style="display: none;">
-                        <li class="submenu-item">
-                            <a href="{% url 'repairs:list' %}" class="submenu-link">
-                                <i class="bi bi-list-ul"></i>
-                                <span>{% trans "All Repairs" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'repairs:create' %}" class="submenu-link">
-                                <i class="bi bi-plus-circle"></i>
-                                <span>{% trans "New Repair" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'repairs:workflow' %}" class="submenu-link">
-                                <i class="bi bi-kanban"></i>
-                                <span>{% trans "Workflow" %}</span>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
                 
                 <!-- Customers -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'customers' %}active{% endif %}">
-                    <a href="{% url 'customers:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'customer' %}active{% endif %}">
+                    <a href="{% url 'crm:customer_list' %}" class="menu-link">
                         <i class="bi bi-people menu-icon"></i>
                         <span class="menu-text">{% trans "Customers" %}</span>
                     </a>
                 </li>
                 
                 <!-- Devices -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'devices' %}active{% endif %}">
-                    <a href="{% url 'devices:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':6' == 'device' %}active{% endif %}">
+                    <a href="{% url 'crm:device_list' %}" class="menu-link">
                         <i class="bi bi-phone menu-icon"></i>
                         <span class="menu-text">{% trans "Devices" %}</span>
                     </a>
                 </li>
                 
                 <!-- Technicians -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':11' == 'technicians' %}active{% endif %}">
-                    <a href="{% url 'technicians:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'technician' %}active{% endif %}">
+                    <a href="{% url 'repair:technician_list' %}" class="menu-link">
                         <i class="bi bi-person-workspace menu-icon"></i>
                         <span class="menu-text">{% trans "Technicians" %}</span>
                     </a>
                 </li>
                 
                 <!-- Products -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'products' %}active{% endif %}">
-                    <a href="#" class="menu-link has-submenu" x-data="{ expanded: false }" @click.prevent="expanded = !expanded">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'product' %}active{% endif %}">
+                    <a href="{% url 'inventory:product_list' %}" class="menu-link">
                         <i class="bi bi-box-seam menu-icon"></i>
                         <span class="menu-text">{% trans "Products" %}</span>
-                        <i class="bi bi-chevron-right menu-arrow" :class="{ 'rotate-90': expanded }"></i>
                     </a>
-                    <ul class="submenu" x-show="expanded" x-transition style="display: none;">
-                        <li class="submenu-item">
-                            <a href="{% url 'products:list' %}" class="submenu-link">
-                                <i class="bi bi-list-ul"></i>
-                                <span>{% trans "All Products" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'products:create' %}" class="submenu-link">
-                                <i class="bi bi-plus-circle"></i>
-                                <span>{% trans "New Product" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'categories:list' %}" class="submenu-link">
-                                <i class="bi bi-tags"></i>
-                                <span>{% trans "Categories" %}</span>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
                 
                 <!-- Inventory -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'inventory' %}active{% endif %}">
-                    <a href="{% url 'inventory:list' %}" class="menu-link">
+                    <a href="{% url 'inventory:dashboard' %}" class="menu-link">
                         <i class="bi bi-inboxes menu-icon"></i>
                         <span class="menu-text">{% trans "Inventory" %}</span>
                     </a>
                 </li>
                 
                 <!-- Warehouses -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'warehouses' %}active{% endif %}">
-                    <a href="{% url 'warehouses:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'warehouse' %}active{% endif %}">
+                    <a href="{% url 'inventory:warehouse_list' %}" class="menu-link">
                         <i class="bi bi-building menu-icon"></i>
                         <span class="menu-text">{% trans "Warehouses" %}</span>
                     </a>
@@ -122,31 +80,31 @@
                 
                 <!-- Purchasing -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'purchasing' %}active{% endif %}">
-                    <a href="{% url 'purchasing:list' %}" class="menu-link">
+                    <a href="{% url 'suppliers:supplier_list' %}" class="menu-link">
                         <i class="bi bi-cart menu-icon"></i>
-                        <span class="menu-text">{% trans "Purchasing" %}</span>
+                        <span class="menu-text">{% trans "Suppliers" %}</span>
                     </a>
                 </li>
                 
                 <!-- POS -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':3' == 'pos' %}active{% endif %}">
-                    <a href="{% url 'pos:index' %}" class="menu-link">
+                    <a href="{% url 'pos:dashboard' %}" class="menu-link">
                         <i class="bi bi-cash-coin menu-icon"></i>
                         <span class="menu-text">{% trans "POS" %}</span>
                     </a>
                 </li>
                 
                 <!-- Sales -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':5' == 'sales' %}active{% endif %}">
-                    <a href="{% url 'sales:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':4' == 'sale' %}active{% endif %}">
+                    <a href="{% url 'pos:sale_list' %}" class="menu-link">
                         <i class="bi bi-shop menu-icon"></i>
                         <span class="menu-text">{% trans "Sales" %}</span>
                     </a>
                 </li>
                 
                 <!-- Invoices -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'invoices' %}active{% endif %}">
-                    <a href="{% url 'invoices:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'invoice' %}active{% endif %}">
+                    <a href="{% url 'financial:invoice_list' %}" class="menu-link">
                         <i class="bi bi-file-earmark-text menu-icon"></i>
                         <span class="menu-text">{% trans "Invoices" %}</span>
                     </a>
@@ -193,16 +151,16 @@
                 </li>
                 
                 <!-- Employees -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'employees' %}active{% endif %}">
-                    <a href="{% url 'employees:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'employee' %}active{% endif %}">
+                    <a href="{% url 'hr:employee_list' %}" class="menu-link">
                         <i class="bi bi-person menu-icon"></i>
                         <span class="menu-text">{% trans "Employees" %}</span>
                     </a>
                 </li>
                 
                 <!-- Attendance -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'attendance' %}active{% endif %}">
-                    <a href="{% url 'attendance:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'attendance' %}active{% endif %}">
+                    <a href="{% url 'hr:attendance_list' %}" class="menu-link">
                         <i class="bi bi-calendar-check menu-icon"></i>
                         <span class="menu-text">{% trans "Attendance" %}</span>
                     </a>
@@ -210,64 +168,31 @@
                 
                 <!-- Payroll -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'payroll' %}active{% endif %}">
-                    <a href="{% url 'payroll:list' %}" class="menu-link">
+                    <a href="{% url 'hr:payroll_list' %}" class="menu-link">
                         <i class="bi bi-currency-dollar menu-icon"></i>
                         <span class="menu-text">{% trans "Payroll" %}</span>
                     </a>
                 </li>
                 
                 <!-- Commissions -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':11' == 'commissions' %}active{% endif %}">
-                    <a href="{% url 'commissions:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'commission' %}active{% endif %}">
+                    <a href="{% url 'hr:commission_list' %}" class="menu-link">
                         <i class="bi bi-percent menu-icon"></i>
                         <span class="menu-text">{% trans "Commissions" %}</span>
                     </a>
                 </li>
                 
                 <!-- Reports -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'reports' %}active{% endif %}">
-                    <a href="#" class="menu-link has-submenu" x-data="{ expanded: false }" @click.prevent="expanded = !expanded">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'reports' %}active{% endif %}">
+                    <a href="{% url 'reports:dashboard' %}" class="menu-link">
                         <i class="bi bi-bar-chart-line menu-icon"></i>
                         <span class="menu-text">{% trans "Reports" %}</span>
-                        <i class="bi bi-chevron-right menu-arrow" :class="{ 'rotate-90': expanded }"></i>
                     </a>
-                    <ul class="submenu" x-show="expanded" x-transition style="display: none;">
-                        <li class="submenu-item">
-                            <a href="{% url 'reports:dashboard' %}" class="submenu-link">
-                                <i class="bi bi-speedometer2"></i>
-                                <span>{% trans "Report Dashboard" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'reports:sales' %}" class="submenu-link">
-                                <i class="bi bi-graph-up"></i>
-                                <span>{% trans "Sales Reports" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'reports:repairs' %}" class="submenu-link">
-                                <i class="bi bi-tools"></i>
-                                <span>{% trans "Repair Reports" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'reports:inventory' %}" class="submenu-link">
-                                <i class="bi bi-inboxes"></i>
-                                <span>{% trans "Inventory Reports" %}</span>
-                            </a>
-                        </li>
-                        <li class="submenu-item">
-                            <a href="{% url 'reports:financial' %}" class="submenu-link">
-                                <i class="bi bi-currency-exchange"></i>
-                                <span>{% trans "Financial Reports" %}</span>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
                 
                 <!-- Notifications -->
-                <li class="menu-item {% if request.resolver_match.url_name|slice:':13' == 'notifications' %}active{% endif %}">
-                    <a href="{% url 'notifications:list' %}" class="menu-link">
+                <li class="menu-item {% if request.resolver_match.url_name|slice:':12' == 'notification' %}active{% endif %}">
+                    <a href="{% url 'notifications:notification_list' %}" class="menu-link">
                         <i class="bi bi-bell menu-icon"></i>
                         <span class="menu-text">{% trans "Notifications" %}</span>
                         {% if unread_notifications > 0 %}
@@ -278,7 +203,7 @@
                 
                 <!-- Zakat -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':5' == 'zakat' %}active{% endif %}">
-                    <a href="{% url 'zakat:calculator' %}" class="menu-link">
+                    <a href="{% url 'zakat:dashboard' %}" class="menu-link">
                         <i class="bi bi-percent menu-icon"></i>
                         <span class="menu-text">{% trans "Zakat" %}</span>
                     </a>
@@ -299,37 +224,37 @@
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'organizations:list' %}" class="submenu-link">
+                            <a href="{% url 'organizations:organization_list' %}" class="submenu-link">
                                 <i class="bi bi-building"></i>
                                 <span>{% trans "Organizations" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'branches:list' %}" class="submenu-link">
+                            <a href="{% url 'branches:branch_list' %}" class="submenu-link">
                                 <i class="bi bi-shop"></i>
                                 <span>{% trans "Branches" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'accounts:users' %}" class="submenu-link">
+                            <a href="{% url 'accounts:user_list' %}" class="submenu-link">
                                 <i class="bi bi-people"></i>
                                 <span>{% trans "User Management" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'licensing:view' %}" class="submenu-link">
+                            <a href="{% url 'licensing:license_detail' %}" class="submenu-link">
                                 <i class="bi bi-key"></i>
                                 <span>{% trans "License" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'backups:list' %}" class="submenu-link">
+                            <a href="{% url 'backups:backup_list' %}" class="submenu-link">
                                 <i class="bi bi-hdd"></i>
                                 <span>{% trans "Backups" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'audit_logs:list' %}" class="submenu-link">
+                            <a href="{% url 'audit_logs:audit_log_list' %}" class="submenu-link">
                                 <i class="bi bi-journal-text"></i>
                                 <span>{% trans "Audit Logs" %}</span>
                             </a>

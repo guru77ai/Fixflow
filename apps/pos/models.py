@@ -95,6 +95,7 @@ class Sale(UUIDModel, TimeStampedModel, OrganizationAndBranchScopedModel, NoteMo
     due_date = models.DateField(_('Due Date'), blank=True, null=True)
     
     is_invoice = models.BooleanField(_('Create Invoice'), default=False)
+    invoice = models.OneToOneField('financial.Invoice', on_delete=models.SET_NULL, null=True, blank=True, related_name='sale', verbose_name=_('Invoice'))
     invoice_number = models.CharField(_('Invoice Number'), max_length=50, blank=True, null=True)
     
     sold_by = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_made', verbose_name=_('Sold By'))
@@ -170,8 +171,12 @@ class SaleItem(UUIDModel, TimeStampedModel):
     
     def save(self, *args, **kwargs):
         """Calculate total price before saving."""
+        from decimal import Decimal
+        
         self.total_price = self.quantity * self.unit_price
-        self.tax_amount = self.total_price * (self.tax_rate / 100)
+        # Use Decimal for precise tax calculation to avoid floating point errors
+        tax_rate_decimal = Decimal(self.tax_rate) / Decimal('100')
+        self.tax_amount = self.total_price * tax_rate_decimal
         super().save(*args, **kwargs)
 
 

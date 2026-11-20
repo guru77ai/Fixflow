@@ -1,0 +1,99 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Users" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "User Management" %}</h1>
+        <p class="page-subtitle">{% trans "Manage all system users" %}</p>
+    </div>
+    <a href="{% url 'accounts:user_form' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "Add User" %}
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Users" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="users-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "ID" %}</th>
+                            <th>{% trans "Username" %}</th>
+                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "First Name" %}</th>
+                            <th>{% trans "Last Name" %}</th>
+                            <th>{% trans "Role" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.pk }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.first_name|default:"-" }}</td>
+                            <td>{{ user.last_name|default:"-" }}</td>
+                            <td><span class="badge bg-primary">{{ user.get_role_display|default:"User" }}</span></td>
+                            <td>
+                                <span class="badge bg-{{ user.is_active|yesno:'success,danger' }}">
+                                    {{ user.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'accounts:user_detail' user.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'accounts:user_form' user.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% if user.is_active %}
+                                    <a href="#" class="btn btn-sm btn-outline-warning" title="{% trans 'Deactivate' %}">
+                                        <i class="bi bi-person-x"></i>
+                                    </a>
+                                    {% else %}
+                                    <a href="#" class="btn btn-sm btn-outline-success" title="{% trans 'Activate' %}">
+                                        <i class="bi bi-person-check"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                {% trans "No users found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#users-table').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
+            }
+        });
+    });
+</script>
+{% endblock %}

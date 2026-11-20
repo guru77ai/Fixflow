@@ -1,0 +1,144 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Stock Transfers" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Stock Transfers" %}</h1>
+        <p class="page-subtitle">{% trans "Manage inventory transfers between warehouses" %}</p>
+    </div>
+    <a href="{% url 'inventory:stocktransfer_form' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Transfer" %}
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Filters" %}</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="" class="row g-3">
+                <div class="col-md-3">
+                    <label for="transfer_number" class="form-label">{% trans "Transfer Number" %}</label>
+                    <input type="text" class="form-control" id="transfer_number" name="transfer_number" value="{{ request.GET.transfer_number }}" placeholder="{% trans 'Transfer #' %}">
+                </div>
+                <div class="col-md-3">
+                    <label for="from_warehouse" class="form-label">{% trans "From Warehouse" %}</label>
+                    <select class="form-select" id="from_warehouse" name="from_warehouse">
+                        <option value="">{% trans "All Warehouses" %}</option>
+                        {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.pk }}" {% if request.GET.from_warehouse == warehouse.pk|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="to_warehouse" class="form-label">{% trans "To Warehouse" %}</label>
+                    <select class="form-select" id="to_warehouse" name="to_warehouse">
+                        <option value="">{% trans "All Warehouses" %}</option>
+                        {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.pk }}" {% if request.GET.to_warehouse == warehouse.pk|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">{% trans "All Statuses" %}</option>
+                        <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>{% trans "Draft" %}</option>
+                        <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>{% trans "Pending" %}</option>
+                        <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>{% trans "Completed" %}</option>
+                        <option value="CANCELLED" {% if request.GET.status == 'CANCELLED' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="reset" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>{% trans "Reset" %}
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-funnel me-1"></i>{% trans "Filter" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">{% trans "Stock Transfers" %}</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="stocktransfer-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Transfer #" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "From" %}</th>
+                            <th>{% trans "To" %}</th>
+                            <th>{% trans "Items" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transfer in object_list %}
+                        <tr>
+                            <td>{{ transfer.transfer_number }}</td>
+                            <td>{{ transfer.date|date:"Y-m-d" }}</td>
+                            <td>{{ transfer.from_warehouse.name|default:"-" }}</td>
+                            <td>{{ transfer.to_warehouse.name|default:"-" }}</td>
+                            <td>{{ transfer.items.count }}</td>
+                            <td>
+                                <span class="badge bg-{{ transfer.get_status_badge_class }}">
+                                    {{ transfer.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'inventory:stocktransfer_detail' transfer.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if transfer.status == 'DRAFT' %}
+                                    <a href="{% url 'inventory:stocktransfer_form' transfer.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                {% trans "No stock transfers found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        $('#stocktransfer-table').DataTable({
+            responsive: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
+            },
+            order: [[1, 'desc']]
+        });
+    });
+</script>
+{% endblock %}
