@@ -17,6 +17,7 @@ urlpatterns = [
     # Product Category URLs
     path('categories/', views.ProductCategoryListView.as_view(), name='productcategory_list'),
     path('categories/create/', views.ProductCategoryCreateView.as_view(), name='productcategory_create'),
+    path('categories/<uuid:pk>/', views.ProductCategoryDetailView.as_view(), name='productcategory_detail'),
     path('categories/<uuid:pk>/edit/', views.ProductCategoryUpdateView.as_view(), name='productcategory_update'),
     path('categories/<uuid:pk>/delete/', views.ProductCategoryDeleteView.as_view(), name='productcategory_delete'),
     path('categories/form/<uuid:pk>/', views.ProductCategoryUpdateView.as_view(), name='productcategory_form'),
@@ -25,6 +26,7 @@ urlpatterns = [
     # Product Brand URLs
     path('brands/', views.ProductBrandListView.as_view(), name='productbrand_list'),
     path('brands/create/', views.ProductBrandCreateView.as_view(), name='productbrand_create'),
+    path('brands/<uuid:pk>/', views.ProductBrandDetailView.as_view(), name='productbrand_detail'),
     path('brands/<uuid:pk>/edit/', views.ProductBrandUpdateView.as_view(), name='productbrand_update'),
     path('brands/<uuid:pk>/delete/', views.ProductBrandDeleteView.as_view(), name='productbrand_delete'),
     path('brands/form/<uuid:pk>/', views.ProductBrandUpdateView.as_view(), name='productbrand_form'),
@@ -48,6 +50,7 @@ urlpatterns = [
     # Service Category URLs
     path('service-categories/', views.ServiceCategoryListView.as_view(), name='servicecategory_list'),
     path('service-categories/create/', views.ServiceCategoryCreateView.as_view(), name='servicecategory_create'),
+    path('service-categories/<uuid:pk>/', views.ServiceCategoryDetailView.as_view(), name='servicecategory_detail'),
     path('service-categories/<uuid:pk>/edit/', views.ServiceCategoryUpdateView.as_view(), name='servicecategory_update'),
     path('service-categories/<uuid:pk>/delete/', views.ServiceCategoryDeleteView.as_view(), name='servicecategory_delete'),
     path('service-categories/form/<uuid:pk>/', views.ServiceCategoryUpdateView.as_view(), name='servicecategory_form'),
@@ -56,6 +59,7 @@ urlpatterns = [
     # Service URLs
     path('services/', views.ServiceListView.as_view(), name='service_list'),
     path('services/create/', views.ServiceCreateView.as_view(), name='service_create'),
+    path('services/<uuid:pk>/', views.ServiceDetailView.as_view(), name='service_detail'),
     path('services/<uuid:pk>/edit/', views.ServiceUpdateView.as_view(), name='service_update'),
     path('services/<uuid:pk>/delete/', views.ServiceDeleteView.as_view(), name='service_delete'),
     path('services/form/<uuid:pk>/', views.ServiceUpdateView.as_view(), name='service_form'),

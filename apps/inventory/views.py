@@ -240,6 +240,17 @@ class ProductBrandDeleteView(LoginRequiredMixin, OrganizationContextMixin, Branc
             organization=self.request.organization
         )
     
+
+class ProductBrandDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Product brand detail view."""
+    model = ProductBrand
+    template_name = 'inventory/productbrand_detail.html'
+    context_object_name = 'brand'
+    
+    def get_queryset(self):
+        return ProductBrand.objects.filter(
+            organization=self.request.organization
+        )
     def get_success_url(self):
         messages.success(self.request, 'Product brand deleted successfully!')
         return reverse_lazy('inventory:productbrand_list')
@@ -447,6 +458,17 @@ class ServiceCategoryDeleteView(LoginRequiredMixin, OrganizationContextMixin, Br
     def get_queryset(self):
         return ServiceCategory.objects.filter(
             organization=self.request.organization,
+
+class ServiceCategoryDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Service category detail view."""
+    model = ServiceCategory
+    template_name = 'inventory/servicecategory_detail.html'
+    context_object_name = 'category'
+    
+    def get_queryset(self):
+        return ServiceCategory.objects.filter(
+            organization=self.request.organization
+        )
             branch=self.request.branch
         )
     
