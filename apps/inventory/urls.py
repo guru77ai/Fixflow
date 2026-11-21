@@ -19,18 +19,24 @@ urlpatterns = [
     path('categories/create/', views.ProductCategoryCreateView.as_view(), name='productcategory_create'),
     path('categories/<uuid:pk>/edit/', views.ProductCategoryUpdateView.as_view(), name='productcategory_update'),
     path('categories/<uuid:pk>/delete/', views.ProductCategoryDeleteView.as_view(), name='productcategory_delete'),
+    path('categories/form/<uuid:pk>/', views.ProductCategoryUpdateView.as_view(), name='productcategory_form'),
+    path('categories/form/', views.ProductCategoryCreateView.as_view(), name='productcategory_form'),
     
     # Product Brand URLs
     path('brands/', views.ProductBrandListView.as_view(), name='productbrand_list'),
     path('brands/create/', views.ProductBrandCreateView.as_view(), name='productbrand_create'),
     path('brands/<uuid:pk>/edit/', views.ProductBrandUpdateView.as_view(), name='productbrand_update'),
     path('brands/<uuid:pk>/delete/', views.ProductBrandDeleteView.as_view(), name='productbrand_delete'),
+    path('brands/form/<uuid:pk>/', views.ProductBrandUpdateView.as_view(), name='productbrand_form'),
+    path('brands/form/', views.ProductBrandCreateView.as_view(), name='productbrand_form'),
     
     # Unit of Measure URLs
     path('units/', views.UnitOfMeasureListView.as_view(), name='unitofmeasure_list'),
     path('units/create/', views.UnitOfMeasureCreateView.as_view(), name='unitofmeasure_create'),
     path('units/<uuid:pk>/edit/', views.UnitOfMeasureUpdateView.as_view(), name='unitofmeasure_update'),
     path('units/<uuid:pk>/delete/', views.UnitOfMeasureDeleteView.as_view(), name='unitofmeasure_delete'),
+    path('units/form/<uuid:pk>/', views.UnitOfMeasureUpdateView.as_view(), name='unitofmeasure_form'),
+    path('units/form/', views.UnitOfMeasureCreateView.as_view(), name='unitofmeasure_form'),
     
     # Product URLs
     path('products/', views.ProductListView.as_view(), name='product_list'),
@@ -44,12 +50,16 @@ urlpatterns = [
     path('service-categories/create/', views.ServiceCategoryCreateView.as_view(), name='servicecategory_create'),
     path('service-categories/<uuid:pk>/edit/', views.ServiceCategoryUpdateView.as_view(), name='servicecategory_update'),
     path('service-categories/<uuid:pk>/delete/', views.ServiceCategoryDeleteView.as_view(), name='servicecategory_delete'),
+    path('service-categories/form/<uuid:pk>/', views.ServiceCategoryUpdateView.as_view(), name='servicecategory_form'),
+    path('service-categories/form/', views.ServiceCategoryCreateView.as_view(), name='servicecategory_form'),
     
     # Service URLs
     path('services/', views.ServiceListView.as_view(), name='service_list'),
     path('services/create/', views.ServiceCreateView.as_view(), name='service_create'),
     path('services/<uuid:pk>/edit/', views.ServiceUpdateView.as_view(), name='service_update'),
     path('services/<uuid:pk>/delete/', views.ServiceDeleteView.as_view(), name='service_delete'),
+    path('services/form/<uuid:pk>/', views.ServiceUpdateView.as_view(), name='service_form'),
+    path('services/form/', views.ServiceCreateView.as_view(), name='service_form'),
     
     # Stock Movement URLs
     path('stock-movements/', views.StockMovementListView.as_view(), name='stockmovement_list'),

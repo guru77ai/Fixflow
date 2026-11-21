@@ -109,7 +109,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{% trans "Recent Stock Movements" %}</h5>
-            <a href="{% url 'inventory:stock_movement_list' %}?warehouse={{ object.pk }}" class="btn btn-sm btn-outline-primary">
+            <a href="{% url 'inventory:stockmovement_list' %}?warehouse={{ object.pk }}" class="btn btn-sm btn-outline-primary">
                 {% trans "View All" %}
             </a>
         </div>

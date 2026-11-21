@@ -101,7 +101,7 @@
                 <div class="notification-header">
                     <h6>{% trans "Notifications" %}</h6>
                     {% if unread_notifications > 0 %}
-                    <a href="{% url 'notifications:list' %}" class="mark-all-read">
+                    <a href="{% url 'notification_list' %}" class="mark-all-read">
                         {% trans "Mark all as read" %}
                     </a>
                     {% endif %}
@@ -129,7 +129,7 @@
                     {% endfor %}
                 </div>
                 <div class="notification-footer">
-                    <a href="{% url 'notifications:list' %}" class="view-all">
+                    <a href="{% url 'notification_list' %}" class="view-all">
                         {% trans "View all notifications" %}
                     </a>
                 </div>
