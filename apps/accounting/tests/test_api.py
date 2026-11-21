@@ -27,7 +27,23 @@ class TestAccountingListAPI(TestCase):
             code='TB',
             organization=self.org
         )
+        
+        # Set up organization membership and branch access
+        OrganizationMembership.objects.create(
+            user=self.user,
+            organization=self.org,
+            is_active=True
+        )
+        BranchUserAccess.objects.create(
+            user=self.user,
+            branch=self.branch,
+            is_active=True
+        )
+        
         self.client.force_authenticate(user=self.user)
+        # Set organization and branch on the request
+        self.client.credentials(HTTP_X_ORGANIZATION_ID=str(self.org.pk))
+        self.client.credentials(HTTP_X_BRANCH_ID=str(self.branch.pk))
     
     def test_list(self):
         """Test GET /api/accounting/"""
@@ -52,7 +68,23 @@ class TestAccountingDetailAPI(TestCase):
             code='TB',
             organization=self.org
         )
+        
+        # Set up organization membership and branch access
+        OrganizationMembership.objects.create(
+            user=self.user,
+            organization=self.org,
+            is_active=True
+        )
+        BranchUserAccess.objects.create(
+            user=self.user,
+            branch=self.branch,
+            is_active=True
+        )
+        
         self.client.force_authenticate(user=self.user)
+        # Set organization and branch on the request
+        self.client.credentials(HTTP_X_ORGANIZATION_ID=str(self.org.pk))
+        self.client.credentials(HTTP_X_BRANCH_ID=str(self.branch.pk))
     
     def test_list(self):
         """Test API endpoint access"""
