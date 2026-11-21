@@ -265,6 +265,15 @@ class DeviceBrandCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy('crm:devicebrand_list')
 
 
+# Device Model Views
+class DeviceModelListView(LoginRequiredMixin, ListView):
+    """List all device models."""
+    model = DeviceModel
+    template_name = 'crm/devicemodel_list.html'
+    context_object_name = 'models'
+    paginate_by = 20
+
+
 # API Views
 class CustomerAPIView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin):
     """API endpoints for customers."""

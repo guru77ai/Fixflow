@@ -59,9 +59,11 @@ urlpatterns = [
     path('stock-transfers/', views.StockTransferListView.as_view(), name='stocktransfer_list'),
     # path('stock-transfers/create/', views.StockTransferCreateView.as_view(), name='stocktransfer_create'),
     path('stock-transfers/<uuid:pk>/', views.StockTransferDetailView.as_view(), name='stocktransfer_detail'),
+    path('stock-transfers/form/', views.StockTransferListView.as_view(), name='stocktransfer_form'),
     
     # Stock Adjustment URLs
     path('stock-adjustments/', views.StockAdjustmentListView.as_view(), name='stockadjustment_list'),
     # path('stock-adjustments/create/', views.StockAdjustmentCreateView.as_view(), name='stockadjustment_create'),
     path('stock-adjustments/<uuid:pk>/', views.StockAdjustmentDetailView.as_view(), name='stockadjustment_detail'),
+    path('stock-adjustments/form/', views.StockAdjustmentListView.as_view(), name='stockadjustment_form'),
 ]

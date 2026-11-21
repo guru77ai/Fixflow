@@ -11,6 +11,8 @@ from .views import (
     CustomerTypeListView, CustomerTypeCreateView, CustomerTypeUpdateView,
     # Brand views
     DeviceBrandListView, DeviceBrandCreateView,
+    # Model views
+    DeviceModelListView,
     # Quick create
     quick_create_customer,
 )
@@ -39,6 +41,9 @@ urlpatterns = [
     # Device Brand URLs
     path('device-brands/', DeviceBrandListView.as_view(), name='devicebrand_list'),
     path('device-brands/create/', DeviceBrandCreateView.as_view(), name='devicebrand_create'),
+    
+    # Device Model URLs
+    path('device-models/', DeviceModelListView.as_view(), name='devicemodel_list'),
     
     # Quick creation
     path('customers/quick-create/', quick_create_customer, name='quick_create_customer'),

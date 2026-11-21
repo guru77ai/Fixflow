@@ -8,6 +8,11 @@ from .views import (
     RepairOrderUpdateView, RepairOrderDeleteView, RepairOrderStatusChangeView,
     # Dashboard
     RepairDashboardView,
+    # Configuration views
+    RepairStatusListView, RepairStatusCreateView,
+    RepairPriorityListView, RepairPriorityCreateView,
+    RepairCategoryListView, RepairCategoryCreateView,
+    RepairTypeListView, RepairTypeCreateView,
     # API views
     RepairOrderAPIView, RepairStatisticsAPIView,
     quick_create_repair_order,
@@ -36,6 +41,16 @@ urlpatterns = [
     
     # Quick creation
     path('api/orders/quick-create/', quick_create_repair_order, name='quick_create_repair_order'),
+    
+    # Configuration URLs
+    path('statuses/', RepairStatusListView.as_view(), name='repair_status_list'),
+    path('statuses/create/', RepairStatusCreateView.as_view(), name='repair_status_create'),
+    path('priorities/', RepairPriorityListView.as_view(), name='repair_priority_list'),
+    path('priorities/create/', RepairPriorityCreateView.as_view(), name='repair_priority_create'),
+    path('categories/', RepairCategoryListView.as_view(), name='repair_category_list'),
+    path('categories/create/', RepairCategoryCreateView.as_view(), name='repair_category_create'),
+    path('types/', RepairTypeListView.as_view(), name='repair_type_list'),
+    path('types/create/', RepairTypeCreateView.as_view(), name='repair_type_create'),
     
     # Search - These are function-based views, need to be wrapped properly
     # path('api/orders/search/', RepairOrderSearchView.as_view(), name='repairorder_search'),

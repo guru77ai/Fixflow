@@ -211,6 +211,84 @@ class RepairDashboardView(LoginRequiredMixin, OrganizationContextMixin, BranchCo
         return context
 
 
+
+# Repair Configuration Views (Status, Priority, Category, Type)
+class RepairStatusListView(LoginRequiredMixin, ListView):
+    """List all repair statuses."""
+    model = RepairStatus
+    template_name = 'repair/repair_status_list.html'
+    context_object_name = 'statuses'
+    paginate_by = 20
+
+
+class RepairStatusCreateView(LoginRequiredMixin, CreateView):
+    """Create a new repair status."""
+    model = RepairStatus
+    form_class = RepairStatusForm
+    template_name = 'repair/repair_status_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair status created successfully!')
+        return reverse_lazy('repair:repair_status_list')
+
+
+class RepairPriorityListView(LoginRequiredMixin, ListView):
+    """List all repair priorities."""
+    model = RepairPriority
+    template_name = 'repair/repair_priority_list.html'
+    context_object_name = 'priorities'
+    paginate_by = 20
+
+
+class RepairPriorityCreateView(LoginRequiredMixin, CreateView):
+    """Create a new repair priority."""
+    model = RepairPriority
+    form_class = RepairPriorityForm
+    template_name = 'repair/repair_priority_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair priority created successfully!')
+        return reverse_lazy('repair:repair_priority_list')
+
+
+class RepairCategoryListView(LoginRequiredMixin, ListView):
+    """List all repair categories."""
+    model = RepairCategory
+    template_name = 'repair/repair_category_list.html'
+    context_object_name = 'categories'
+    paginate_by = 20
+
+
+class RepairCategoryCreateView(LoginRequiredMixin, CreateView):
+    """Create a new repair category."""
+    model = RepairCategory
+    form_class = RepairCategoryForm
+    template_name = 'repair/repair_category_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair category created successfully!')
+        return reverse_lazy('repair:repair_category_list')
+
+
+class RepairTypeListView(LoginRequiredMixin, ListView):
+    """List all repair types."""
+    model = RepairType
+    template_name = 'repair/repair_type_list.html'
+    context_object_name = 'types'
+    paginate_by = 20
+
+
+class RepairTypeCreateView(LoginRequiredMixin, CreateView):
+    """Create a new repair type."""
+    model = RepairType
+    form_class = RepairTypeForm
+    template_name = 'repair/repair_type_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair type created successfully!')
+        return reverse_lazy('repair:repair_type_list')
+
+
 # Quick repair creation
 @csrf_protect
 @transaction.atomic
