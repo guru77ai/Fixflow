@@ -48,7 +48,7 @@
                 
                 <!-- Technicians -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'technician' %}active{% endif %}">
-                    <a href="{% url 'repair:technician_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-person-workspace menu-icon"></i>
                         <span class="menu-text">{% trans "Technicians" %}</span>
                     </a>
@@ -64,7 +64,7 @@
                 
                 <!-- Inventory -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'inventory' %}active{% endif %}">
-                    <a href="{% url 'inventory:dashboard' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-inboxes menu-icon"></i>
                         <span class="menu-text">{% trans "Inventory" %}</span>
                     </a>
@@ -104,7 +104,7 @@
                 
                 <!-- Invoices -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'invoice' %}active{% endif %}">
-                    <a href="{% url 'financial:invoice_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-file-earmark-text menu-icon"></i>
                         <span class="menu-text">{% trans "Invoices" %}</span>
                     </a>
@@ -112,7 +112,7 @@
                 
                 <!-- Payments -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'payments' %}active{% endif %}">
-                    <a href="{% url 'payments:list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-credit-card menu-icon"></i>
                         <span class="menu-text">{% trans "Payments" %}</span>
                     </a>
@@ -120,7 +120,7 @@
                 
                 <!-- Installments -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':11' == 'installments' %}active{% endif %}">
-                    <a href="{% url 'installments:list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-calendar-check menu-icon"></i>
                         <span class="menu-text">{% trans "Installments" %}</span>
                     </a>
@@ -128,7 +128,7 @@
                 
                 <!-- Cash Register -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':13' == 'cash_register' %}active{% endif %}">
-                    <a href="{% url 'cash_register:list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-cash menu-icon"></i>
                         <span class="menu-text">{% trans "Cash Register" %}</span>
                     </a>
@@ -136,7 +136,7 @@
                 
                 <!-- Expenses -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'expenses' %}active{% endif %}">
-                    <a href="{% url 'expenses:list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-receipt menu-icon"></i>
                         <span class="menu-text">{% trans "Expenses" %}</span>
                     </a>
@@ -144,7 +144,7 @@
                 
                 <!-- Accounting -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'accounting' %}active{% endif %}">
-                    <a href="{% url 'accounting:dashboard' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-graph-up menu-icon"></i>
                         <span class="menu-text">{% trans "Accounting" %}</span>
                     </a>
@@ -152,7 +152,7 @@
                 
                 <!-- Employees -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'employee' %}active{% endif %}">
-                    <a href="{% url 'hr:employee_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-person menu-icon"></i>
                         <span class="menu-text">{% trans "Employees" %}</span>
                     </a>
@@ -160,7 +160,7 @@
                 
                 <!-- Attendance -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':9' == 'attendance' %}active{% endif %}">
-                    <a href="{% url 'hr:attendance_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-calendar-check menu-icon"></i>
                         <span class="menu-text">{% trans "Attendance" %}</span>
                     </a>
@@ -168,7 +168,7 @@
                 
                 <!-- Payroll -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':7' == 'payroll' %}active{% endif %}">
-                    <a href="{% url 'hr:payroll_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-currency-dollar menu-icon"></i>
                         <span class="menu-text">{% trans "Payroll" %}</span>
                     </a>
@@ -176,7 +176,7 @@
                 
                 <!-- Commissions -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':10' == 'commission' %}active{% endif %}">
-                    <a href="{% url 'hr:commission_list' %}" class="menu-link">
+                    <a href="{% url 'dashboard' %}" class="menu-link">
                         <i class="bi bi-percent menu-icon"></i>
                         <span class="menu-text">{% trans "Commissions" %}</span>
                     </a>
@@ -184,7 +184,7 @@
                 
                 <!-- Reports -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':8' == 'reports' %}active{% endif %}">
-                    <a href="{% url 'reports:dashboard' %}" class="menu-link">
+                    <a href="{% url 'report_dashboard' %}" class="menu-link">
                         <i class="bi bi-bar-chart-line menu-icon"></i>
                         <span class="menu-text">{% trans "Reports" %}</span>
                     </a>
@@ -192,7 +192,7 @@
                 
                 <!-- Notifications -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':12' == 'notification' %}active{% endif %}">
-                    <a href="{% url 'notifications:notification_list' %}" class="menu-link">
+                    <a href="{% url 'notification_list' %}" class="menu-link">
                         <i class="bi bi-bell menu-icon"></i>
                         <span class="menu-text">{% trans "Notifications" %}</span>
                         {% if unread_notifications > 0 %}
@@ -203,7 +203,7 @@
                 
                 <!-- Zakat -->
                 <li class="menu-item {% if request.resolver_match.url_name|slice:':5' == 'zakat' %}active{% endif %}">
-                    <a href="{% url 'zakat:dashboard' %}" class="menu-link">
+                    <a href="{% url 'zakat_calculator' %}" class="menu-link">
                         <i class="bi bi-percent menu-icon"></i>
                         <span class="menu-text">{% trans "Zakat" %}</span>
                     </a>
@@ -218,19 +218,19 @@
                     </a>
                     <ul class="submenu" x-show="expanded" x-transition style="display: none;">
                         <li class="submenu-item">
-                            <a href="{% url 'settings:general' %}" class="submenu-link">
+                            <a href="{% url 'general_settings' %}" class="submenu-link">
                                 <i class="bi bi-gear"></i>
                                 <span>{% trans "General Settings" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'organizations:organization_list' %}" class="submenu-link">
+                            <a href="{% url 'organization_list' %}" class="submenu-link">
                                 <i class="bi bi-building"></i>
                                 <span>{% trans "Organizations" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'branches:branch_list' %}" class="submenu-link">
+                            <a href="{% url 'branch_list' %}" class="submenu-link">
                                 <i class="bi bi-shop"></i>
                                 <span>{% trans "Branches" %}</span>
                             </a>
@@ -242,13 +242,13 @@
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'licensing:license_detail' %}" class="submenu-link">
+                            <a href="{% url 'license_view' %}" class="submenu-link">
                                 <i class="bi bi-key"></i>
                                 <span>{% trans "License" %}</span>
                             </a>
                         </li>
                         <li class="submenu-item">
-                            <a href="{% url 'backups:backup_list' %}" class="submenu-link">
+                            <a href="{% url 'backup_list' %}" class="submenu-link">
                                 <i class="bi bi-hdd"></i>
                                 <span>{% trans "Backups" %}</span>
                             </a>

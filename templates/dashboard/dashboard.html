@@ -268,7 +268,7 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">{% trans "Top Products" %}</h5>
-                    <a href="{% url 'products:list' %}" class="btn btn-sm btn-outline-primary">
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-primary">
                         {% trans "View All" %}
                     </a>
                 </div>
@@ -314,7 +314,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{% url 'repairs:create' %}" class="text-decoration-none">
+                            <a href="{% url 'repair:repairorder_create' %}" class="text-decoration-none">
                                 <div class="p-3 bg-light rounded border text-center">
                                     <i class="bi bi-plus-circle-fill text-primary" style="font-size: 2rem;"></i>
                                     <div class="mt-2 fw-bold">{% trans "New Repair" %}</div>
@@ -322,7 +322,7 @@
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{% url 'customers:list' %}" class="text-decoration-none">
+                            <a href="{% url 'crm:customer_list' %}" class="text-decoration-none">
                                 <div class="p-3 bg-light rounded border text-center">
                                     <i class="bi bi-person-plus-fill text-success" style="font-size: 2rem;"></i>
                                     <div class="mt-2 fw-bold">{% trans "New Customer" %}</div>
