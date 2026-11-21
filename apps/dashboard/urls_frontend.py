@@ -18,16 +18,8 @@ urlpatterns = [
     # Dashboard
     path('', dashboard_views.dashboard_view, name='dashboard'),
     
-    # Authentication
-    path('login/', accounts_views.login_view, name='login'),
-    path('logout/', accounts_views.logout_view, name='logout'),
-    path('register/', accounts_views.register_view, name='register'),
-    path('password-reset/', accounts_views.password_reset_view, name='password_reset'),
-    path('password-reset/done/', accounts_views.password_reset_done_view, name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', accounts_views.password_reset_confirm_view, name='password_reset_confirm'),
-    path('reset/done/', accounts_views.password_reset_complete_view, name='password_reset_complete'),
-    path('profile/', accounts_views.profile_view, name='profile'),
-    path('account/settings/', accounts_views.settings_view, name='account_settings'),
+    # Authentication (moved to accounts.urls_frontend)
+    # path('login/', accounts_views.login_view, name='login'),
     
     # Organization selection
     path('select-organization/', org_views.organization_select_view, name='organization_select'),

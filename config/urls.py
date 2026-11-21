@@ -59,7 +59,7 @@ frontend_urlpatterns = [
     path('', include('apps.dashboard.urls_frontend')),
     
     # System modules frontend URLs
-    path('accounts/', include('apps.accounts.urls')),
+    path('accounts/', include('apps.accounts.urls_frontend')),
     path('organizations/', include('apps.organizations.urls')),
     path('branches/', include('apps.branches.urls')),
     path('licensing/', include('apps.licensing.urls')),
