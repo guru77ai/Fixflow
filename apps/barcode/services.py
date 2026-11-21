@@ -20,6 +20,9 @@ class BarcodeService:
         """
         Generate a barcode image.
         """
+        import barcode
+        from barcode.writer import ImageWriter
+        
         try:
             # For QR codes
             if symbology.lower() == 'qr_code':
@@ -45,20 +48,32 @@ class BarcodeService:
                 
                 return f"data:image/png;base64,{img_str}"
             
-            # For other symbologies, we would use a library like python-barcode
-            # For now, we'll just return a placeholder
-            # In a real implementation, we would use:
-            # import barcode
-            # from barcode.writer import ImageWriter
-            # barcode_class = barcode.get_barcode_class(symbology)
-            # barcode_obj = barcode_class(data, writer=ImageWriter())
-            # buffered = BytesIO()
-            # barcode_obj.write(buffered, options={'width': width, 'height': height})
-            # img_str = base64.b64encode(buffered.getvalue()).decode()
-            # return f"data:image/png;base64,{img_str}"
-            
-            # For now, return a simple base64 encoded placeholder
-            return self.generate_placeholder_barcode(data, width, height)
+            # For other symbologies, use python-barcode
+            try:
+                # Get the barcode class
+                barcode_class = barcode.get_barcode_class(symbology)
+                
+                # Create barcode with ImageWriter
+                barcode_obj = barcode_class(data, writer=ImageWriter())
+                
+                # Generate image
+                buffered = BytesIO()
+                options = {
+                    'module_width': 0.5,
+                    'module_height': 2,
+                    'font_size': 8,
+                    'text_distance': 2,
+                    'quiet_zone': 2,
+                }
+                barcode_obj.write(buffered, options=options)
+                
+                # Convert to base64
+                img_str = base64.b64encode(buffered.getvalue()).decode()
+                return f"data:image/png;base64,{img_str}"
+                
+            except (ValueError, AttributeError):
+                # Unsupported symbology - return None instead of placeholder
+                return None
             
         except Exception as e:
             return None
