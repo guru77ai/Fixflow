@@ -28,7 +28,7 @@ def notification_list_view(request):
         'notifications': notifications,
     }
     
-    return render(request, 'notifications/list.html', context)
+    return render(request, 'notifications/notification_list.html', context)
 
 
 @login_required
@@ -46,7 +46,7 @@ def notification_detail_view(request, pk):
         'notification': notification,
     }
     
-    return render(request, 'notifications/detail.html', context)
+    return render(request, 'notifications/notification_detail.html', context)
 
 
 # API Views
