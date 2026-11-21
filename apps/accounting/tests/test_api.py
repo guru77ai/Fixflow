@@ -31,7 +31,7 @@ class TestAccountingListAPI(TestCase):
     
     def test_list(self):
         """Test GET /api/accounting/"""
-        url = reverse('accounting-api:account-list')
+        url = reverse('account-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 

@@ -3,6 +3,7 @@ Tests for Core models
 """
 import pytest
 from django.test import TestCase
+from django.db import models
 from apps.core.models import TimeStampedModel, UUIDModel, OrganizationAndBranchScopedModel
 
 
