@@ -12,6 +12,7 @@ def organization_context(request):
     """
     Add organization context to all templates.
     Uses request.organization as the canonical source.
+    Also sets request.current_organization for compatibility.
     """
     context = {
         'current_organization': None,
@@ -26,19 +27,23 @@ def organization_context(request):
         
         context['organizations'] = [m.organization for m in memberships]
         
-        # Set current organization from request.organization if available
+        # Set current organization from request.organization if available (canonical source)
         if hasattr(request, 'organization') and request.organization:
             context['current_organization'] = request.organization
+            # Also set compatibility alias on request
+            request.current_organization = request.organization
         elif 'organization_id' in request.session:
             org_id = request.session['organization_id']
             for org in context['organizations']:
                 if str(org.id) == str(org_id):
                     context['current_organization'] = org
+                    request.current_organization = org
                     break
         
         # Fallback to first organization
         if not context['current_organization'] and context['organizations']:
             context['current_organization'] = context['organizations'][0]
+            request.current_organization = context['current_organization']
             request.session['organization_id'] = str(context['current_organization'].id)
     
     return context
@@ -48,6 +53,7 @@ def branch_context(request):
     """
     Add branch context to all templates.
     Uses request.branch as the canonical source.
+    Also sets request.current_branch for compatibility.
     """
     context = {
         'current_branch': None,
@@ -74,23 +80,28 @@ def branch_context(request):
             
             context['branches'] = list(branches)
             
-            # Set current branch from request.branch if available
+            # Set current branch from request.branch if available (canonical source)
             if hasattr(request, 'branch') and request.branch:
                 context['current_branch'] = request.branch
+                # Also set compatibility alias on request
+                request.current_branch = request.branch
             elif 'branch_id' in request.session:
                 branch_id = request.session['branch_id']
                 for branch in context['branches']:
                     if str(branch.id) == str(branch_id):
                         context['current_branch'] = branch
+                        request.current_branch = branch
                         break
             
             # Fallback to first branch or user's branch
             if not context['current_branch']:
                 if context['branches']:
                     context['current_branch'] = context['branches'][0]
+                    request.current_branch = context['current_branch']
                     request.session['branch_id'] = str(context['current_branch'].id)
-                elif request.user.branch:
+                elif hasattr(request.user, 'branch') and request.user.branch:
                     context['current_branch'] = request.user.branch
+                    request.current_branch = request.user.branch
                     request.session['branch_id'] = str(context['current_branch'].id)
     
     return context

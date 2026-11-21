@@ -139,12 +139,12 @@ class DashboardSelector:
         try:
             from apps.repair.models import RepairOrder
             
-            repairs = Repair.objects.filter(
+            repairs = RepairOrder.objects.filter(
                 organization=self.organization
             )
             
             if self.branch:
-                repairs = RepairOrder.objects.filter(branch=self.branch)
+                repairs = repairs.filter(branch=self.branch)
             
             # Get status distribution
             status_counts = repairs.values('status').annotate(
@@ -168,7 +168,7 @@ class DashboardSelector:
         data = []
         
         try:
-            from apps.sales.models import Sale
+            from apps.pos.models import Sale
             from django.db.models.functions import TruncDate
             
             sales = Sale.objects.filter(
@@ -204,18 +204,18 @@ class DashboardSelector:
         data = []
         
         try:
-            from apps.sales.models import SaleLine
+            from apps.pos.models import SaleItem
             from apps.inventory.models import Product
             
-            sale_lines = SaleLine.objects.filter(
+            sale_items = SaleItem.objects.filter(
                 sale__organization=self.organization
             )
             
             if self.branch:
-                sale_lines = sale_lines.filter(sale__branch=self.branch)
+                sale_items = sale_items.filter(sale__branch=self.branch)
             
             # Group by product
-            product_sales = sale_lines.values('product__id', 'product__name').annotate(
+            product_sales = sale_items.values('product__id', 'product__name').annotate(
                 quantity=Sum('quantity'),
                 total=Sum('total')
             ).order_by('-total')[:limit]

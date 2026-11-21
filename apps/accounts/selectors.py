@@ -44,19 +44,21 @@ class AccountSelector:
     def get_users(self, **filters):
         """
         Get a list of users.
+        Only returns users from the current organization to prevent cross-tenant exposure.
         """
         queryset = User.objects.all()
         
         # Apply organization filter using canonical request.organization
+        # This is the ONLY source of truth for tenant context
+        org = None
         if hasattr(self.request, 'organization') and self.request.organization:
-            queryset = queryset.filter(
-                organization=self.request.organization
-            )
-        elif hasattr(self.request, 'current_organization') and self.request.current_organization:
-            # Fallback for compatibility
-            queryset = queryset.filter(
-                organization=self.request.current_organization
-            )
+            org = self.request.organization
+        
+        if org:
+            queryset = queryset.filter(organization=org)
+        else:
+            # No organization context - return empty queryset to prevent exposure
+            queryset = queryset.none()
         
         # Apply filters
         if 'is_active' in filters:

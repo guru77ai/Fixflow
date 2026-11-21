@@ -32,10 +32,11 @@ class OrganizationContextMiddleware:
         """
         Resolve organization context from session and validate user membership.
         """
-        # Skip for admin, API schema, JWT, and static/media URLs
+        # Skip for admin, API, JWT, and static/media URLs
+        # API requests are handled by DRF authentication (JWT) and TenantContextAuthentication
         path = request.path
         skip_paths = [
-            '/admin/', '/api/schema/', '/api/docs/',
+            '/admin/', '/api/', '/api/schema/', '/api/docs/',
             '/api/token/', '/api/token/refresh/',
             '/i18n/setlang/', '/static/', '/media/'
         ]
@@ -122,10 +123,11 @@ class BranchContextMiddleware:
         """
         Resolve branch context from session and validate user access.
         """
-        # Skip for admin, API schema, JWT, and static/media URLs
+        # Skip for admin, API, JWT, and static/media URLs
+        # API requests are handled by DRF authentication (JWT) and TenantContextAuthentication
         path = request.path
         skip_paths = [
-            '/admin/', '/api/schema/', '/api/docs/',
+            '/admin/', '/api/', '/api/schema/', '/api/docs/',
             '/api/token/', '/api/token/refresh/',
             '/i18n/setlang/', '/static/', '/media/'
         ]

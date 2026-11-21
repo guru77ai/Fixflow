@@ -230,13 +230,30 @@ class UserListAPIView(APIView):
     """
     API endpoint for listing users.
     Only returns users from the current organization.
+    Requires organization admin or user management permissions.
     """
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
         from rest_framework.exceptions import PermissionDenied
+        from apps.organizations.models import OrganizationMembership
+        
+        # Verify organization context
         if not hasattr(request, 'organization') or not request.organization:
             raise PermissionDenied("Organization context required")
+        
+        # Verify user has permission to view users in this organization
+        has_permission = OrganizationMembership.objects.filter(
+            user=request.user,
+            organization=request.organization,
+            is_active=True,
+            can_manage_users=True
+        ).exists()
+        
+        if not has_permission:
+            # Also check if user is superuser
+            if not request.user.is_superuser:
+                raise PermissionDenied("You do not have permission to view users in this organization")
         
         selector = AccountSelector(request)
         users = selector.get_users()

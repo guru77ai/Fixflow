@@ -81,11 +81,14 @@ class TenantScopedMixin(OrganizationContextAPIMixin, BranchContextAPIMixin):
         Subclasses should call super().get_queryset() and then apply their filters.
         """
         # Return the base queryset from the ViewSet
-        if hasattr(self, 'queryset'):
+        if hasattr(self, 'queryset') and self.queryset is not None:
             return self.queryset
         elif hasattr(self, 'model'):
             return self.model.objects.all()
-        return super().get_queryset()
+        # Fallback to parent implementation
+        if hasattr(super(), 'get_queryset'):
+            return super().get_queryset()
+        return self.model.objects.all() if hasattr(self, 'model') else self.queryset
     
     def filter_by_organization(self, queryset):
         """
@@ -178,32 +181,36 @@ class TenantScopedModelViewSet(
         """
         Automatically set organization and branch for new objects.
         Validates that client cannot override tenant context.
+        Always derives organization and branch from request context, never trusts client.
         """
         org = self.get_organization()
         branch = self.get_branch()
         
         # Validate that client-supplied organization/branch match the request context
+        # If they don't match, raise PermissionDenied
         validated_data = serializer.validated_data
         
-        # Check organization field
+        # Check organization field - reject if client supplies a different organization
         if self.organization_field and self.organization_field in validated_data:
             client_org = validated_data[self.organization_field]
             if client_org and client_org.pk != org.pk:
-                from rest_framework.exceptions import PermissionDenied
                 raise PermissionDenied("Cannot override organization context")
+            # Remove from validated_data to prevent client from setting it
+            del validated_data[self.organization_field]
         
-        # Check branch field
+        # Check branch field - reject if client supplies a different branch
         if self.branch_field and self.branch_field in validated_data:
             client_branch = validated_data[self.branch_field]
             if client_branch and client_branch.pk != branch.pk:
-                from rest_framework.exceptions import PermissionDenied
                 raise PermissionDenied("Cannot override branch context")
+            # Remove from validated_data to prevent client from setting it
+            del validated_data[self.branch_field]
         
-        # Save with organization and branch in a single operation
+        # Always save with organization and branch from request context
         save_kwargs = {}
-        if self.organization_field and self.organization_field not in validated_data:
+        if self.organization_field:
             save_kwargs[self.organization_field] = org
-        if self.branch_field and self.branch_field not in validated_data:
+        if self.branch_field:
             save_kwargs[self.branch_field] = branch
         
         serializer.save(**save_kwargs)
