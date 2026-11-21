@@ -29,12 +29,18 @@ urlpatterns = [
     path('profile/', accounts_views.profile_view, name='profile'),
     path('account/settings/', accounts_views.settings_view, name='account_settings'),
     
+    # Organization selection
+    path('select-organization/', org_views.organization_select_view, name='organization_select'),
+    
     # Organizations
     path('organizations/', org_views.organization_list_view, name='organization_list'),
     path('organizations/create/', org_views.organization_create_view, name='organization_create'),
     path('organizations/<uuid:pk>/', org_views.organization_detail_view, name='organization_detail'),
     path('organizations/<uuid:pk>/edit/', org_views.organization_edit_view, name='organization_edit'),
     path('organizations/<uuid:pk>/delete/', org_views.organization_delete_view, name='organization_delete'),
+    
+    # Branch selection
+    path('select-branch/', branch_views.branch_select_view, name='branch_select'),
     
     # Branches
     path('branches/', branch_views.branch_list_view, name='branch_list'),

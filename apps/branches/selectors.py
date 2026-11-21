@@ -30,6 +30,55 @@ class BranchSelector:
         except Branch.DoesNotExist:
             return None
     
+    def get_user_branches(self):
+        """
+        Get branches that the current user has access to in the current organization.
+        Returns a simplified list for selection UI.
+        """
+        if not self.user.is_authenticated:
+            return []
+        
+        # Get current organization from request
+        organization = None
+        if hasattr(self.request, 'organization') and self.request.organization:
+            organization = self.request.organization
+        
+        if not organization:
+            return []
+        
+        if self.user.is_superuser:
+            queryset = Branch.objects.filter(organization=organization, is_active=True)
+        else:
+            # Check if user has all branch access in this organization
+            from apps.organizations.models import OrganizationMembership
+            is_org_admin = OrganizationMembership.objects.filter(
+                organization=organization,
+                user=self.user,
+                can_access_all_branches=True
+            ).exists()
+            
+            if is_org_admin:
+                queryset = Branch.objects.filter(organization=organization, is_active=True)
+            else:
+                # Get branches with direct access
+                branch_ids = BranchUserAccess.objects.filter(
+                    user=self.user,
+                    branch__organization=organization,
+                    can_access=True
+                ).values_list('branch', flat=True)
+                queryset = Branch.objects.filter(id__in=branch_ids, is_active=True)
+        
+        return [
+            {
+                'id': str(branch.id),
+                'name': branch.name,
+                'code': branch.code,
+                'address': branch.address,
+                'city': branch.city,
+            }
+            for branch in queryset.order_by('code', 'name')
+        ]
+    
     def get_branches(self, **filters):
         """
         Get a list of branches.

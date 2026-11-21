@@ -29,6 +29,33 @@ class OrganizationSelector:
         except Organization.DoesNotExist:
             return None
     
+    def get_user_organizations(self):
+        """
+        Get organizations that the current user has access to.
+        Returns a simplified list for selection UI.
+        """
+        if not self.user.is_authenticated:
+            return []
+        
+        if self.user.is_superuser:
+            queryset = Organization.objects.filter(is_active=True)
+        else:
+            memberships = OrganizationMembership.objects.filter(
+                user=self.user,
+                is_active=True
+            ).values_list('organization', flat=True)
+            queryset = Organization.objects.filter(id__in=memberships, is_active=True)
+        
+        return [
+            {
+                'id': str(org.id),
+                'name': org.name,
+                'code': org.code,
+                'logo': org.logo.url if org.logo else None,
+            }
+            for org in queryset.order_by('name')
+        ]
+    
     def get_organizations(self, **filters):
         """
         Get a list of organizations.

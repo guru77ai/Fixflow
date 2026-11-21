@@ -1,0 +1,46 @@
+{% extends 'base/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "Select Organization" %}{% endblock %}
+
+{% block page_header %}
+<div class="page-header">
+    <h1 class="page-title">{% trans "Select Organization" %}</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">{% trans "Please select an organization to continue." %}</p>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="row">
+                            {% for org in organizations %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    {% if org.logo %}
+                                    <img src="{{ org.logo.url }}" class="card-img-top img-fluid" style="height: 100px; object-fit: contain;" alt="{{ org.name }}">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ org.name }}</h5>
+                                        <p class="card-text text-muted">{{ org.code }}</p>
+                                        <button type="submit" name="organization_id" value="{{ org.id }}" class="btn btn-primary w-100">
+                                            {% trans "Select" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

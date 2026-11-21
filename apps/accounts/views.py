@@ -229,10 +229,15 @@ class UserAPIView(APIView):
 class UserListAPIView(APIView):
     """
     API endpoint for listing users.
+    Only returns users from the current organization.
     """
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
+        from rest_framework.exceptions import PermissionDenied
+        if not hasattr(request, 'organization') or not request.organization:
+            raise PermissionDenied("Organization context required")
+        
         selector = AccountSelector(request)
         users = selector.get_users()
         return Response(users)

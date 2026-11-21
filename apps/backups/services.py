@@ -76,11 +76,11 @@ class BackupService:
             # Get file size
             file_size = os.path.getsize(file_path)
             
-            # Get organization from request
+            # Get organization from request using canonical attribute
             organization = None
-            if hasattr(self.request, 'organization'):
+            if hasattr(self.request, 'organization') and self.request.organization:
                 organization = self.request.organization
-            elif hasattr(self.request, 'current_organization'):
+            elif hasattr(self.request, 'current_organization') and self.request.current_organization:
                 organization = self.request.current_organization
             
             # Create backup record
@@ -106,7 +106,7 @@ class BackupService:
                 file_name=f"backup_{backup_type}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.sqlite3",
                 file_path='',
                 file_size=0,
-                organization=self.request.organization if hasattr(self.request, 'organization') else None,
+                organization=self.request.organization if hasattr(self.request, 'organization') and self.request.organization else None,
                 description=description,
                 is_successful=False,
                 error_message=str(e)

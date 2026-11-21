@@ -3,6 +3,7 @@ Views for the organizations application.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,6 +16,40 @@ from .selectors import OrganizationSelector
 
 
 # Frontend Views
+
+@login_required
+def organization_select_view(request):
+    """
+    Organization selection view for users with multiple organizations.
+    """
+    selector = OrganizationSelector(request)
+    organizations = selector.get_user_organizations()
+    
+    if not organizations:
+        messages.error(request, _('You are not a member of any organization.'))
+        return redirect('login')
+    
+    if request.method == 'POST':
+        org_id = request.POST.get('organization_id')
+        if org_id:
+            # Validate organization belongs to user
+            org = next((o for o in organizations if str(o['id']) == org_id), None)
+            if org:
+                request.session['organization_id'] = org_id
+                # Clear branch context when switching organizations
+                if 'branch_id' in request.session:
+                    del request.session['branch_id']
+                messages.success(request, _('Organization selected successfully.'))
+                return redirect('dashboard')
+        messages.error(request, _('Please select a valid organization.'))
+    
+    context = {
+        'page_title': _('Select Organization'),
+        'organizations': organizations,
+    }
+    
+    return render(request, 'organizations/select.html', context)
+
 
 @login_required
 def organization_list_view(request):

@@ -77,11 +77,15 @@ class TenantScopedMixin(OrganizationContextAPIMixin, BranchContextAPIMixin):
     def get_queryset(self):
         """
         Base queryset method that should be overridden by subclasses.
-        By default, returns an empty queryset.
+        By default, returns the model's default queryset.
         Subclasses should call super().get_queryset() and then apply their filters.
         """
-        # This should be overridden by subclasses
-        return self.queryset.model.objects.none()
+        # Return the base queryset from the ViewSet
+        if hasattr(self, 'queryset'):
+            return self.queryset
+        elif hasattr(self, 'model'):
+            return self.model.objects.all()
+        return super().get_queryset()
     
     def filter_by_organization(self, queryset):
         """
@@ -173,25 +177,36 @@ class TenantScopedModelViewSet(
     def perform_create(self, serializer):
         """
         Automatically set organization and branch for new objects.
+        Validates that client cannot override tenant context.
         """
         org = self.get_organization()
         branch = self.get_branch()
         
-        # Set organization if the field exists and is not set
-        if hasattr(serializer, 'validated_data') and self.organization_field:
-            if self.organization_field not in serializer.validated_data:
-                serializer.save(**{self.organization_field: org})
-            else:
-                serializer.save()
-        else:
-            serializer.save()
+        # Validate that client-supplied organization/branch match the request context
+        validated_data = serializer.validated_data
         
-        # Set branch if the field exists and is not set
-        if hasattr(serializer, 'validated_data') and self.branch_field:
-            if self.branch_field in serializer.validated_data:
-                obj = serializer.instance
-                setattr(obj, self.branch_field, branch)
-                obj.save()
+        # Check organization field
+        if self.organization_field and self.organization_field in validated_data:
+            client_org = validated_data[self.organization_field]
+            if client_org and client_org.pk != org.pk:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Cannot override organization context")
+        
+        # Check branch field
+        if self.branch_field and self.branch_field in validated_data:
+            client_branch = validated_data[self.branch_field]
+            if client_branch and client_branch.pk != branch.pk:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Cannot override branch context")
+        
+        # Save with organization and branch in a single operation
+        save_kwargs = {}
+        if self.organization_field and self.organization_field not in validated_data:
+            save_kwargs[self.organization_field] = org
+        if self.branch_field and self.branch_field not in validated_data:
+            save_kwargs[self.branch_field] = branch
+        
+        serializer.save(**save_kwargs)
 
 
 class TenantScopedReadOnlyModelViewSet(

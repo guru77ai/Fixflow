@@ -168,7 +168,7 @@ class BranchContextMixin(AccessMixin):
         Raises PermissionDenied if branch exists but user doesn't have access.
         """
         # Must have organization context first
-        if not hasattr(self.request, 'organization') and not self.request.organization:
+        if not hasattr(self.request, 'organization') or not self.request.organization:
             # Try to get organization from session
             org_id = self.request.session.get('organization_id')
             if org_id:

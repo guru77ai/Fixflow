@@ -47,8 +47,13 @@ class AccountSelector:
         """
         queryset = User.objects.all()
         
-        # Apply organization filter
-        if hasattr(self.request, 'current_organization') and self.request.current_organization:
+        # Apply organization filter using canonical request.organization
+        if hasattr(self.request, 'organization') and self.request.organization:
+            queryset = queryset.filter(
+                organization=self.request.organization
+            )
+        elif hasattr(self.request, 'current_organization') and self.request.current_organization:
+            # Fallback for compatibility
             queryset = queryset.filter(
                 organization=self.request.current_organization
             )

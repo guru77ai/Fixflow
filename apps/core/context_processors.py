@@ -11,6 +11,7 @@ from apps.notifications.models import Notification
 def organization_context(request):
     """
     Add organization context to all templates.
+    Uses request.organization as the canonical source.
     """
     context = {
         'current_organization': None,
@@ -25,8 +26,10 @@ def organization_context(request):
         
         context['organizations'] = [m.organization for m in memberships]
         
-        # Set current organization
-        if 'organization_id' in request.session:
+        # Set current organization from request.organization if available
+        if hasattr(request, 'organization') and request.organization:
+            context['current_organization'] = request.organization
+        elif 'organization_id' in request.session:
             org_id = request.session['organization_id']
             for org in context['organizations']:
                 if str(org.id) == str(org_id):
@@ -44,6 +47,7 @@ def organization_context(request):
 def branch_context(request):
     """
     Add branch context to all templates.
+    Uses request.branch as the canonical source.
     """
     context = {
         'current_branch': None,
@@ -51,9 +55,11 @@ def branch_context(request):
     }
     
     if request.user.is_authenticated:
-        # Get current organization
+        # Get current organization from request.organization or session
         current_org = None
-        if 'organization_id' in request.session:
+        if hasattr(request, 'organization') and request.organization:
+            current_org = request.organization
+        elif 'organization_id' in request.session:
             try:
                 current_org = Organization.objects.get(id=request.session['organization_id'])
             except Organization.DoesNotExist:
@@ -68,8 +74,10 @@ def branch_context(request):
             
             context['branches'] = list(branches)
             
-            # Set current branch
-            if 'branch_id' in request.session:
+            # Set current branch from request.branch if available
+            if hasattr(request, 'branch') and request.branch:
+                context['current_branch'] = request.branch
+            elif 'branch_id' in request.session:
                 branch_id = request.session['branch_id']
                 for branch in context['branches']:
                     if str(branch.id) == str(branch_id):

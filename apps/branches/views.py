@@ -3,6 +3,7 @@ Views for the branches application.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,6 +16,43 @@ from .selectors import BranchSelector
 
 
 # Frontend Views
+
+@login_required
+def branch_select_view(request):
+    """
+    Branch selection view for users with access to multiple branches.
+    """
+    # Must have organization context
+    if not hasattr(request, 'organization') or not request.organization:
+        messages.error(request, _('Please select an organization first.'))
+        return redirect('organization_select')
+    
+    selector = BranchSelector(request)
+    branches = selector.get_user_branches()
+    
+    if not branches:
+        messages.error(request, _('You do not have access to any branch in this organization.'))
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        branch_id = request.POST.get('branch_id')
+        if branch_id:
+            # Validate branch belongs to user
+            branch = next((b for b in branches if str(b['id']) == branch_id), None)
+            if branch:
+                request.session['branch_id'] = branch_id
+                messages.success(request, _('Branch selected successfully.'))
+                return redirect('dashboard')
+        messages.error(request, _('Please select a valid branch.'))
+    
+    context = {
+        'page_title': _('Select Branch'),
+        'branches': branches,
+        'organization': request.organization,
+    }
+    
+    return render(request, 'branches/select.html', context)
+
 
 @login_required
 def branch_list_view(request):
