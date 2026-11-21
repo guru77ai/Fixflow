@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Document" %} {{ object.title }}{% endblock %}
+{% block page_header %}{% trans "Document" %} {{ object.title }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Supplier Document Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'suppliers:supplierdocument_list' object.supplier.pk %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                        <a href="{% url 'suppliers:supplierdocument_form' object.supplier.pk object.pk %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                        <a href="{% url 'suppliers:supplierdocument_confirm_delete' object.supplier.pk object.pk %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Basic Information" %}</h4>
+                            <p><strong>{% trans "Supplier" %}:</strong> <a href="{% url 'suppliers:supplier_detail' object.supplier.pk %}">{{ object.supplier.name }}</a></p>
+                            <p><strong>{% trans "Title" %}:</strong> {{ object.title }}</p>
+                            <p><strong>{% trans "Type" %}:</strong> {{ object.get_document_type_display }}</p>
+                            <p><strong>{% trans "Document Number" %}:</strong> {{ object.document_number|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "File Information" %}</h4>
+                            <p><strong>{% trans "File" %}:</strong> <a href="{{ object.file.url }}" target="_blank">{{ object.file.name }}</a></p>
+                            <p><strong>{% trans "File Size" %}:</strong> {{ object.file.size|filesizeformat }}</p>
+                            <p><strong>{% trans "MIME Type" %}:</strong> {{ object.file_type|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Additional Information" %}</h4>
+                            <p><strong>{% trans "Description" %}:</strong> {{ object.description|default:"-" }}</p>
+                            <p><strong>{% trans "Issue Date" %}:</strong> {{ object.issue_date|date:"Y-m-d"|default:"-" }}</p>
+                            <p><strong>{% trans "Expiry Date" %}:</strong> {{ object.expiry_date|date:"Y-m-d"|default:"-" }}</p>
+                            <p><strong>{% trans "Is Active" %}:</strong> {% if object.is_active %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Metadata" %}</h4>
+                            <p><strong>{% trans "Created" %}:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>{% trans "Updated" %}:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

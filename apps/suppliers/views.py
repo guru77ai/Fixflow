@@ -82,6 +82,18 @@ class SupplierCategoryDeleteView(LoginRequiredMixin, OrganizationContextMixin, B
         return reverse_lazy('suppliers:suppliercategory_list')
 
 
+class SupplierCategoryDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Supplier category detail view."""
+    model = SupplierCategory
+    template_name = 'suppliers/suppliercategory_detail.html'
+    context_object_name = 'category'
+    
+    def get_queryset(self):
+        return SupplierCategory.objects.filter(
+            organization=self.request.organization
+        )
+
+
 # Supplier Views
 class SupplierListView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, ListView):
     """List all suppliers."""
@@ -261,6 +273,20 @@ class SupplierContactDeleteView(LoginRequiredMixin, OrganizationContextMixin, Br
         return reverse_lazy('suppliers:suppliercontact_list', kwargs={'supplier_pk': self.object.supplier.pk})
 
 
+class SupplierContactDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Supplier contact detail view."""
+    model = SupplierContact
+    template_name = 'suppliers/suppliercontact_detail.html'
+    context_object_name = 'contact'
+    
+    def get_queryset(self):
+        supplier_pk = self.kwargs.get('supplier_pk')
+        return SupplierContact.objects.filter(
+            supplier__organization=self.request.organization,
+            supplier_id=supplier_pk
+        )
+
+
 # Supplier Document Views
 class SupplierDocumentListView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, ListView):
     """List all documents for a supplier."""
@@ -332,3 +358,17 @@ class SupplierDocumentDeleteView(LoginRequiredMixin, OrganizationContextMixin, B
     def get_success_url(self):
         messages.success(self.request, 'Supplier document deleted successfully!')
         return reverse_lazy('suppliers:supplierdocument_list', kwargs={'supplier_pk': self.object.supplier.pk})
+
+
+class SupplierDocumentDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Supplier document detail view."""
+    model = SupplierDocument
+    template_name = 'suppliers/supplierdocument_detail.html'
+    context_object_name = 'document'
+    
+    def get_queryset(self):
+        supplier_pk = self.kwargs.get('supplier_pk')
+        return SupplierDocument.objects.filter(
+            supplier__organization=self.request.organization,
+            supplier_id=supplier_pk
+        )

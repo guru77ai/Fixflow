@@ -1,0 +1,54 @@
+{% extends "base/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Contact" %} {{ object.first_name }} {{ object.last_name }}{% endblock %}
+{% block page_header %}{% trans "Contact" %} {{ object.first_name }} {{ object.last_name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans "Supplier Contact Details" %}</h3>
+                    <div class="card-tools">
+                        <a href="{% url 'suppliers:suppliercontact_list' object.supplier.pk %}" class="btn btn-secondary"><i class="fas fa-list"></i> {% trans "Back" %}</a>
+                        <a href="{% url 'suppliers:suppliercontact_form' object.supplier.pk object.pk %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                        <a href="{% url 'suppliers:suppliercontact_confirm_delete' object.supplier.pk object.pk %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>{% trans "Basic Information" %}</h4>
+                            <p><strong>{% trans "Supplier" %}:</strong> <a href="{% url 'suppliers:supplier_detail' object.supplier.pk %}">{{ object.supplier.name }}</a></p>
+                            <p><strong>{% trans "First Name" %}:</strong> {{ object.first_name }}</p>
+                            <p><strong>{% trans "Last Name" %}:</strong> {{ object.last_name|default:"-" }}</p>
+                            <p><strong>{% trans "Position" %}:</strong> {{ object.position|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>{% trans "Contact Information" %}</h4>
+                            <p><strong>{% trans "Email" %}:</strong> {{ object.email|default:"-" }}</p>
+                            <p><strong>{% trans "Phone" %}:</strong> {{ object.phone|default:"-" }}</p>
+                            <p><strong>{% trans "Mobile" %}:</strong> {{ object.mobile|default:"-" }}</p>
+                            <p><strong>{% trans "Fax" %}:</strong> {{ object.fax|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Additional Information" %}</h4>
+                            <p><strong>{% trans "Notes" %}:</strong> {{ object.notes|default:"-" }}</p>
+                            <p><strong>{% trans "Is Primary" %}:</strong> {% if object.is_primary %}<span class="badge bg-success">{% trans "Yes" %}</span>{% else %}<span class="badge bg-secondary">{% trans "No" %}</span>{% endif %}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h4>{% trans "Metadata" %}</h4>
+                            <p><strong>{% trans "Created" %}:</strong> {{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            <p><strong>{% trans "Updated" %}:</strong> {{ object.updated_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
