@@ -214,6 +214,20 @@ class DeviceUpdateView(LoginRequiredMixin, OrganizationContextMixin, BranchConte
         return reverse_lazy('crm:device_detail', kwargs={'pk': self.object.pk})
 
 
+class DeviceDeleteView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DeleteView):
+    """Delete a device."""
+    model = Device
+    template_name = 'crm/device_confirm_delete.html'
+    context_object_name = 'device'
+    
+    def get_queryset(self):
+        return Device.objects.filter(organization=self.request.organization)
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device deleted successfully!')
+        return reverse_lazy('crm:device_list')
+
+
 # Customer Type Views
 class CustomerTypeListView(LoginRequiredMixin, ListView):
     """List all customer types."""
@@ -245,6 +259,17 @@ class CustomerTypeUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('crm:customertype_list')
 
 
+class CustomerTypeDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a customer type."""
+    model = CustomerType
+    template_name = 'crm/customertype_confirm_delete.html'
+    context_object_name = 'type'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Customer type deleted successfully!')
+        return reverse_lazy('crm:customertype_list')
+
+
 # Device Brand Views
 class DeviceBrandListView(LoginRequiredMixin, ListView):
     """List all device brands."""
@@ -262,6 +287,28 @@ class DeviceBrandCreateView(LoginRequiredMixin, CreateView):
     
     def get_success_url(self):
         messages.success(self.request, 'Device brand created successfully!')
+        return reverse_lazy('crm:devicebrand_list')
+
+
+class DeviceBrandUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a device brand."""
+    model = DeviceBrand
+    form_class = DeviceBrandForm
+    template_name = 'crm/devicebrand_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device brand updated successfully!')
+        return reverse_lazy('crm:devicebrand_list')
+
+
+class DeviceBrandDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a device brand."""
+    model = DeviceBrand
+    template_name = 'crm/devicebrand_confirm_delete.html'
+    context_object_name = 'brand'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device brand deleted successfully!')
         return reverse_lazy('crm:devicebrand_list')
 
 
