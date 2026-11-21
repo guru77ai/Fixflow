@@ -318,6 +318,46 @@ class DeviceModelListView(LoginRequiredMixin, ListView):
     model = DeviceModel
     template_name = 'crm/devicemodel_list.html'
     context_object_name = 'models'
+
+
+class DeviceModelDetailView(LoginRequiredMixin, DetailView):
+    """Device model detail view."""
+    model = DeviceModel
+    template_name = 'crm/devicemodel_detail.html'
+    context_object_name = 'model'
+
+
+class DeviceModelCreateView(LoginRequiredMixin, CreateView):
+    """Create a new device model."""
+    model = DeviceModel
+    form_class = DeviceModelForm
+    template_name = 'crm/devicemodel_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device model created successfully!')
+        return reverse_lazy('crm:devicemodel_list')
+
+
+class DeviceModelUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a device model."""
+    model = DeviceModel
+    form_class = DeviceModelForm
+    template_name = 'crm/devicemodel_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device model updated successfully!')
+        return reverse_lazy('crm:devicemodel_list')
+
+
+class DeviceModelDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a device model."""
+    model = DeviceModel
+    template_name = 'crm/devicemodel_confirm_delete.html'
+    context_object_name = 'model'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Device model deleted successfully!')
+        return reverse_lazy('crm:devicemodel_list')
     paginate_by = 20
 
 

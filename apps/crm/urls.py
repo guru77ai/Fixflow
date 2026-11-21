@@ -12,7 +12,7 @@ from .views import (
     # Brand views
     DeviceBrandListView, DeviceBrandCreateView, DeviceBrandUpdateView, DeviceBrandDeleteView,
     # Model views
-    DeviceModelListView,
+    DeviceModelListView, DeviceModelCreateView, DeviceModelUpdateView, DeviceModelDeleteView,
     # Quick create
     quick_create_customer,
 )
@@ -48,6 +48,10 @@ urlpatterns = [
     
     # Device Model URLs
     path('device-models/', DeviceModelListView.as_view(), name='devicemodel_list'),
+    path('device-models/create/', DeviceModelCreateView.as_view(), name='devicemodel_create'),
+    path('device-models/<uuid:pk>/', DeviceModelDetailView.as_view(), name='devicemodel_detail'),
+    path('device-models/<uuid:pk>/edit/', DeviceModelUpdateView.as_view(), name='devicemodel_edit'),
+    path('device-models/<uuid:pk>/delete/', DeviceModelDeleteView.as_view(), name='devicemodel_delete'),
     
     # Quick creation
     path('customers/quick-create/', quick_create_customer, name='quick_create_customer'),
