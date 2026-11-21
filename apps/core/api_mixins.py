@@ -190,18 +190,22 @@ class TenantScopedModelViewSet(
         # If they don't match, raise PermissionDenied
         validated_data = serializer.validated_data
         
-        # Check organization field - reject if client supplies a different organization
+        # Check organization field - reject if client supplies any value
+        # Client cannot override, set to null, or change organization
         if self.organization_field and self.organization_field in validated_data:
             client_org = validated_data[self.organization_field]
-            if client_org and client_org.pk != org.pk:
+            # Reject if client supplies a different organization or tries to null it
+            if client_org is None or (client_org and client_org.pk != org.pk):
                 raise PermissionDenied("Cannot override organization context")
             # Remove from validated_data to prevent client from setting it
             del validated_data[self.organization_field]
         
-        # Check branch field - reject if client supplies a different branch
+        # Check branch field - reject if client supplies any value
+        # Client cannot override, set to null, or change branch
         if self.branch_field and self.branch_field in validated_data:
             client_branch = validated_data[self.branch_field]
-            if client_branch and client_branch.pk != branch.pk:
+            # Reject if client supplies a different branch or tries to null it
+            if client_branch is None or (client_branch and client_branch.pk != branch.pk):
                 raise PermissionDenied("Cannot override branch context")
             # Remove from validated_data to prevent client from setting it
             del validated_data[self.branch_field]

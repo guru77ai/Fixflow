@@ -200,7 +200,29 @@ def settings_view(request):
 def users_view(request):
     """
     User management view.
+    Requires organization context and user management permissions.
     """
+    from apps.organizations.models import OrganizationMembership
+    
+    # Verify organization context
+    if not hasattr(request, 'organization') or not request.organization:
+        from django.contrib import messages
+        messages.error(request, _("Organization context required"))
+        return redirect('dashboard')
+    
+    # Verify user has permission to view users in this organization
+    has_permission = OrganizationMembership.objects.filter(
+        user=request.user,
+        organization=request.organization,
+        is_active=True,
+        can_manage_users=True
+    ).exists()
+    
+    if not has_permission and not request.user.is_superuser:
+        from django.contrib import messages
+        messages.error(request, _("You do not have permission to view users"))
+        return redirect('dashboard')
+    
     selector = AccountSelector(request)
     users = selector.get_users()
     
