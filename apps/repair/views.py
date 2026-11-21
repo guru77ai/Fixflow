@@ -229,6 +229,28 @@ class RepairStatusCreateView(LoginRequiredMixin, CreateView):
     
     def get_success_url(self):
         messages.success(self.request, 'Repair status created successfully!')
+
+
+class RepairStatusUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a repair status."""
+    model = RepairStatus
+    form_class = RepairStatusForm
+    template_name = 'repair/repair_status_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair status updated successfully!')
+        return reverse_lazy('repair:repair_status_list')
+
+
+class RepairStatusDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a repair status."""
+    model = RepairStatus
+    template_name = 'repair/repair_status_confirm_delete.html'
+    context_object_name = 'status'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair status deleted successfully!')
+        return reverse_lazy('repair:repair_status_list')
         return reverse_lazy('repair:repair_status_list')
 
 
@@ -249,6 +271,72 @@ class RepairPriorityCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         messages.success(self.request, 'Repair priority created successfully!')
         return reverse_lazy('repair:repair_priority_list')
+
+
+class RepairPriorityUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a repair priority."""
+    model = RepairPriority
+    form_class = RepairPriorityForm
+    template_name = 'repair/repair_priority_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair priority updated successfully!')
+        return reverse_lazy('repair:repair_priority_list')
+
+
+class RepairPriorityDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a repair priority."""
+    model = RepairPriority
+    template_name = 'repair/repair_priority_confirm_delete.html'
+    context_object_name = 'priority'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair priority deleted successfully!')
+        return reverse_lazy('repair:repair_priority_list')
+
+
+class RepairCategoryUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a repair category."""
+    model = RepairCategory
+    form_class = RepairCategoryForm
+    template_name = 'repair/repair_category_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair category updated successfully!')
+        return reverse_lazy('repair:repair_category_list')
+
+
+class RepairCategoryDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a repair category."""
+    model = RepairCategory
+    template_name = 'repair/repair_category_confirm_delete.html'
+    context_object_name = 'category'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair category deleted successfully!')
+        return reverse_lazy('repair:repair_category_list')
+
+
+class RepairTypeUpdateView(LoginRequiredMixin, UpdateView):
+    """Update a repair type."""
+    model = RepairType
+    form_class = RepairTypeForm
+    template_name = 'repair/repair_type_form.html'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair type updated successfully!')
+        return reverse_lazy('repair:repair_type_list')
+
+
+class RepairTypeDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a repair type."""
+    model = RepairType
+    template_name = 'repair/repair_type_confirm_delete.html'
+    context_object_name = 'type'
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Repair type deleted successfully!')
+        return reverse_lazy('repair:repair_type_list')
 
 
 class RepairCategoryListView(LoginRequiredMixin, ListView):
