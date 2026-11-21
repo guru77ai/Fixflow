@@ -12,7 +12,6 @@ from .selectors import DashboardSelector
 
 
 @login_required
-@login_required(redirect_field_name='next', login_url='login')
 def dashboard_view(request):
     """
     Main dashboard view.

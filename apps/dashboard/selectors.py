@@ -15,8 +15,12 @@ class DashboardSelector:
     def __init__(self, request):
         self.request = request
         self.user = request.user
-        self.organization = getattr(request, 'current_organization', None)
-        self.branch = getattr(request, 'current_branch', None)
+        self.organization = getattr(request, 'organization', None)
+        if not self.organization:
+            self.organization = getattr(request, 'current_organization', None)
+        self.branch = getattr(request, 'branch', None)
+        if not self.branch:
+            self.branch = getattr(request, 'current_branch', None)
     
     def get_stats(self):
         """
@@ -36,9 +40,9 @@ class DashboardSelector:
         
         # Get repair statistics
         try:
-            from apps.repairs.models import Repair
+            from apps.repair.models import RepairOrder
             
-            repairs = Repair.objects.filter(
+            repairs = RepairOrder.objects.filter(
                 organization=self.organization
             )
             
@@ -61,7 +65,7 @@ class DashboardSelector:
         
         # Get customer statistics
         try:
-            from apps.customers.models import Customer
+            from apps.crm.models import Customer
             
             customers = Customer.objects.filter(organization=self.organization)
             
@@ -74,7 +78,7 @@ class DashboardSelector:
         
         # Get product statistics
         try:
-            from apps.products.models import Product
+            from apps.inventory.models import Product
             
             products = Product.objects.filter(organization=self.organization)
             stats['total_products'] = products.count()
@@ -133,14 +137,14 @@ class DashboardSelector:
         data = []
         
         try:
-            from apps.repairs.models import Repair
+            from apps.repair.models import RepairOrder
             
             repairs = Repair.objects.filter(
                 organization=self.organization
             )
             
             if self.branch:
-                repairs = repairs.filter(branch=self.branch)
+                repairs = RepairOrder.objects.filter(branch=self.branch)
             
             # Get status distribution
             status_counts = repairs.values('status').annotate(
@@ -201,7 +205,7 @@ class DashboardSelector:
         
         try:
             from apps.sales.models import SaleLine
-            from apps.products.models import Product
+            from apps.inventory.models import Product
             
             sale_lines = SaleLine.objects.filter(
                 sale__organization=self.organization

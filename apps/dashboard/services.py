@@ -13,8 +13,12 @@ class DashboardService:
     def __init__(self, request):
         self.request = request
         self.user = request.user
-        self.organization = getattr(request, 'current_organization', None)
-        self.branch = getattr(request, 'current_branch', None)
+        self.organization = getattr(request, 'organization', None)
+        if not self.organization:
+            self.organization = getattr(request, 'current_organization', None)
+        self.branch = getattr(request, 'branch', None)
+        if not self.branch:
+            self.branch = getattr(request, 'current_branch', None)
     
     def get_dashboard_data(self):
         """
