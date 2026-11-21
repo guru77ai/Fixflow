@@ -12,7 +12,7 @@ from .views import (
     # Brand views
     DeviceBrandListView, DeviceBrandCreateView, DeviceBrandUpdateView, DeviceBrandDeleteView,
     # Model views
-    DeviceModelListView, DeviceModelCreateView, DeviceModelUpdateView, DeviceModelDeleteView,
+    DeviceModelListView, DeviceModelDetailView, DeviceModelCreateView, DeviceModelUpdateView, DeviceModelDeleteView,
     # Quick create
     quick_create_customer,
 )

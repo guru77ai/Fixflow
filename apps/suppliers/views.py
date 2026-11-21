@@ -372,3 +372,21 @@ class SupplierDocumentDetailView(LoginRequiredMixin, OrganizationContextMixin, B
             supplier__organization=self.request.organization,
             supplier_id=supplier_pk
         )
+
+
+class SupplierDocumentUpdateView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, UpdateView):
+    """Update a supplier document."""
+    model = SupplierDocument
+    form_class = SupplierDocumentForm
+    template_name = 'suppliers/supplierdocument_form.html'
+    
+    def get_queryset(self):
+        supplier_pk = self.kwargs.get('supplier_pk')
+        return SupplierDocument.objects.filter(
+            supplier__organization=self.request.organization,
+            supplier_id=supplier_pk
+        )
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Supplier document updated successfully!')
+        return reverse_lazy('suppliers:supplierdocument_list', kwargs={'supplier_pk': self.object.supplier.pk})
