@@ -55,8 +55,8 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    <a href="{% url 'repair:repair_order_update' object.uuid %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
-                    <a href="{% url 'repair:repair_order_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
+                    <a href="{% url 'repair:repairorder_update' object.uuid %}" class="btn btn-warning"><i class="fas fa-edit"></i> {% trans "Edit" %}</a>
+                    <a href="{% url 'repair:repairorder_delete' object.uuid %}" class="btn btn-danger"><i class="fas fa-trash"></i> {% trans "Delete" %}</a>
                 </div>
             </div>
         </div>
