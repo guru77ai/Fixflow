@@ -150,6 +150,19 @@ class ProductCategoryCreateView(LoginRequiredMixin, OrganizationContextMixin, Br
         return reverse_lazy('inventory:productcategory_list')
 
 
+class ProductCategoryDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Product category detail view."""
+    model = ProductCategory
+    template_name = 'inventory/productcategory_detail.html'
+    context_object_name = 'category'
+    
+    def get_queryset(self):
+        return ProductCategory.objects.filter(
+            organization=self.request.organization,
+            branch=self.request.branch
+        )
+
+
 class ProductCategoryUpdateView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, UpdateView):
     """Update a product category."""
     model = ProductCategory
@@ -277,6 +290,13 @@ class UnitOfMeasureCreateView(LoginRequiredMixin, OrganizationContextMixin, Bran
     def get_success_url(self):
         messages.success(self.request, 'Unit of measure created successfully!')
         return reverse_lazy('inventory:unitofmeasure_list')
+
+
+class UnitOfMeasureDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Unit of measure detail view."""
+    model = UnitOfMeasure
+    template_name = 'inventory/unitofmeasure_detail.html'
+    context_object_name = 'unit'
 
 
 class UnitOfMeasureUpdateView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, UpdateView):
@@ -458,6 +478,9 @@ class ServiceCategoryDeleteView(LoginRequiredMixin, OrganizationContextMixin, Br
     def get_queryset(self):
         return ServiceCategory.objects.filter(
             organization=self.request.organization,
+            branch=self.request.branch
+        )
+
 
 class ServiceCategoryDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
     """Service category detail view."""
@@ -467,8 +490,7 @@ class ServiceCategoryDetailView(LoginRequiredMixin, OrganizationContextMixin, Br
     
     def get_queryset(self):
         return ServiceCategory.objects.filter(
-            organization=self.request.organization
-        )
+            organization=self.request.organization,
             branch=self.request.branch
         )
     
@@ -512,6 +534,19 @@ class ServiceCreateView(LoginRequiredMixin, OrganizationContextMixin, BranchCont
     def get_success_url(self):
         messages.success(self.request, 'Service created successfully!')
         return reverse_lazy('inventory:service_list')
+
+
+class ServiceDetailView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, DetailView):
+    """Service detail view."""
+    model = Service
+    template_name = 'inventory/service_detail.html'
+    context_object_name = 'service'
+    
+    def get_queryset(self):
+        return Service.objects.filter(
+            organization=self.request.organization,
+            branch=self.request.branch
+        )
 
 
 class ServiceUpdateView(LoginRequiredMixin, OrganizationContextMixin, BranchContextMixin, UpdateView):
