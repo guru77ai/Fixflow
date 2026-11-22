@@ -38,6 +38,9 @@ openpyxl>=3.1.2
 # Cryptography for licensing
 cryptography>=42.0.0
 
+# QR code generation
+qrcode[pil]>=7.4.2
+
 # Python decimal for financial calculations
 # Built-in, no package needed
 

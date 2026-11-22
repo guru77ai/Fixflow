@@ -20,8 +20,8 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class RepairStatusViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = RepairStatus.objects.all()
     serializer_class = RepairStatusSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -31,8 +31,8 @@ class RepairStatusViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class RepairPriorityViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairPriorityViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = RepairPriority.objects.all()
     serializer_class = RepairPrioritySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -42,8 +42,8 @@ class RepairPriorityViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class RepairCategoryViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = RepairCategory.objects.all()
     serializer_class = RepairCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -53,8 +53,8 @@ class RepairCategoryViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class RepairTypeViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = RepairType.objects.all()
     serializer_class = RepairTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -149,8 +149,8 @@ class RepairOrderViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class RepairOrderHistoryViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairOrderHistoryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through repair_order parent"""
     queryset = RepairOrderHistory.objects.all()
     serializer_class = RepairOrderHistorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -158,32 +158,47 @@ class RepairOrderHistoryViewSet(viewsets.ModelViewSet):
     search_fields = ['repair_order__repair_number', 'notes']
     ordering_fields = ['performed_at', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    parent_field = 'repair_order'
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class RepairPartViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairPartViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through repair_order parent"""
     queryset = RepairPart.objects.all()
     serializer_class = RepairPartSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category']
+    filterset_fields = ['category', 'repair_order']
     search_fields = ['name', 'part_number', 'description']
     ordering_fields = ['name', 'part_number', 'quantity', 'unit_cost']
     pagination_class = StandardResultsSetPagination
+    
+    parent_field = 'repair_order'
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class RepairServiceViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairServiceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through repair_order parent"""
     queryset = RepairService.objects.all()
     serializer_class = RepairServiceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'is_active']
+    filterset_fields = ['category', 'is_active', 'repair_order']
     search_fields = ['name', 'code', 'description']
     ordering_fields = ['name', 'code', 'duration', 'price']
     pagination_class = StandardResultsSetPagination
+    
+    parent_field = 'repair_order'
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class RepairChecklistViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairChecklistViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through repair_order parent"""
     queryset = RepairChecklist.objects.all()
     serializer_class = RepairChecklistSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -191,10 +206,15 @@ class RepairChecklistViewSet(viewsets.ModelViewSet):
     search_fields = ['repair_order__repair_number', 'notes']
     ordering_fields = ['completed_at', 'created_at']
     pagination_class = StandardResultsSetPagination
+    
+    parent_field = 'repair_order'
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
-class RepairAttachmentViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class RepairAttachmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through repair_order parent"""
     queryset = RepairAttachment.objects.all()
     serializer_class = RepairAttachmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -202,6 +222,11 @@ class RepairAttachmentViewSet(viewsets.ModelViewSet):
     search_fields = ['repair_order__repair_number', 'name', 'description']
     ordering_fields = ['uploaded_at', 'name']
     pagination_class = StandardResultsSetPagination
+    
+    parent_field = 'repair_order'
+    
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
 
 
 class RepairTemplateViewSet(TenantScopedMixin, viewsets.ModelViewSet):

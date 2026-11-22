@@ -32,9 +32,21 @@ urlpatterns = [
     path('i18n/setlang/', set_language, name='set_language'),
 ]
 
-# API v1 endpoints - mount API routers for business modules only
+# API v1 endpoints
 urlpatterns += [
     path('api/v1/', include([
+        # System modules API endpoints
+        path('organizations/', include('apps.organizations.urls')),
+        path('branches/', include('apps.branches.urls')),
+        path('audit-logs/', include('apps.audit_logs.urls')),
+        path('notifications/', include('apps.notifications.urls')),
+        path('backups/', include('apps.backups.urls')),
+        path('licensing/', include('apps.licensing.urls')),
+        path('settings/', include('apps.settings.urls')),
+        path('documents/', include('apps.documents.urls')),
+        path('barcode/', include('apps.barcode.urls')),
+        path('zakat/', include('apps.zakat.urls')),
+        
         # Business modules (using api_urls.py which contain DRF routers)
         path('crm/', include('apps.crm.api_urls')),
         path('repair/', include('apps.repair.api_urls')),
@@ -48,29 +60,13 @@ urlpatterns += [
 ]
 
 # Django auth URLs (not localized)
-urlpatterns += [
-    path('accounts/', include('django.contrib.auth.urls')),
-]
+# Removed: django.contrib.auth.urls was causing conflict with custom accounts URLs
+# Custom auth views are defined in apps.accounts.urls_frontend
 
 # Localized frontend URLs
 # These will be wrapped in i18n_patterns below
 frontend_urlpatterns = [
-    # Main application frontend
     path('', include('apps.dashboard.urls_frontend')),
-    
-    # System modules frontend URLs
-    path('accounts/', include('apps.accounts.urls_frontend')),
-    path('organizations/', include('apps.organizations.urls')),
-    path('branches/', include('apps.branches.urls')),
-    path('licensing/', include('apps.licensing.urls')),
-    path('audit-logs/', include('apps.audit_logs.urls')),
-    path('settings/', include('apps.settings.urls')),
-    path('notifications/', include('apps.notifications.urls')),
-    path('backups/', include('apps.backups.urls')),
-    path('reports/', include('apps.reports.urls')),
-    path('documents/', include('apps.documents.urls')),
-    path('barcode/', include('apps.barcode.urls')),
-    path('zakat/', include('apps.zakat.urls')),
     
     # Business module frontend URLs
     path('crm/', include('apps.crm.urls')),

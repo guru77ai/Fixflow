@@ -1,0 +1,48 @@
+{% extends 'base/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Sales Report' %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans 'Sales Report' %}</h3>
+                </div>
+                <div class="card-body">
+                    {% if sales_data %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans 'Date' %}</th>
+                                        <th>{% trans 'Sale Number' %}</th>
+                                        <th>{% trans 'Customer' %}</th>
+                                        <th>{% trans 'Amount' %}</th>
+                                        <th>{% trans 'Payment Status' %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in sales_data %}
+                                    <tr>
+                                        <td>{{ sale.date }}</td>
+                                        <td>{{ sale.sale_number }}</td>
+                                        <td>{{ sale.customer }}</td>
+                                        <td>{{ sale.amount }}</td>
+                                        <td>{{ sale.payment_status }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">{% trans 'No sales data available.' %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -52,7 +52,7 @@ class PositionViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class EmploymentTypeViewSet(viewsets.ModelViewSet):
+class EmploymentTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """Global reference data: not tenant-scoped"""
     queryset = EmploymentType.objects.all()
     serializer_class = EmploymentTypeSerializer
@@ -131,7 +131,7 @@ class AttendanceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class LeaveTypeViewSet(viewsets.ModelViewSet):
+class LeaveTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """Global reference data: not tenant-scoped"""
     queryset = LeaveType.objects.all()
     serializer_class = LeaveTypeSerializer
@@ -271,7 +271,7 @@ class EmployeeDocumentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         ).distinct()
 
 
-class SalaryComponentViewSet(viewsets.ModelViewSet):
+class SalaryComponentViewSet(viewsets.ReadOnlyModelViewSet):
     """Global reference data: not tenant-scoped"""
     queryset = SalaryComponent.objects.all()
     serializer_class = SalaryComponentSerializer

@@ -53,13 +53,17 @@ def login_view(request):
     return render(request, 'accounts/login.html', context)
 
 
+from django.views.decorators.http import require_POST
+
+@require_POST
 def logout_view(request):
     """
     User logout view.
+    Requires POST to prevent CSRF attacks.
     """
     logout(request)
     messages.success(request, _('You have been logged out.'))
-    return redirect('login')
+    return redirect('accounts:login')
 
 
 def register_view(request):
@@ -76,7 +80,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             messages.success(request, _('Your account has been created. Please log in.'))
-            return redirect('login')
+            return redirect('accounts:login')
         else:
             messages.error(request, _('Please correct the errors below.'))
     
@@ -127,14 +131,63 @@ def password_reset_done_view(request):
 def password_reset_confirm_view(request, uidb64, token):
     """
     Password reset confirm view.
+    Validates the token and allows user to set a new password.
     """
-    # Implementation would use Django's built-in views
-    # This is a placeholder
-    context = {
-        'page_title': _('Reset Password'),
-    }
+    from django.contrib.auth.tokens import default_token_generator
+    from django.contrib.auth import get_user_model
+    from django.utils.http import urlsafe_base64_decode
     
-    return render(request, 'accounts/password_reset_confirm.html', context)
+    User = get_user_model()
+    
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            from django.contrib.auth.forms import SetPasswordForm
+            form = SetPasswordForm(user, request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(request, _('Your password has been reset. Please log in.'))
+                return redirect('accounts:login')
+        else:
+            form = SetPasswordForm(user)
+        
+        context = {
+            'page_title': _('Reset Password'),
+            'form': form,
+            'uidb64': uidb64,
+            'token': token,
+        }
+        return render(request, 'accounts/password_reset_confirm.html', context)
+    else:
+        messages.error(request, _('The reset link is no longer valid.'))
+        return redirect('accounts:password_reset')
+
+
+@login_required
+def password_change_view(request):
+    from django.contrib.auth.forms import PasswordChangeForm
+    from django.contrib.auth import update_session_auth_hash
+    
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.success(request, _('Your password has been changed successfully.'))
+            return redirect('dashboard')
+    else:
+        form = PasswordChangeForm(user=request.user)
+    
+    context = {
+        'page_title': _('Change Password'),
+        'form': form,
+    }
+    return render(request, 'accounts/password_change.html', context)
 
 
 def password_reset_complete_view(request):

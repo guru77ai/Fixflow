@@ -19,8 +19,8 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class PaymentMethodViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class PaymentMethodViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = PaymentMethod.objects.all()
     serializer_class = PaymentMethodSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -82,9 +82,15 @@ class SaleViewSet(TenantScopedMixin, viewsets.ModelViewSet):
             return Response({'error': 'No receipt found for this sale'}, status=404)
 
 
-class SaleItemViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Sale"""
-    queryset = SaleItem.objects.all()
+class SaleItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through sale parent"""
+
+    parent_field = 'sale'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = SaleItem.objects.all()
     serializer_class = SaleItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['sale', 'product', 'service']
@@ -92,9 +98,15 @@ class SaleItemViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class SalePaymentViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Sale"""
-    queryset = SalePayment.objects.all()
+class SalePaymentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through sale parent"""
+
+    parent_field = 'sale'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = SalePayment.objects.all()
     serializer_class = SalePaymentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['sale', 'payment_method', 'payment_date']
@@ -137,9 +149,15 @@ class RefundViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class RefundItemViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Refund"""
-    queryset = RefundItem.objects.all()
+class RefundItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through refund parent"""
+
+    parent_field = 'refund'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = RefundItem.objects.all()
     serializer_class = RefundItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['refund', 'sale_item', 'product']

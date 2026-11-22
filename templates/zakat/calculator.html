@@ -1,0 +1,48 @@
+{% extends 'base/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'Zakat Calculator' %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans 'Zakat Calculator' %}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="gold" class="form-label">{% trans 'Gold (grams)' %}</label>
+                            <input type="number" class="form-control" id="gold" name="gold" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="cash" class="form-label">{% trans 'Cash and Savings' %}</label>
+                            <input type="number" class="form-control" id="cash" name="cash" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="stocks" class="form-label">{% trans 'Stocks and Investments' %}</label>
+                            <input type="number" class="form-control" id="stocks" name="stocks" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="business_assets" class="form-label">{% trans 'Business Assets' %}</label>
+                            <input type="number" class="form-control" id="business_assets" name="business_assets" step="0.01">
+                        </div>
+                        <button type="submit" class="btn btn-primary">{% trans 'Calculate' %}</button>
+                    </form>
+                    
+                    {% if zakat_amount %}
+                    <hr>
+                    <div class="alert alert-info mt-4">
+                        <h4>{% trans 'Zakat Due' %}</h4>
+                        <p class="fs-3">{{ zakat_amount }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

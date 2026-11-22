@@ -1,0 +1,48 @@
+{% extends 'base/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans 'License Information' %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">{% trans 'License Information' %}</h3>
+                </div>
+                <div class="card-body">
+                    {% if license_info %}
+                        <dl class="row">
+                            <dt class="col-sm-4">{% trans 'License ID' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.license_id }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Customer' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.customer_name }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Edition' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.edition }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Status' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.status }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Issue Date' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.issue_date }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Expiry Date' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.expiry_date }}</dd>
+                            
+                            <dt class="col-sm-4">{% trans 'Enabled Modules' %}:</dt>
+                            <dd class="col-sm-8">{{ license_info.enabled_modules|join:", " }}</dd>
+                        </dl>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            {% trans 'No license information available.' %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

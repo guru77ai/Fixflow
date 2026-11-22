@@ -21,8 +21,8 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class CustomerTypeViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class CustomerTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = CustomerType.objects.all()
     serializer_class = CustomerTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -32,8 +32,8 @@ class CustomerTypeViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class CustomerSourceViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class CustomerSourceViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = CustomerSource.objects.all()
     serializer_class = CustomerSourceSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -57,8 +57,8 @@ class CustomerGroupViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class DeviceCategoryViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class DeviceCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = DeviceCategory.objects.all()
     serializer_class = DeviceCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -68,8 +68,8 @@ class DeviceCategoryViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class DeviceBrandViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class DeviceBrandViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = DeviceBrand.objects.all()
     serializer_class = DeviceBrandSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -79,8 +79,8 @@ class DeviceBrandViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class DeviceModelViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class DeviceModelViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = DeviceModel.objects.all()
     serializer_class = DeviceModelSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

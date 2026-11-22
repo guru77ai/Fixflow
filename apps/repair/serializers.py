@@ -58,7 +58,7 @@ class RepairOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = RepairOrder
         fields = '__all__'
-        read_only_fields = ('uuid', 'created_at', 'updated_at', 'repair_number', 'total_cost')
+        read_only_fields = ('uuid', 'created_at', 'updated_at', 'repair_number', 'total_cost', 'organization', 'branch')
 
 
 class RepairOrderHistorySerializer(serializers.ModelSerializer):

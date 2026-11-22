@@ -69,10 +69,16 @@ class TenantScopedMixin(OrganizationContextAPIMixin, BranchContextAPIMixin):
     1. Requires both organization and branch context
     2. Provides methods to scope querysets to the current tenant
     3. Validates that objects belong to the current tenant
+    4. Supports both direct tenant fields and parent-based ownership
     """
     
     organization_field = 'organization'
     branch_field = 'branch'
+    # For models owned through a parent relationship
+    # Specify the parent field name (e.g., 'repair_order') and the parent's tenant fields
+    parent_field = None
+    parent_organization_field = 'organization'
+    parent_branch_field = 'branch'
     
     def get_queryset(self):
         """
@@ -93,19 +99,41 @@ class TenantScopedMixin(OrganizationContextAPIMixin, BranchContextAPIMixin):
     def filter_by_organization(self, queryset):
         """
         Filter a queryset by the current organization.
+        Supports both direct organization field and parent-based filtering.
         """
         org = self.get_organization()
+        
+        # Try direct field first
         if hasattr(queryset.model, self.organization_field):
             return queryset.filter(**{self.organization_field: org})
+        
+        # Try parent-based filtering
+        if self.parent_field and hasattr(queryset.model, self.parent_field):
+            parent_field_name = self.parent_field
+            parent_org_field = self.parent_organization_field
+            filter_kwargs = {f'{parent_field_name}__{parent_org_field}': org}
+            return queryset.filter(**filter_kwargs)
+        
         return queryset
     
     def filter_by_branch(self, queryset):
         """
         Filter a queryset by the current branch.
+        Supports both direct branch field and parent-based filtering.
         """
         branch = self.get_branch()
+        
+        # Try direct field first
         if hasattr(queryset.model, self.branch_field):
             return queryset.filter(**{self.branch_field: branch})
+        
+        # Try parent-based filtering
+        if self.parent_field and hasattr(queryset.model, self.parent_field):
+            parent_field_name = self.parent_field
+            parent_branch_field = self.parent_branch_field
+            filter_kwargs = {f'{parent_field_name}__{parent_branch_field}': branch}
+            return queryset.filter(**filter_kwargs)
+        
         return queryset
     
     def filter_by_tenant(self, queryset):

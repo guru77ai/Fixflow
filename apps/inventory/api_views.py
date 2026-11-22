@@ -50,8 +50,8 @@ class ProductCategoryViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class ProductBrandViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class ProductBrandViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = ProductBrand.objects.all()
     serializer_class = ProductBrandSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -61,8 +61,8 @@ class ProductBrandViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class UnitOfMeasureViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class UnitOfMeasureViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = UnitOfMeasure.objects.all()
     serializer_class = UnitOfMeasureSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -158,9 +158,15 @@ class StockTransferViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class StockTransferItemViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent StockTransfer"""
-    queryset = StockTransferItem.objects.all()
+class StockTransferItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through stock_transfer parent"""
+
+    parent_field = 'stock_transfer'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = StockTransferItem.objects.all()
     serializer_class = StockTransferItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['transfer', 'product']
@@ -189,9 +195,15 @@ class StockAdjustmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class StockAdjustmentItemViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent StockAdjustment"""
-    queryset = StockAdjustmentItem.objects.all()
+class StockAdjustmentItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through stock_adjustment parent"""
+
+    parent_field = 'stock_adjustment'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = StockAdjustmentItem.objects.all()
     serializer_class = StockAdjustmentItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['adjustment', 'product']

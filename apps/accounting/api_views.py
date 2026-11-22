@@ -20,7 +20,7 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class AccountTypeViewSet(viewsets.ModelViewSet):
+class AccountTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """Global reference data: not tenant-scoped"""
     queryset = AccountType.objects.all()
     serializer_class = AccountTypeSerializer

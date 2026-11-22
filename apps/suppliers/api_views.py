@@ -12,8 +12,8 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class SupplierCategoryViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class SupplierCategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = SupplierCategory.objects.all()
     serializer_class = SupplierCategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -37,9 +37,15 @@ class SupplierViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class SupplierContactViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Supplier"""
-    queryset = SupplierContact.objects.all()
+class SupplierContactViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through supplier parent"""
+
+    parent_field = 'supplier'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = SupplierContact.objects.all()
     serializer_class = SupplierContactSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['supplier', 'position', 'is_primary']

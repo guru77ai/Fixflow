@@ -27,7 +27,7 @@ def organization_select_view(request):
     
     if not organizations:
         messages.error(request, _('You are not a member of any organization.'))
-        return redirect('login')
+        return redirect('accounts:login')
     
     if request.method == 'POST':
         org_id = request.POST.get('organization_id')

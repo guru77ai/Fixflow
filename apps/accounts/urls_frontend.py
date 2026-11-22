@@ -20,7 +20,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_view, name='profile_edit'),
     path('account/settings/', views.settings_view, name='settings'),
-    path('account/password/change/', views.password_reset_view, name='password_change'),
+    path('account/password/change/', views.password_change_view, name='password_change'),
     
     # User management
     path('users/', views.users_view, name='user_list'),

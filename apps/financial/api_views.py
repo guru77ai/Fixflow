@@ -19,8 +19,8 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.core.api_mixins import TenantScopedMixin
 
 
-class InvoiceStatusViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class InvoiceStatusViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = InvoiceStatus.objects.all()
     serializer_class = InvoiceStatusSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -30,8 +30,8 @@ class InvoiceStatusViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class InvoiceTypeViewSet(viewsets.ModelViewSet):
-    """Global reference data - no tenant scoping needed"""
+class InvoiceTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    """Global reference data - read-only"""
     queryset = InvoiceType.objects.all()
     serializer_class = InvoiceTypeSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -55,9 +55,15 @@ class InvoiceViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class InvoiceItemViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Invoice"""
-    queryset = InvoiceItem.objects.all()
+class InvoiceItemViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through invoice parent"""
+
+    parent_field = 'invoice'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = InvoiceItem.objects.all()
     serializer_class = InvoiceItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['invoice']
@@ -66,9 +72,15 @@ class InvoiceItemViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
 
-class InvoicePaymentViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Invoice"""
-    queryset = InvoicePayment.objects.all()
+class InvoicePaymentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through invoice parent"""
+
+    parent_field = 'invoice'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = InvoicePayment.objects.all()
     serializer_class = InvoicePaymentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['invoice']
@@ -119,9 +131,15 @@ class ExpenseViewSet(TenantScopedMixin, viewsets.ModelViewSet):
         return self.filter_by_tenant(super().get_queryset())
 
 
-class ExpenseAttachmentViewSet(viewsets.ModelViewSet):
-    """Child items - scoped through parent Expense"""
-    queryset = ExpenseAttachment.objects.all()
+class ExpenseAttachmentViewSet(TenantScopedMixin, viewsets.ModelViewSet):
+    """Tenant-scoped through expense parent"""
+
+    parent_field = 'expense'
+
+    def get_queryset(self):
+        return self.filter_by_tenant(super().get_queryset())
+
+        queryset = ExpenseAttachment.objects.all()
     serializer_class = ExpenseAttachmentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['expense']
