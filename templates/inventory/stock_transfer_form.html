@@ -1,20 +1,297 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Stock Transfer Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Stock Transfer" %}{% else %}{% trans "Create Stock Transfer" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock Transfer Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Stock Transfer" %}{% else %}{% trans "Create Stock Transfer" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_transfer_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .transfer-card {
+        border-left: 4px solid #3b82f6;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Transfer Information -->
+    {% if not object %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Source Stock Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if stock %}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Product" %}:</strong> {{ stock.product__name|default:"-" }}</p>
+                            <p><strong>{% trans "SKU" %}:</strong> {{ stock.sku|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Current Stock" %}:</strong> {{ stock.quantity|default:0 }}</p>
+                            <p><strong>{% trans "Unit Cost" %}:</strong> {{ stock.unit_cost|floatformat:2|default:0 }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Warehouse" %}:</strong> {{ stock.warehouse__name|default:"-" }}</p>
+                            <p><strong>{% trans "Location" %}:</strong> {{ stock.location|default:"-" }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> {% trans "Select a stock item to see its information" %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Transfer Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card transfer-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">{% trans "Stock Transfer Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="product" class="form-label">{% trans "Product" %}</label>
+                                    <select class="form-select" id="product" name="product" required>
+                                        <option value="">{% trans "Select Product" %}</option>
+                                        {% for s in stock_items %}
+                                        <option value="{{ s.id }}" {% if object and object.product_id == s.product_id %}selected{% endif %}>
+                                            {{ s.product__name }} ({{ s.sku }}) - {{ s.quantity }} {% trans "available" %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">{% trans "Quantity to Transfer" %}</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" step="0.001" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference" class="form-label">{% trans "Reference" %}</label>
+                                    <input type="text" class="form-control" id="reference" name="reference" 
+                                           value="{% if object %}{{ object.reference }}{% else %}TRF-{{ current_date|date:'Ymd' }}-001{% endif %}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="from_warehouse" class="form-label">{% trans "From Warehouse" %}</label>
+                                    <select class="form-select" id="from_warehouse" name="from_warehouse" required>
+                                        <option value="">{% trans "Select Warehouse" %}</option>
+                                        {% for warehouse in warehouses %}
+                                        <option value="{{ warehouse.id }}" {% if object and object.from_warehouse_id == warehouse.id %}selected{% endif %}>{{ warehouse.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="to_warehouse" class="form-label">{% trans "To Warehouse" %}</label>
+                                    <select class="form-select" id="to_warehouse" name="to_warehouse" required>
+                                        <option value="">{% trans "Select Warehouse" %}</option>
+                                        {% for warehouse in warehouses %}
+                                        <option value="{{ warehouse.id }}" {% if object and object.to_warehouse_id == warehouse.id %}selected{% endif %}>{{ warehouse.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                                    <select class="form-select" id="status" name="status">
+                                        <option value="pending" {% if object and object.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                                        <option value="completed" {% if object and object.status == 'completed' %}selected{% endif %}>{% trans "Completed" %}</option>
+                                        <option value="cancelled" {% if object and object.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">{% trans "Date" %}</label>
+                                    <input type="datetime-local" class="form-control" id="date" name="date" 
+                                           value="{% if object %}{{ object.date|date:'Y-m-dTH:i' }}{% else %}{{ current_date|date:'Y-m-dTH:i' }}{% endif %}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit_cost" class="form-label">{% trans "Unit Cost" %}</label>
+                                    <input type="number" class="form-control" id="unit_cost" name="unit_cost" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label">{% trans "Reason" %}</label>
+                                    <select class="form-select" id="reason" name="reason">
+                                        <option value="">{% trans "Select Reason" %}</option>
+                                        <option value="restocking" {% if object and object.reason == 'restocking' %}selected{% endif %}>{% trans "Restocking" %}</option>
+                                        <option value="relocation" {% if object and object.reason == 'relocation' %}selected{% endif %}>{% trans "Relocation" %}</option>
+                                        <option value="return" {% if object and object.reason == 'return' %}selected{% endif %}>{% trans "Return" %}</option>
+                                        <option value="other" {% if object and object.reason == 'other' %}selected{% endif %}>{% trans "Other" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">{% trans "Notes" %}</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3">{% if object %}{{ object.notes }}{% endif %}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if not object %}
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 
+                                    {% trans "Available stock in source warehouse: " %}<strong id="available_stock">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-exchange-alt"></i> 
+                                    {% if object %}{% trans "Update Transfer" %}{% else %}{% trans "Create Transfer" %}{% endif %}
+                                </button>
+                                <a href="{% url 'inventory:stock_transfer_list' %}" class="btn btn-secondary btn-lg ms-3">
+                                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Items (for multi-item transfers) -->
+    {% if object and object.items.count > 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Transfer Items" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Total Value" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in object.items.all %}
+                                <tr>
+                                    <td>{{ item.product__name|default:"-" }}</td>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td>{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ item.total_value|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                        <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="2">{% trans "Total" %}</td>
+                                    <td>{{ object.total_quantity|default:0 }}</td>
+                                    <td></td>
+                                    <td>{{ object.total_value|floatformat:2|default:0 }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable for items
+    $('#itemsTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+
+    // Update available stock when product or warehouse changes
+    $('#product, #from_warehouse').change(function() {
+        var productId = $('#product').val();
+        var warehouseId = $('#from_warehouse').val();
+        
+        if (productId && warehouseId) {
+            // In a real implementation, this would be an AJAX call
+            // For now, we'll just show a placeholder
+            $('#available_stock').text('Loading...');
+            
+            // This is a simplified version - in practice you'd need to:
+            // 1. Make an AJAX call to get the stock for the selected product in the selected warehouse
+            // 2. Update the available_stock display
+        }
+    });
+
+    // Auto-fill unit cost when product is selected
+    $('#product').change(function() {
+        var selectedOption = $(this).find('option:selected');
+        var unitCost = selectedOption.data('unit-cost');
+        if (unitCost) {
+            $('#unit_cost').val(unitCost);
+        }
+    });
+});
+</script>
 {% endblock %}

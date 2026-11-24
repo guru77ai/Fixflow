@@ -1,20 +1,460 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Dashboard %}{% endblock %}
+{% block title %}{% trans "Inventory Dashboard" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Dashboard %}</h1>
+    <h1 class="page-title">{% trans "Inventory Dashboard" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    .stock-low { color: #ef4444; }
+    .stock-ok { color: #10b981; }
+    .stock-warning { color: #f59e0b; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-boxes fa-2x text-primary mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Total Products" %}</h6>
+                        <h4 class="mb-0">{{ stats.total_products|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Total Value" %}</h6>
+                        <h4 class="mb-0">{{ stats.total_value|floatformat:2|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Low Stock" %}</h6>
+                        <h4 class="mb-0">{{ stats.low_stock|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-arrow-up fa-2x text-warning mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Overstock" %}</h6>
+                        <h4 class="mb-0">{{ stats.overstock|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-arrows-alt-v fa-2x text-info mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Movements" %}</h6>
+                        <h4 class="mb-0">{{ stats.total_movements|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-warehouse fa-2x text-secondary mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Warehouses" %}</h6>
+                        <h4 class="mb-0">{{ stats.total_warehouses|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Levels Distribution" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="stockLevelsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Inventory by Category" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="inventoryByCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Movements by Type" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="movementsByTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Inventory by Warehouse" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="inventoryByWarehouseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Products by Value -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Top Products by Value" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="topProductsByValueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Low Stock Alerts" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="lowStockTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Current" %}</th>
+                                    <th>{% trans "Min" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_items %}
+                                <tr>
+                                    <td>{{ item.product__name|default:"-" }}</td>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td class="stock-low fw-bold">{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.min_stock|default:0 }}</td>
+                                    <td>{{ item.warehouse__name|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'inventory:stock_detail' item.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'inventory:stock_edit' item.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">{% trans "No low stock items" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Movements -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Stock Movements" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:stock_movement_list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> {% trans "All Movements" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="recentMovementsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Reference" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in recent_movements %}
+                                <tr>
+                                    <td>{{ movement.date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ movement.product__name|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if movement.type == 'in' %}bg-success{% elif movement.type == 'out' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {% if movement.type == 'in' %}{% trans "In" %}
+                                            {% elif movement.type == 'out' %}{% trans "Out" %}
+                                            {% else %}{% trans "Adjustment" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ movement.quantity|default:0 }}</td>
+                                    <td>{{ movement.reference|default:"-" }}</td>
+                                    <td>{{ movement.warehouse__name|default:"-" }}</td>
+                                    <td>{{ movement.user__get_full_name|default:movement.user|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'inventory:stock_movement_detail' movement.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">{% trans "No recent movements" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:stock_create' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-plus fa-2x mb-2"></i><br>
+                                <small>{% trans "Add Stock" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:product_list' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-box fa-2x mb-2"></i><br>
+                                <small>{% trans "Products" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:category_list' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-tags fa-2x mb-2"></i><br>
+                                <small>{% trans "Categories" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:brand_list' %}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-trademark fa-2x mb-2"></i><br>
+                                <small>{% trans "Brands" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:warehouse_list' %}" class="btn btn-outline-secondary btn-block">
+                                <i class="fas fa-warehouse fa-2x mb-2"></i><br>
+                                <small>{% trans "Warehouses" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'inventory:stock_valuation' %}" class="btn btn-outline-dark btn-block">
+                                <i class="fas fa-chart-pie fa-2x mb-2"></i><br>
+                                <small>{% trans "Valuation" %}</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Stock Levels Chart
+var stockLevelsCtx = document.getElementById('stockLevelsChart').getContext('2d');
+new Chart(stockLevelsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['{% trans "Low Stock" %}', '{% trans "OK" %}', '{% trans "Overstock" %}'],
+        datasets: [{
+            data: [{{ stats.low_stock|default:0 }}, {{ stats.ok_stock|default:0 }}, {{ stats.overstock|default:0 }}],
+            backgroundColor: ['#ef4444', '#10b981', '#f59e0b']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Inventory by Category Chart
+var inventoryByCategoryCtx = document.getElementById('inventoryByCategoryChart').getContext('2d');
+var inventoryByCategoryData = {{ stats.inventory_by_category|safe }};
+new Chart(inventoryByCategoryCtx, {
+    type: 'bar',
+    data: {
+        labels: inventoryByCategoryData.map(item => item.category),
+        datasets: [{
+            label: '{% trans "Quantity" %}',
+            data: inventoryByCategoryData.map(item => item.quantity),
+            backgroundColor: '#3b82f6'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Movements by Type Chart
+var movementsByTypeCtx = document.getElementById('movementsByTypeChart').getContext('2d');
+var movementsByTypeData = {{ stats.movements_by_type|safe }};
+new Chart(movementsByTypeCtx, {
+    type: 'pie',
+    data: {
+        labels: movementsByTypeData.map(item => item.type),
+        datasets: [{
+            data: movementsByTypeData.map(item => item.count),
+            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Inventory by Warehouse Chart
+var inventoryByWarehouseCtx = document.getElementById('inventoryByWarehouseChart').getContext('2d');
+var inventoryByWarehouseData = {{ stats.inventory_by_warehouse|safe }};
+new Chart(inventoryByWarehouseCtx, {
+    type: 'bar',
+    data: {
+        labels: inventoryByWarehouseData.map(item => item.warehouse),
+        datasets: [{
+            label: '{% trans "Value" %}',
+            data: inventoryByWarehouseData.map(item => item.value),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Top Products by Value Chart
+var topProductsByValueCtx = document.getElementById('topProductsByValueChart').getContext('2d');
+var topProductsByValueData = {{ stats.top_products_by_value|safe }};
+new Chart(topProductsByValueCtx, {
+    type: 'horizontalBar',
+    data: {
+        labels: topProductsByValueData.map(item => item.product),
+        datasets: [{
+            label: '{% trans "Value" %}',
+            data: topProductsByValueData.map(item => item.value),
+            backgroundColor: '#3b82f6'
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+
+// Initialize DataTables
+$(document).ready(function() {
+    $('#lowStockTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+    
+    $('#recentMovementsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']], // Sort by date
+        columnDefs: [
+            { orderable: false, targets: [7] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

@@ -1,20 +1,199 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Notification List %}{% endblock %}
+{% block title %}{% trans "Notifications" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Notification List %}</h1>
+    <h1 class="page-title">{% trans "Notifications" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'notifications:mark_all_read' %}" class="btn btn-primary">
+            <i class="fas fa-check-double"></i> {% trans "Mark All as Read" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .notification-item {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .notification-item:hover {
+        background-color: #f8f9fa;
+    }
+    .notification-item.unread {
+        background-color: #e7f3ff;
+        border-left: 4px solid #3b82f6;
+    }
+    .notification-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .notification-icon.info { background-color: #dbeafe; color: #3b82f6; }
+    .notification-icon.success { background-color: #d1fae5; color: #10b981; }
+    .notification-icon.warning { background-color: #fef3c7; color: #f59e0b; }
+    .notification-icon.error { background-color: #fee2e2; color: #ef4444; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-bell fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total" %}</h6>
+                            <h3 class="mb-0">{{ stats.total|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-envelope-open fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Read" %}</h6>
+                            <h3 class="mb-0">{{ stats.read|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-envelope fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Unread" %}</h6>
+                            <h3 class="mb-0">{{ stats.unread|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Priority" %}</h6>
+                            <h3 class="mb-0">{{ stats.priority|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Notifications" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'notifications:preferences' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-cog"></i> {% trans "Preferences" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for notification in notifications %}
+                        <div class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}" 
+                             onclick="window.location.href='{% url 'notifications:detail' notification.id %}'">
+                            <div class="d-flex">
+                                <div class="notification-icon {% if notification.type == 'info' %}info{% elif notification.type == 'success' %}success{% elif notification.type == 'warning' %}warning{% else %}error{% endif %}">
+                                    {% if notification.type == 'info' %}
+                                        <i class="fas fa-info-circle"></i>
+                                    {% elif notification.type == 'success' %}
+                                        <i class="fas fa-check-circle"></i>
+                                    {% elif notification.type == 'warning' %}
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    {% else %}
+                                        <i class="fas fa-times-circle"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ notification.title|default:"-" }}</h6>
+                                        <small class="text-muted">{{ notification.created_at|timesince|default:"-" }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ notification.message|truncatechars:100|default:"-" }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            {% if notification.app_label %}
+                                                <span class="badge bg-secondary">{{ notification.app_label }}</span>
+                                            {% endif %}
+                                        </small>
+                                        <div>
+                                            {% if notification.priority == 'high' %}
+                                                <span class="badge bg-danger">{% trans "High" %}</span>
+                                            {% elif notification.priority == 'medium' %}
+                                                <span class="badge bg-warning text-dark">{% trans "Medium" %}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{% trans "Low" %}</span>
+                                            {% endif %}
+                                            {% if not notification.is_read %}
+                                                <span class="badge bg-primary ms-1">{% trans "New" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-bell fa-3x mb-3"></i>
+                            <h5>{% trans "No notifications found" %}</h5>
+                            <p>{% trans "You don't have any notifications yet." %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Mark notification as read when clicked
+$(document).ready(function() {
+    $('.notification-item.unread').click(function() {
+        var notificationId = $(this).data('id');
+        // In a real implementation, you would make an AJAX call here
+        // to mark the notification as read
+        $(this).removeClass('unread');
+    });
+});
+</script>
 {% endblock %}

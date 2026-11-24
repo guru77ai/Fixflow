@@ -1,20 +1,99 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Permission List %}{% endblock %}
+{% block title %}{% trans "Permissions" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Permission List %}</h1>
+    <h1 class="page-title">{% trans "Permissions" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'accounts:permission_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Permission" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "Permission List" %}</h3>
+        </div>
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="permissionTable">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Codename" %}</th>
+                            <th>{% trans "App" %}</th>
+                            <th>{% trans "Model" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "System" %}</th>
+                            <th>{% trans "Created" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for permission in permissions %}
+                        <tr>
+                            <td>{{ permission.name|default:"-" }}</td>
+                            <td><code>{{ permission.codename|default:"-" }}</code></td>
+                            <td>{{ permission.app_label|default:"-" }}</td>
+                            <td>{{ permission.model|default:"-" }}</td>
+                            <td>{{ permission.description|truncatechars:50|default:"-" }}</td>
+                            <td>
+                                {% if permission.is_system %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ permission.created_at|date:"Y-m-d"|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'accounts:permission_detail' permission.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'accounts:permission_edit' permission.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if not permission.is_system %}
+                                <a href="{% url 'accounts:permission_delete' permission.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">{% trans "No permissions found" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#permissionTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[6, 'desc']], // Sort by created date
+        columnDefs: [
+            { orderable: false, targets: [7] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

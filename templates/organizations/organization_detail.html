@@ -1,19 +1,204 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Organization Detail %}{% endblock %}
+{% block title %}{{ organization.name|default:"Organization" }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Organization Detail %}</h1>
+    <h1 class="page-title">{{ organization.name|default:"Organization" }}</h1>
+    <div class="page-tools">
+        <a href="{% url 'organizations:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+        <a href="{% url 'organizations:edit' organization.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Organization Header Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4 mb-md-0">
+                            {% if organization.logo %}
+                                <img src="{{ organization.logo.url }}" alt="{{ organization.name }}" class="img-fluid rounded-circle" style="max-height: 150px; max-width: 150px;">
+                            {% else %}
+                                <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                            {% endif %}
+                            <h3 class="mt-2">{{ organization.code|default:"-" }}</h3>
+                        </div>
+                        <div class="col-md-9">
+                            <h2>{{ organization.name|default:"-" }}</h2>
+                            {% if organization.legal_name %}
+                                <p class="text-muted">{{ organization.legal_name }}</p>
+                            {% endif %}
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Industry" %}:</strong> {{ organization.get_industry_display|default:"-" }}</p>
+                                    <p><strong>{% trans "Business Activity" %}:</strong> {{ organization.business_activity|default:"-" }}</p>
+                                    <p><strong>{% trans "Currency" %}:</strong> {{ organization.currency|default:"-" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Status" %}:</strong> 
+                                        {% if organization.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>{% trans "Created" %}:</strong> {{ organization.created_at|date:"Y-m-d H:i"|default:"-" }}</p>
+                                    <p><strong>{% trans "Last Updated" %}:</strong> {{ organization.updated_at|date:"Y-m-d H:i"|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-phone"></i> {% trans "Contact Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Phone" %}:</strong> {{ organization.phone|default:"-" }}</p>
+                    <p><strong>{% trans "Mobile" %}:</strong> {{ organization.mobile|default:"-" }}</p>
+                    <p><strong>{% trans "Email" %}:</strong> {{ organization.email|default:"-" }}</p>
+                    <p><strong>{% trans "Website" %}:</strong> {{ organization.website|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-map-marker-alt"></i> {% trans "Address" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Address" %}:</strong> {{ organization.address|default:"-" }}</p>
+                    <p><strong>{% trans "City" %}:</strong> {{ organization.city|default:"-" }}</p>
+                    <p><strong>{% trans "State" %}:</strong> {{ organization.state|default:"-" }}</p>
+                    <p><strong>{% trans "Postal Code" %}:</strong> {{ organization.postal_code|default:"-" }}</p>
+                    <p><strong>{% trans "Country" %}:</strong> {{ organization.country|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tax and Legal Information -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-file-invoice"></i> {% trans "Tax Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Tax Identification Number" %}:</strong> {{ organization.tax_identification_number|default:"-" }}</p>
+                    <p><strong>{% trans "Tax Authority" %}:</strong> {{ organization.tax_authority|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-certificate"></i> {% trans "License Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "License ID" %}:</strong> {{ organization.license_id|default:"-" }}</p>
+                    <p><strong>{% trans "License Expiry" %}:</strong> 
+                        {% if organization.license_expiry %}
+                            {{ organization.license_expiry|date:"Y-m-d" }}
+                            {% if organization.license_expiry < today %}
+                                <span class="badge bg-danger ms-2">{% trans "Expired" %}</span>
+                            {% else %}
+                                <span class="badge bg-success ms-2">{% trans "Valid" %}</span>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Information -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-cog"></i> {% trans "System Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Default Language" %}:</strong> {{ organization.get_default_language_display|default:"-" }}</p>
+                    <p><strong>{% trans "Timezone" %}:</strong> {{ organization.timezone|default:"-" }}</p>
+                    <p><strong>{% trans "Date Format" %}:</strong> {{ organization.date_format|default:"-" }}</p>
+                    <p><strong>{% trans "Accounting Method" %}:</strong> {{ organization.get_accounting_method_display|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-file-alt"></i> {% trans "Document Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Invoice Prefix" %}:</strong> {{ organization.invoice_prefix|default:"-" }}</p>
+                    <p><strong>{% trans "Repair Prefix" %}:</strong> {{ organization.repair_prefix|default:"-" }}</p>
+                    <p><strong>{% trans "Next Invoice Number" %}:</strong> {{ organization.next_invoice_number|default:0 }}</p>
+                    <p><strong>{% trans "Next Repair Number" %}:</strong> {{ organization.next_repair_number|default:0 }}</p>
+                    <p><strong>{% trans "Fiscal Year Start" %}:</strong> {{ organization.get_fiscal_year_start_display|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if organization.notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-sticky-note"></i> {% trans "Notes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="pre-wrap">{{ organization.notes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a href="{% url 'organizations:edit' organization.id %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-edit"></i> {% trans "Edit Organization" %}
+                    </a>
+                    <a href="{% url 'organizations:settings' organization.id %}" class="btn btn-info btn-lg me-3">
+                        <i class="fas fa-cogs"></i> {% trans "Settings" %}
+                    </a>
+                    <a href="{% url 'organizations:switch' organization.id %}" class="btn btn-success btn-lg me-3">
+                        <i class="fas fa-exchange-alt"></i> {% trans "Switch to Organization" %}
+                    </a>
+                    <a href="{% url 'organizations:delete' organization.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> {% trans "Delete Organization" %}
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -1,20 +1,201 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Role Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Role" %}{% else %}{% trans "Create Role" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Role Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Role" %}{% else %}{% trans "Create Role" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .permission-tree {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .permission-category {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+    }
+    .permission-checkbox {
+        margin-right: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Role Information -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Role Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">{% trans "Name" %}</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ object.name|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="code" class="form-label">{% trans "Code" %}</label>
+                                    <input type="text" class="form-control" id="code" name="code" 
+                                           value="{{ object.code|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="is_active" class="form-label">{% trans "Active" %}</label>
+                                    <select class="form-select" id="is_active" name="is_active">
+                                        <option value="True" {% if object.is_active %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_active %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">{% trans "Description" %}</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Permissions -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Permissions" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">{% trans "Select All" %}</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="selectAllPermissions">
+                                        <label class="form-check-label" for="selectAllPermissions">{% trans "All Permissions" %}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="permission-tree">
+                            {% for app_label, permissions in permission_groups.items %}
+                            <div class="permission-category">
+                                <h6><strong>{{ app_label }}</strong></h6>
+                                <div class="row">
+                                    {% for perm in permissions %}
+                                    <div class="col-md-3 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input permission-checkbox" type="checkbox" 
+                                                   id="perm_{{ perm.id }}" name="permissions" value="{{ perm.id }}"
+                                                   {% if perm.id in object_permissions %}checked{% endif %}>
+                                            <label class="form-check-label" for="perm_{{ perm.id }}">
+                                                {{ perm.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users with this Role -->
+        {% if object and object.users.count > 0 %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Users with this Role" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for user in object.users.all %}
+                            <div class="col-md-3 col-6 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        {% if user.photo %}
+                                            <img src="{{ user.photo.url }}" alt="{{ user.get_full_name }}" style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;">
+                                        {% else %}
+                                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 0.7rem;">
+                                                {{ user.get_full_name|slice:":1"|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        <small>{{ user.get_full_name }} ({{ user.email }})</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Submit Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update Role" %}{% else %}{% trans "Create Role" %}{% endif %}
+                </button>
+                <a href="{% url 'accounts:role_list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Select all permissions
+    $('#selectAllPermissions').change(function() {
+        $('.permission-checkbox').prop('checked', $(this).prop('checked'));
+    });
+    
+    // Check if all permissions are selected
+    $('.permission-checkbox').change(function() {
+        var allChecked = $('.permission-checkbox:checked').length === $('.permission-checkbox').length;
+        $('#selectAllPermissions').prop('checked', allChecked);
+    });
+});
+</script>
 {% endblock %}

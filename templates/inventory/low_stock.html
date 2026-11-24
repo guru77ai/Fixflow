@@ -1,20 +1,305 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Low Stock %}{% endblock %}
+{% block title %}{% trans "Low Stock Alerts" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Low Stock %}</h1>
+    <h1 class="page-title">{% trans "Low Stock Alerts" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "All Stock" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stock-low { background-color: #fee2e2; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100 border-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Low Stock" %}</h6>
+                            <h3 class="mb-0 text-danger">{{ stats.total_low_stock|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Value at Risk" %}</h6>
+                            <h3 class="mb-0">{{ stats.value_at_risk|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-boxes fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Quantity" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_quantity|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-warehouse fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Affected Warehouses" %}</h6>
+                            <h3 class="mb-0">{{ stats.affected_warehouses|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Low Stock Items" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:low_stock_export' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-export"></i> {% trans "Export" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="lowStockTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Priority" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Brand" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th>{% trans "Current Stock" %}</th>
+                                    <th>{% trans "Minimum Stock" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Value" %}</th>
+                                    <th>{% trans "Days Out" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_items %}
+                                <tr class="stock-low">
+                                    <td>
+                                        {% if item.quantity == 0 %}
+                                            <span class="badge bg-danger">{% trans "Critical" %}</span>
+                                        {% elif item.quantity <= item.min_stock %}
+                                            <span class="badge bg-warning text-dark">{% trans "Low" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{% trans "Warning" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.product__name|default:"-" }}</td>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td>{{ item.category__name|default:"-" }}</td>
+                                    <td>{{ item.brand__name|default:"-" }}</td>
+                                    <td>{{ item.warehouse__name|default:"-" }}</td>
+                                    <td class="fw-bold">{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.min_stock|default:0 }}</td>
+                                    <td>{{ item.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ item.total_value|floatformat:2|default:0 }}</td>
+                                    <td>{{ item.days_out|default:0 }}</td>
+                                    <td>
+                                        <a href="{% url 'inventory:stock_detail' item.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'inventory:stock_edit' item.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'inventory:stock_movement_create' %}?stock={{ item.id }}&type=in" class="btn btn-sm btn-success">
+                                            <i class="fas fa-plus"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="12" class="text-center text-muted">{% trans "No low stock items found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock by Category Chart -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Low Stock by Category" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="lowStockByCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Low Stock by Warehouse" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="lowStockByWarehouseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="warehouse" class="form-label">{% trans "Warehouse" %}</label>
+                            <select class="form-select" id="warehouse" name="warehouse">
+                                <option value="">{% trans "All Warehouses" %}</option>
+                                {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.id }}" {% if request.GET.warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priority" class="form-label">{% trans "Priority" %}</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="">{% trans "All Priorities" %}</option>
+                                <option value="critical" {% if request.GET.priority == 'critical' %}selected{% endif %}>{% trans "Critical (0 stock)" %}</option>
+                                <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>{% trans "Low (<= min stock)" %}</option>
+                                <option value="warning" {% if request.GET.priority == 'warning' %}selected{% endif %}>{% trans "Warning" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Low Stock by Category Chart
+var lowStockByCategoryCtx = document.getElementById('lowStockByCategoryChart').getContext('2d');
+var lowStockByCategoryData = {{ stats.low_stock_by_category|safe }};
+new Chart(lowStockByCategoryCtx, {
+    type: 'bar',
+    data: {
+        labels: lowStockByCategoryData.map(item => item.category),
+        datasets: [{
+            label: '{% trans "Number of Items" %}',
+            data: lowStockByCategoryData.map(item => item.count),
+            backgroundColor: '#ef4444'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Low Stock by Warehouse Chart
+var lowStockByWarehouseCtx = document.getElementById('lowStockByWarehouseChart').getContext('2d');
+var lowStockByWarehouseData = {{ stats.low_stock_by_warehouse|safe }};
+new Chart(lowStockByWarehouseCtx, {
+    type: 'bar',
+    data: {
+        labels: lowStockByWarehouseData.map(item => item.warehouse),
+        datasets: [{
+            label: '{% trans "Number of Items" %}',
+            data: lowStockByWarehouseData.map(item => item.count),
+            backgroundColor: '#f59e0b'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#lowStockTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[8, 'desc']], // Sort by value
+        columnDefs: [
+            { orderable: false, targets: [11] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

@@ -1,20 +1,270 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Barcode List %}{% endblock %}
+{% block title %}{% trans "Barcode List" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Barcode List %}</h1>
+    <h1 class="page-title">{% trans "Barcode List" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'barcode:generate' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Generate Barcode" %}
+        </a>
+        <button class="btn btn-success" onclick="window.print()">
+            <i class="fas fa-print"></i> {% trans "Print All" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    @media print {
+        .no-print { display: none; }
+        .barcode-item { page-break-inside: avoid; }
+    }
+    .barcode-item {
+        display: inline-block;
+        margin: 10px;
+        text-align: center;
+        page-break-inside: avoid;
+    }
+    .barcode-label {
+        font-size: 10px;
+        text-align: center;
+        margin-top: 5px;
+        word-break: break-all;
+    }
+    .barcode-image {
+        max-width: 150px;
+        height: auto;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4 no-print">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-barcode fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Barcodes" %}</h6>
+                            <h3 class="mb-0">{{ stats.total|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-boxes fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Products" %}</h6>
+                            <h3 class="mb-0">{{ stats.products|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-print fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Printed" %}</h6>
+                            <h3 class="mb-0">{{ stats.printed|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-calendar fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Generated Today" %}</h6>
+                            <h3 class="mb-0">{{ stats.generated_today|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="row mb-4 no-print">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filters" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="product" class="form-label">{% trans "Product" %}</label>
+                            <select class="form-select" id="product" name="product">
+                                <option value="">{% trans "All Products" %}</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" {% if request.GET.product == product.id|stringformat:"s" %}selected{% endif %}>{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="barcode_type" class="form-label">{% trans "Barcode Type" %}</label>
+                            <select class="form-select" id="barcode_type" name="barcode_type">
+                                <option value="">{% trans "All Types" %}</option>
+                                <option value="Code128" {% if request.GET.barcode_type == 'Code128' %}selected{% endif %}>Code 128</option>
+                                <option value="QR" {% if request.GET.barcode_type == 'QR' %}selected{% endif %}>QR Code</option>
+                                <option value="EAN13" {% if request.GET.barcode_type == 'EAN13' %}selected{% endif %}>EAN-13</option>
+                                <option value="UPC" {% if request.GET.barcode_type == 'UPC' %}selected{% endif %}>UPC</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header no-print">
+                    <h5 class="card-title">{% trans "Barcode List" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'barcode:export' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-export"></i> {% trans "Export" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="barcodeTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Barcode" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Generated Date" %}</th>
+                                    <th>{% trans "Printed" %}</th>
+                                    <th class="no-print">{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for barcode in barcodes %}
+                                <tr>
+                                    <td>{{ barcode.code|default:"-" }}</td>
+                                    <td>{{ barcode.product__name|default:"-" }}</td>
+                                    <td>{{ barcode.product__sku|default:"-" }}</td>
+                                    <td>{{ barcode.barcode_type|default:"-" }}</td>
+                                    <td>{{ barcode.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        {% if barcode.is_printed %}
+                                            <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="no-print">
+                                        <a href="{% url 'barcode:print' barcode.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                        <a href="{% url 'barcode:detail' barcode.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'barcode:delete' barcode.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No barcodes found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Preview for Printing -->
+    <div class="row mt-4 no-print">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Barcode Preview" %}</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div id="barcodePreview">
+                        {% for barcode in barcodes|slice:":10" %}
+                        <div class="barcode-item">
+                            <div style="border: 1px solid #ccc; padding: 10px; display: inline-block;">
+                                <img src="https://barcode.tec-it.com/barcode.ashx?data={{ barcode.code|default:'' }}&code={{ barcode.barcode_type|default:'Code128' }}&multiplebarcodes=false&translate-esc=true&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codetext=true&quietzone=1" 
+                                     alt="Barcode for {{ barcode.code|default:'' }}" class="barcode-image">
+                                <div class="barcode-label">
+                                    <strong>{{ barcode.product__name|default:"-"|truncatechars:20 }}</strong><br>
+                                    {{ barcode.code|default:"-" }}<br>
+                                    {{ barcode.product__sku|default:"-" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#barcodeTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[4, 'desc']], // Sort by generated date
+        columnDefs: [
+            { orderable: false, targets: [6] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

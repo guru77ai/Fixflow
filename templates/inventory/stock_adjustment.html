@@ -1,20 +1,256 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Stock Adjustment %}{% endblock %}
+{% block title %}{% trans "Stock Adjustment" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock Adjustment %}</h1>
+    <h1 class="page-title">{% trans "Stock Adjustment" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .adjustment-card {
+        border-left: 4px solid #f59e0b;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Current Stock Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Current Stock Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Product" %}:</strong> {{ stock.product__name|default:"-" }}</p>
+                            <p><strong>{% trans "SKU" %}:</strong> {{ stock.sku|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Current Stock" %}:</strong> {{ stock.quantity|default:0 }}</p>
+                            <p><strong>{% trans "Unit Cost" %}:</strong> {{ stock.unit_cost|floatformat:2|default:0 }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Warehouse" %}:</strong> {{ stock.warehouse__name|default:"-" }}</p>
+                            <p><strong>{% trans "Location" %}:</strong> {{ stock.location|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Minimum Stock" %}:</strong> {{ stock.min_stock|default:0 }}</p>
+                            <p><strong>{% trans "Maximum Stock" %}:</strong> {{ stock.max_stock|default:0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Adjustment Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card adjustment-card">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title">{% trans "Stock Adjustment Form" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="adjustment_type" class="form-label">{% trans "Adjustment Type" %}</label>
+                                    <select class="form-select" id="adjustment_type" name="adjustment_type" required>
+                                        <option value="">{% trans "Select Type" %}</option>
+                                        <option value="in">{% trans "Stock In" %}</option>
+                                        <option value="out">{% trans "Stock Out" %}</option>
+                                        <option value="adjustment">{% trans "Adjustment" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="quantity" class="form-label">{% trans "Quantity" %}</label>
+                                    <input type="number" class="form-control" id="quantity" name="quantity" step="0.001" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="new_quantity" class="form-label">{% trans "New Quantity" %}</label>
+                                    <input type="number" class="form-control" id="new_quantity" name="new_quantity" step="0.001" min="0">
+                                    <small class="form-text text-muted">{% trans "Leave blank to calculate automatically" %}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="unit_cost" class="form-label">{% trans "Unit Cost" %}</label>
+                                    <input type="number" class="form-control" id="unit_cost" name="unit_cost" step="0.01" min="0" 
+                                           value="{{ stock.unit_cost|default:0 }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label">{% trans "Reason" %}</label>
+                                    <select class="form-select" id="reason" name="reason" required>
+                                        <option value="">{% trans "Select Reason" %}</option>
+                                        <option value="damaged">{% trans "Damaged" %}</option>
+                                        <option value="lost">{% trans "Lost" %}</option>
+                                        <option value="found">{% trans "Found" %}</option>
+                                        <option value="count_error">{% trans "Count Error" %}</option>
+                                        <option value="quality_control">{% trans "Quality Control" %}</option>
+                                        <option value="other">{% trans "Other" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="reference" class="form-label">{% trans "Reference" %}</label>
+                                    <input type="text" class="form-control" id="reference" name="reference">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">{% trans "Notes" %}</label>
+                                    <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> 
+                                    {% trans "Current stock: " %}<strong>{{ stock.quantity|default:0 }}</strong>. 
+                                    {% trans "After adjustment: " %}<strong id="calculated_quantity">{{ stock.quantity|default:0 }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    <i class="fas fa-balance-scale"></i> {% trans "Adjust Stock" %}
+                                </button>
+                                <a href="{% url 'inventory:stock_detail' stock.id %}" class="btn btn-secondary btn-lg ms-3">
+                                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Adjustments -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Adjustments for this Product" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="adjustmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Reason" %}</th>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Notes" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for adjustment in recent_adjustments %}
+                                <tr>
+                                    <td>{{ adjustment.date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if adjustment.type == 'in' %}bg-success{% elif adjustment.type == 'out' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {% if adjustment.type == 'in' %}{% trans "In" %}
+                                            {% elif adjustment.type == 'out' %}{% trans "Out" %}
+                                            {% else %}{% trans "Adjustment" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ adjustment.quantity|default:0 }}</td>
+                                    <td>{{ adjustment.reason|default:"-" }}</td>
+                                    <td>{{ adjustment.user__get_full_name|default:adjustment.user|default:"-" }}</td>
+                                    <td>{{ adjustment.notes|truncatechars:50|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">{% trans "No recent adjustments" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#adjustmentsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']] // Sort by date
+    });
+
+    // Calculate new quantity
+    $('#quantity, #adjustment_type').on('input change', function() {
+        var currentStock = {{ stock.quantity|default:0 }};
+        var quantity = parseFloat($('#quantity').val()) || 0;
+        var type = $('#adjustment_type').val();
+        
+        var newQuantity = currentStock;
+        if (type === 'in') {
+            newQuantity = currentStock + quantity;
+        } else if (type === 'out') {
+            newQuantity = currentStock - quantity;
+        } else if (type === 'adjustment') {
+            // For adjustment type, use the new_quantity field if provided
+            var newQty = parseFloat($('#new_quantity').val());
+            if (!isNaN(newQty)) {
+                newQuantity = newQty;
+            }
+        }
+        
+        $('#calculated_quantity').text(newQuantity.toFixed(3));
+    });
+
+    // Auto-calculate quantity when new quantity is entered
+    $('#new_quantity').on('input change', function() {
+        var currentStock = {{ stock.quantity|default:0 }};
+        var newQty = parseFloat($(this).val()) || currentStock;
+        var quantity = Math.abs(newQty - currentStock);
+        
+        $('#quantity').val(quantity.toFixed(3));
+        $('#calculated_quantity').text(newQty.toFixed(3));
+    });
+});
+</script>
 {% endblock %}

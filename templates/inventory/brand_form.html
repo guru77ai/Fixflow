@@ -1,20 +1,112 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Brand Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Brand" %}{% else %}{% trans "Create Brand" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Brand Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Brand" %}{% else %}{% trans "Create Brand" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:brand_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Brand Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="logo" class="form-label">{% trans "Logo" %}</label>
+                                    <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                                    {% if object.logo %}
+                                    <div class="mt-2">
+                                        <img src="{{ object.logo.url }}" alt="{{ object.name }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 5px;">
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="remove_logo" name="remove_logo">
+                                            <label class="form-check-label" for="remove_logo">{% trans "Remove current logo" %}</label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">{% trans "Name" %}</label>
+                                            <input type="text" class="form-control" id="name" name="name" 
+                                                   value="{{ object.name|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="code" class="form-label">{% trans "Code" %}</label>
+                                            <input type="text" class="form-control" id="code" name="code" 
+                                                   value="{{ object.code|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="website" class="form-label">{% trans "Website" %}</label>
+                                            <input type="url" class="form-control" id="website" name="website" 
+                                                   value="{{ object.website|default:'' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="is_active" class="form-label">{% trans "Active" %}</label>
+                                            <select class="form-select" id="is_active" name="is_active">
+                                                <option value="True" {% if object.is_active %}selected{% endif %}>{% trans "Yes" %}</option>
+                                                <option value="False" {% if not object.is_active %}selected{% endif %}>{% trans "No" %}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">{% trans "Description" %}</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update Brand" %}{% else %}{% trans "Create Brand" %}{% endif %}
+                </button>
+                <a href="{% url 'inventory:brand_list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

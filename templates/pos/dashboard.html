@@ -1,20 +1,658 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Dashboard %}{% endblock %}
+{% block title %}{% trans "POS Dashboard" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Dashboard %}</h1>
+    <h1 class="page-title">{% trans "POS Dashboard" %}</h1>
+    <div class="page-tools">
+        <button class="btn btn-primary" id="newSaleBtn">
+            <i class="fas fa-plus"></i> {% trans "New Sale" %}
+        </button>
+        <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/chart.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .quick-action-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .quick-action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .sale-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s ease;
+    }
+    .sale-item:hover {
+        background-color: #f8f9fa;
+    }
+    .cash-register-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Today's Sales" %}</h6>
+                            <h3 class="mb-0">{{ stats.today_sales|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Today's Revenue" %}</h6>
+                            <h3 class="mb-0">{{ stats.today_revenue|default:"0.00" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Open Registers" %}</h6>
+                            <h3 class="mb-0">{{ stats.open_registers|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Pending Payments" %}</h6>
+                            <h3 class="mb-0">{{ stats.pending_payments|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-danger">
+                                <i class="fas fa-undo"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Today's Refunds" %}</h6>
+                            <h3 class="mb-0">{{ stats.today_refunds|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-secondary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Active Sessions" %}</h6>
+                            <h3 class="mb-0">{{ stats.active_sessions|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Hour" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByHourChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Payment Method" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByPaymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Top Products" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="topProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales Status" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash Registers -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Cash Registers" %}</h5>
+                    <div class="card-tools">
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> {% trans "Open Register" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for register in cash_registers %}
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card quick-action-card {% if register.is_open %}border-success{% else %}border-secondary{% endif %}">
+                                <div class="card-body position-relative">
+                                    <div class="cash-register-status">
+                                        {% if register.is_open %}
+                                            <span class="badge bg-success">{% trans "Open" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Closed" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-center">
+                                        <h6 class="mb-1">{{ register.name|default:"-" }}</h6>
+                                        <div class="text-muted small mb-2">{{ register.code|default:"-" }}</div>
+                                        <div class="mb-2">
+                                            <span class="text-muted small">{% trans "Current:" %}</span>
+                                            <span class="fw-bold">{{ register.current_amount|default:"0.00" }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            {% if register.is_open %}
+                                                <button class="btn btn-sm btn-danger" onclick="closeRegister('{{ register.id }}')">
+                                                    <i class="fas fa-lock"></i> {% trans "Close" %}
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-success" onclick="openRegister('{{ register.id }}')">
+                                                    <i class="fas fa-lock-open"></i> {% trans "Open" %}
+                                                </button>
+                                            {% endif %}
+                                            <button class="btn btn-sm btn-info" onclick="viewRegister('{{ register.id }}')">
+                                                <i class="fas fa-eye"></i> {% trans "View" %}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-cash-register fa-3x mb-3"></i>
+                                <p>{% trans "No cash registers found" %}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="newSale()">
+                                <div class="card-body">
+                                    <i class="fas fa-shopping-cart fa-2x text-primary mb-2"></i>
+                                    <h6 class="mb-0">{% trans "New Sale" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="viewSales()">
+                                <div class="card-body">
+                                    <i class="fas fa-list fa-2x text-success mb-2"></i>
+                                    <h6 class="mb-0">{% trans "View Sales" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="viewRefunds()">
+                                <div class="card-body">
+                                    <i class="fas fa-undo fa-2x text-warning mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Refunds" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="viewCustomers()">
+                                <div class="card-body">
+                                    <i class="fas fa-users fa-2x text-info mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Customers" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="viewReports()">
+                                <div class="card-body">
+                                    <i class="fas fa-chart-bar fa-2x text-danger mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Reports" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card quick-action-card text-center" onclick="viewSettings()">
+                                <div class="card-body">
+                                    <i class="fas fa-cog fa-2x text-secondary mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Settings" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Sales" %}</h5>
+                    <div class="card-tools">
+                        <a href="#" class="btn btn-sm btn-primary">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Sale #" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Amount" %}</th>
+                                    <th>{% trans "Payment Method" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>{{ sale.sale_number|default:"-" }}</td>
+                                    <td>{{ sale.customer.full_name|default:sale.customer.company_name|default:sale.customer.name|default:"Walk-in" }}</td>
+                                    <td>{{ sale.total_amount|default:"0.00" }}</td>
+                                    <td>{{ sale.payment_method.name|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ sale.status|lower }}">
+                                            {% trans sale.get_status_display %}
+                                        </span>
+                                    </td>
+                                    <td>{{ sale.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewSale('{{ sale.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-success" onclick="printReceipt('{{ sale.id }}')">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">{% trans "No recent sales" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POS Sessions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Active POS Sessions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Cash Register" %}</th>
+                                    <th>{% trans "Started At" %}</th>
+                                    <th>{% trans "Total Sales" %}</th>
+                                    <th>{% trans "Total Collected" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in active_sessions %}
+                                <tr>
+                                    <td>{{ session.user.get_full_name|default:session.user.username|default:"-" }}</td>
+                                    <td>{{ session.cash_register.name|default:"-" }}</td>
+                                    <td>{{ session.started_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ session.total_sales|default:"0.00" }}</td>
+                                    <td>{{ session.total_collected|default:"0.00" }}</td>
+                                    <td>
+                                        {% if session.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewSession('{{ session.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">{% trans "No active sessions" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize charts
+    initCharts();
+    
+    // New Sale button
+    $('#newSaleBtn').on('click', function() {
+        window.location.href = '{% url "pos:new_sale" %}';
+    });
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+});
+
+function initCharts() {
+    // Sales by Hour Chart
+    const salesByHourCtx = document.getElementById('salesByHourChart');
+    if (salesByHourCtx) {
+        new Chart(salesByHourCtx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'],
+                datasets: [{
+                    label: '{% trans "Sales Count" %}',
+                    data: {{ stats.sales_by_hour|default:"[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]" }},
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Sales by Payment Method Chart
+    const salesByPaymentCtx = document.getElementById('salesByPaymentChart');
+    if (salesByPaymentCtx) {
+        new Chart(salesByPaymentCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ stats.payment_methods|default:"['Cash', 'Card', 'Mobile']"|safe }},
+                datasets: [{
+                    data: {{ stats.sales_by_payment|default:"[0, 0, 0]" }},
+                    backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#dc3545', '#6610f2']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Top Products Chart
+    const topProductsCtx = document.getElementById('topProductsChart');
+    if (topProductsCtx) {
+        new Chart(topProductsCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.top_products.names|default:"['Product 1', 'Product 2', 'Product 3']"|safe }},
+                datasets: [{
+                    label: '{% trans "Quantity Sold" %}',
+                    data: {{ stats.top_products.quantities|default:"[0, 0, 0]" }},
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Sales Status Chart
+    const salesStatusCtx = document.getElementById('salesStatusChart');
+    if (salesStatusCtx) {
+        new Chart(salesStatusCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ stats.sales_statuses|default:"['Draft', 'Confirmed', 'Paid', 'Cancelled']"|safe }},
+                datasets: [{
+                    data: {{ stats.sales_status_counts|default:"[0, 0, 0, 0]" }},
+                    backgroundColor: ['#6c757d', '#007bff', '#28a745', '#dc3545']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Quick action functions
+function newSale() {
+    window.location.href = '{% url "pos:new_sale" %}';
+}
+
+function viewSales() {
+    window.location.href = '{% url "pos:sale_list" %}';
+}
+
+function viewRefunds() {
+    window.location.href = '{% url "pos:refund_list" %}';
+}
+
+function viewCustomers() {
+    window.location.href = '{% url "crm:customer_list" %}';
+}
+
+function viewReports() {
+    window.location.href = '{% url "reports:dashboard" %}';
+}
+
+function viewSettings() {
+    window.location.href = '{% url "settings:general" %}';
+}
+
+function viewSale(saleId) {
+    window.location.href = '{% url "pos:sale_detail" 0 %}'.replace('0', saleId);
+}
+
+function printReceipt(saleId) {
+    window.open('{% url "pos:print_receipt" 0 %}'.replace('0', saleId), '_blank');
+}
+
+function viewRegister(registerId) {
+    window.location.href = '{% url "pos:register_detail" 0 %}'.replace('0', registerId);
+}
+
+function openRegister(registerId) {
+    if (confirm('{% trans "Are you sure you want to open this cash register?" %}')) {
+        window.location.href = '{% url "pos:open_register" 0 %}'.replace('0', registerId);
+    }
+}
+
+function closeRegister(registerId) {
+    if (confirm('{% trans "Are you sure you want to close this cash register? Please count the cash before closing." %}')) {
+        window.location.href = '{% url "pos:close_register" 0 %}'.replace('0', registerId);
+    }
+}
+
+function viewSession(sessionId) {
+    window.location.href = '{% url "pos:session_detail" 0 %}'.replace('0', sessionId);
+}
+</script>
 {% endblock %}

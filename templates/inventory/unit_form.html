@@ -1,20 +1,86 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Unit Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Unit" %}{% else %}{% trans "Create Unit" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Unit Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Unit" %}{% else %}{% trans "Create Unit" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:unit_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Unit of Measure Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">{% trans "Name" %}</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ object.name|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="code" class="form-label">{% trans "Code" %}</label>
+                                    <input type="text" class="form-control" id="code" name="code" 
+                                           value="{{ object.code|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="is_active" class="form-label">{% trans "Active" %}</label>
+                                    <select class="form-select" id="is_active" name="is_active">
+                                        <option value="True" {% if object.is_active %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_active %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">{% trans "Description" %}</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update Unit" %}{% else %}{% trans "Create Unit" %}{% endif %}
+                </button>
+                <a href="{% url 'inventory:unit_list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

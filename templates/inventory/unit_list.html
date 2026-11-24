@@ -1,20 +1,95 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Unit List %}{% endblock %}
+{% block title %}{% trans "Units of Measure" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Unit List %}</h1>
+    <h1 class="page-title">{% trans "Units of Measure" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:unit_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Unit" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "Unit of Measure List" %}</h3>
+        </div>
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="unitTable">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Products Using" %}</th>
+                            <th>{% trans "Active" %}</th>
+                            <th>{% trans "Created" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for unit in units %}
+                        <tr>
+                            <td>{{ unit.name|default:"-" }}</td>
+                            <td>{{ unit.code|default:"-" }}</td>
+                            <td>{{ unit.description|truncatechars:50|default:"-" }}</td>
+                            <td>{{ unit.products_count|default:0 }}</td>
+                            <td>
+                                {% if unit.is_active %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ unit.created_at|date:"Y-m-d"|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'inventory:unit_detail' unit.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:unit_edit' unit.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'inventory:unit_delete' unit.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">{% trans "No units found" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#unitTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[5, 'desc']], // Sort by created date
+        columnDefs: [
+            { orderable: false, targets: [6] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

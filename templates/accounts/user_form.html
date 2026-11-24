@@ -1,20 +1,365 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans User Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit User" %}{% else %}{% trans "Create User" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans User Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit User" %}{% else %}{% trans "Create User" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 100%;
+    }
+    .card-header {
+        cursor: pointer;
+    }
+    .card-header i {
+        transition: transform 0.3s;
+    }
+    .card-header.collapsed i {
+        transform: rotate(-90deg);
+    }
+    .photo-preview {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-top: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Personal Information -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user"></i> {% trans "Personal Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="photo" class="form-label">{% trans "Photo" %}</label>
+                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                    {% if object.photo %}
+                                    <div class="mt-2">
+                                        <img src="{{ object.photo.url }}" alt="{{ object.get_full_name }}" class="photo-preview">
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" id="remove_photo" name="remove_photo">
+                                            <label class="form-check-label" for="remove_photo">{% trans "Remove current photo" %}</label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="first_name" class="form-label">{% trans "First Name" %}</label>
+                                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                                   value="{{ object.first_name|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="last_name" class="form-label">{% trans "Last Name" %}</label>
+                                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                                   value="{{ object.last_name|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">{% trans "Email" %}</label>
+                                            <input type="email" class="form-control" id="email" name="email" 
+                                                   value="{{ object.email|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">{% trans "Username" %}</label>
+                                            <input type="text" class="form-control" id="username" name="username" 
+                                                   value="{{ object.username|default:'' }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">{% trans "Phone" %}</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   value="{{ object.phone|default:'' }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="mobile" class="form-label">{% trans "Mobile" %}</label>
+                                            <input type="tel" class="form-control" id="mobile" name="mobile" 
+                                                   value="{{ object.mobile|default:'' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="secondary_email" class="form-label">{% trans "Secondary Email" %}</label>
+                                            <input type="email" class="form-control" id="secondary_email" name="secondary_email" 
+                                                   value="{{ object.secondary_email|default:'' }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Address Information -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-map-marker-alt"></i> {% trans "Address Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">{% trans "Address" %}</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2">{{ object.address|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="city" class="form-label">{% trans "City" %}</label>
+                                    <input type="text" class="form-control" id="city" name="city" 
+                                           value="{{ object.city|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="state" class="form-label">{% trans "State" %}</label>
+                                    <input type="text" class="form-control" id="state" name="state" 
+                                           value="{{ object.state|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="postal_code" class="form-label">{% trans "Postal Code" %}</label>
+                                    <input type="text" class="form-control" id="postal_code" name="postal_code" 
+                                           value="{{ object.postal_code|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="country" class="form-label">{% trans "Country" %}</label>
+                                    <select class="form-select" id="country" name="country">
+                                        <option value="">{% trans "Select Country" %}</option>
+                                        <option value="DZ" {% if object.country == 'DZ' %}selected{% endif %}>Algeria</option>
+                                        <option value="FR" {% if object.country == 'FR' %}selected{% endif %}>France</option>
+                                        <option value="US" {% if object.country == 'US' %}selected{% endif %}>United States</option>
+                                        <option value="GB" {% if object.country == 'GB' %}selected{% endif %}>United Kingdom</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employment Information -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-briefcase"></i> {% trans "Employment Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="employee_id" class="form-label">{% trans "Employee ID" %}</label>
+                                    <input type="text" class="form-control" id="employee_id" name="employee_id" 
+                                           value="{{ object.employee_id|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="department" class="form-label">{% trans "Department" %}</label>
+                                    <select class="form-select" id="department" name="department">
+                                        <option value="">{% trans "Select Department" %}</option>
+                                        {% for dept in departments %}
+                                        <option value="{{ dept.id }}" {% if object.department_id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="position" class="form-label">{% trans "Position" %}</label>
+                                    <input type="text" class="form-control" id="position" name="position" 
+                                           value="{{ object.position|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="hire_date" class="form-label">{% trans "Hire Date" %}</label>
+                                    <input type="date" class="form-control" id="hire_date" name="hire_date" 
+                                           value="{{ object.hire_date|date:'Y-m-d'|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="manager" class="form-label">{% trans "Manager" %}</label>
+                                    <select class="form-select" id="manager" name="manager">
+                                        <option value="">{% trans "Select Manager" %}</option>
+                                        {% for manager in managers %}
+                                        <option value="{{ manager.id }}" {% if object.manager_id == manager.id %}selected{% endif %}>{{ manager.get_full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cog"></i> {% trans "System Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="role" class="form-label">{% trans "Role" %}</label>
+                                    <select class="form-select" id="role" name="role">
+                                        <option value="">{% trans "Select Role" %}</option>
+                                        {% for role in roles %}
+                                        <option value="{{ role.id }}" {% if object.role_id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="is_active" class="form-label">{% trans "Active" %}</label>
+                                    <select class="form-select" id="is_active" name="is_active">
+                                        <option value="True" {% if object.is_active %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_active %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="is_staff" class="form-label">{% trans "Staff Status" %}</label>
+                                    <select class="form-select" id="is_staff" name="is_staff">
+                                        <option value="True" {% if object.is_staff %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_staff %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="is_superuser" class="form-label">{% trans "Superuser" %}</label>
+                                    <select class="form-select" id="is_superuser" name="is_superuser">
+                                        <option value="True" {% if object.is_superuser %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_superuser %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">{% trans "Password" %}</label>
+                                    <input type="password" class="form-control" id="password" name="password">
+                                    <small class="form-text text-muted">{% trans "Leave blank to keep current password" %}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password_confirm" class="form-label">{% trans "Confirm Password" %}</label>
+                                    <input type="password" class="form-control" id="password_confirm" name="password_confirm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update User" %}{% else %}{% trans "Create User" %}{% endif %}
+                </button>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Password validation
+$(document).ready(function() {
+    $('#password_confirm').on('input', function() {
+        var password = $('#password').val();
+        var confirm = $(this).val();
+        
+        if (password && confirm && password !== confirm) {
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+});
+</script>
 {% endblock %}

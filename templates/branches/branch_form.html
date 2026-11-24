@@ -1,20 +1,164 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Branch Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Branch" %}{% else %}{% trans "Create Branch" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Branch Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Branch" %}{% else %}{% trans "Create Branch" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'branches:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        max-width: 100%;
+    }
+    .card-header {
+        cursor: pointer;
+    }
+    .card-header i {
+        transition: transform 0.3s;
+    }
+    .card-header.collapsed i {
+        transform: rotate(-90deg);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle"></i> {% trans "Basic Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">{{ form.organization|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.code|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.name|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">{{ form.manager|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.is_main_branch|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.is_active|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">{{ form.notes|as_crispy_field }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Contact Information -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-phone"></i> {% trans "Contact Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">{{ form.phone|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.mobile|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.email|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">{{ form.website|as_crispy_field }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-map-marker-alt"></i> {% trans "Address Information" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">{{ form.address|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">{{ form.city|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.state|as_crispy_field }}</div>
+                            <div class="col-md-4">{{ form.postal_code|as_crispy_field }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">{{ form.country|as_crispy_field }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Settings -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-file-alt"></i> {% trans "Document Settings" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">{{ form.auto_generate_documents|as_crispy_field }}</div>
+                            <div class="col-md-3">{{ form.next_sale_number|as_crispy_field }}</div>
+                            <div class="col-md-3">{{ form.next_repair_number|as_crispy_field }}</div>
+                            <div class="col-md-3">{{ form.next_purchase_number|as_crispy_field }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update Branch" %}{% else %}{% trans "Create Branch" %}{% endif %}
+                </button>
+                <a href="{% url 'branches:list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add any form-specific JavaScript here
+$(document).ready(function() {
+    // Initialize any custom form behavior
+});
+</script>
 {% endblock %}

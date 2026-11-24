@@ -1,20 +1,226 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Notification Preferences %}{% endblock %}
+{% block title %}{% trans "Notification Preferences" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Notification Preferences %}</h1>
+    <h1 class="page-title">{% trans "Notification Preferences" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'notifications:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to Notifications" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preference-card {
+        border-left: 4px solid #3b82f6;
+    }
+    .preference-section {
+        margin-bottom: 2rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- General Settings -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card preference-card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "General Notification Settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifications_enabled" name="notifications_enabled" 
+                                           {% if preferences.notifications_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="notifications_enabled">{% trans "Enable Notifications" %}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" 
+                                           {% if preferences.email_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="email_notifications">{% trans "Email Notifications" %}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="push_notifications" name="push_notifications" 
+                                           {% if preferences.push_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="push_notifications">{% trans "Push Notifications" %}</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" 
+                                           {% if preferences.sms_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="sms_notifications">{% trans "SMS Notifications" %}</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="default_notification_type" class="form-label">{% trans "Default Notification Type" %}</label>
+                                    <select class="form-select" id="default_notification_type" name="default_notification_type">
+                                        <option value="info" {% if preferences.default_notification_type == 'info' %}selected{% endif %}>{% trans "Info" %}</option>
+                                        <option value="success" {% if preferences.default_notification_type == 'success' %}selected{% endif %}>{% trans "Success" %}</option>
+                                        <option value="warning" {% if preferences.default_notification_type == 'warning' %}selected{% endif %}>{% trans "Warning" %}</option>
+                                        <option value="error" {% if preferences.default_notification_type == 'error' %}selected{% endif %}>{% trans "Error" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Notification Channels -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card preference-card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Notification Channels" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>{% trans "Email Settings" %}</h6>
+                                <div class="mb-3">
+                                    <label for="notification_email" class="form-label">{% trans "Notification Email" %}</label>
+                                    <input type="email" class="form-control" id="notification_email" name="notification_email" 
+                                           value="{{ preferences.notification_email|default:'' }}">
+                                </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_digest" name="email_digest" 
+                                           {% if preferences.email_digest %}checked{% endif %}>
+                                    <label class="form-check-label" for="email_digest">{% trans "Email Digest" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email_digest_frequency" class="form-label">{% trans "Digest Frequency" %}</label>
+                                    <select class="form-select" id="email_digest_frequency" name="email_digest_frequency">
+                                        <option value="daily" {% if preferences.email_digest_frequency == 'daily' %}selected{% endif %}>{% trans "Daily" %}</option>
+                                        <option value="weekly" {% if preferences.email_digest_frequency == 'weekly' %}selected{% endif %}>{% trans "Weekly" %}</option>
+                                        <option value="monthly" {% if preferences.email_digest_frequency == 'monthly' %}selected{% endif %}>{% trans "Monthly" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>{% trans "Push Notification Settings" %}</h6>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="push_sound" name="push_sound" 
+                                           {% if preferences.push_sound %}checked{% endif %}>
+                                    <label class="form-check-label" for="push_sound">{% trans "Play Sound" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="push_sound_file" class="form-label">{% trans "Sound File" %}</label>
+                                    <select class="form-select" id="push_sound_file" name="push_sound_file">
+                                        <option value="default" {% if preferences.push_sound_file == 'default' %}selected{% endif %}>{% trans "Default" %}</option>
+                                        <option value="none" {% if preferences.push_sound_file == 'none' %}selected{% endif %}>{% trans "None" %}</option>
+                                        <option value="alert1" {% if preferences.push_sound_file == 'alert1' %}selected{% endif %}>{% trans "Alert 1" %}</option>
+                                        <option value="alert2" {% if preferences.push_sound_file == 'alert2' %}selected{% endif %}>{% trans "Alert 2" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Types -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card preference-card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Notification Type Preferences" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "Notification Type" %}</th>
+                                        <th>{% trans "Email" %}</th>
+                                        <th>{% trans "Push" %}</th>
+                                        <th>{% trans "SMS" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for notification_type in notification_types %}
+                                    <tr>
+                                        <td>{{ notification_type.name|default:"-" }}</td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="email_{{ notification_type.id }}" 
+                                                       name="type_preferences[{{ notification_type.id }}][email]"
+                                                       {% if notification_type.email_enabled %}checked{% endif %}>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="push_{{ notification_type.id }}" 
+                                                       name="type_preferences[{{ notification_type.id }}][push]"
+                                                       {% if notification_type.push_enabled %}checked{% endif %}>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="sms_{{ notification_type.id }}" 
+                                                       name="type_preferences[{{ notification_type.id }}][sms]"
+                                                       {% if notification_type.sms_enabled %}checked{% endif %}>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">{% trans "No notification types configured" %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> {% trans "Save Preferences" %}
+                </button>
+                <a href="{% url 'notifications:list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle all notification types
+$(document).ready(function() {
+    $('#selectAllNotificationTypes').change(function() {
+        $('input[name^="type_preferences"]').prop('checked', $(this).prop('checked'));
+    });
+});
+</script>
 {% endblock %}

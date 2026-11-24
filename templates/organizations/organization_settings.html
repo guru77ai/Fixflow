@@ -1,20 +1,439 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Organization Settings %}{% endblock %}
+{% block title %}{{ organization.name|default:"Organization Settings" }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Organization Settings %}</h1>
+    <h1 class="page-title">{% trans "Organization Settings" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'organizations:detail' organization.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to Organization" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .settings-section {
+        margin-bottom: 2rem;
+    }
+    .settings-card {
+        border-left: 4px solid #3b82f6;
+    }
+    .settings-card-header {
+        background-color: #f8f9fa;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Settings Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">
+                                <i class="fas fa-cog me-2"></i>{% trans "General Settings" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                                <i class="fas fa-users me-2"></i>{% trans "Users & Permissions" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="branches-tab" data-bs-toggle="tab" data-bs-target="#branches" type="button" role="tab">
+                                <i class="fas fa-sitemap me-2"></i>{% trans "Branches" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+                                <i class="fas fa-bell me-2"></i>{% trans "Notifications" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="tab-content" id="settingsTabContent">
+        <!-- General Settings Tab -->
+        <div class="tab-pane fade show active" id="general">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-file-alt me-2"></i>{% trans "Document Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'organizations:settings_document' organization.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="invoice_prefix" class="form-label">{% trans "Invoice Prefix" %}</label>
+                                    <input type="text" class="form-control" id="invoice_prefix" name="invoice_prefix" 
+                                           value="{{ organization.invoice_prefix|default:'INV' }}" maxlength="10">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="repair_prefix" class="form-label">{% trans "Repair Prefix" %}</label>
+                                    <input type="text" class="form-control" id="repair_prefix" name="repair_prefix" 
+                                           value="{{ organization.repair_prefix|default:'REP' }}" maxlength="10">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="next_invoice_number" class="form-label">{% trans "Next Invoice Number" %}</label>
+                                    <input type="number" class="form-control" id="next_invoice_number" name="next_invoice_number" 
+                                           value="{{ organization.next_invoice_number|default:1 }}" min="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="next_repair_number" class="form-label">{% trans "Next Repair Number" %}</label>
+                                    <input type="number" class="form-control" id="next_repair_number" name="next_repair_number" 
+                                           value="{{ organization.next_repair_number|default:1 }}" min="1">
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-calendar me-2"></i>{% trans "Localization Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'organizations:settings_localization' organization.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="currency" class="form-label">{% trans "Currency" %}</label>
+                                    <select class="form-select" id="currency" name="currency">
+                                        <option value="DZD" {% if organization.currency == 'DZD' %}selected{% endif %}>DZD - Algerian Dinar</option>
+                                        <option value="USD" {% if organization.currency == 'USD' %}selected{% endif %}>USD - US Dollar</option>
+                                        <option value="EUR" {% if organization.currency == 'EUR' %}selected{% endif %}>EUR - Euro</option>
+                                        <option value="GBP" {% if organization.currency == 'GBP' %}selected{% endif %}>GBP - British Pound</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="default_language" class="form-label">{% trans "Default Language" %}</label>
+                                    <select class="form-select" id="default_language" name="default_language">
+                                        <option value="fr" {% if organization.default_language == 'fr' %}selected{% endif %}>{% trans "French" %}</option>
+                                        <option value="ar" {% if organization.default_language == 'ar' %}selected{% endif %}>{% trans "Arabic" %}</option>
+                                        <option value="en" {% if organization.default_language == 'en' %}selected{% endif %}>{% trans "English" %}</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="timezone" class="form-label">{% trans "Timezone" %}</label>
+                                    <select class="form-select" id="timezone" name="timezone">
+                                        <option value="Africa/Algiers" {% if organization.timezone == 'Africa/Algiers' %}selected{% endif %}>Africa/Algiers</option>
+                                        <option value="UTC" {% if organization.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                        <option value="Europe/Paris" {% if organization.timezone == 'Europe/Paris' %}selected{% endif %}>Europe/Paris</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="date_format" class="form-label">{% trans "Date Format" %}</label>
+                                    <select class="form-select" id="date_format" name="date_format">
+                                        <option value="DD/MM/YYYY" {% if organization.date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY</option>
+                                        <option value="MM/DD/YYYY" {% if organization.date_format == 'MM/DD/YYYY' %}selected{% endif %}>MM/DD/YYYY</option>
+                                        <option value="YYYY-MM-DD" {% if organization.date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-calculator me-2"></i>{% trans "Accounting Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'organizations:settings_accounting' organization.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="accounting_method" class="form-label">{% trans "Accounting Method" %}</label>
+                                    <select class="form-select" id="accounting_method" name="accounting_method">
+                                        <option value="cash" {% if organization.accounting_method == 'cash' %}selected{% endif %}>{% trans "Cash Basis" %}</option>
+                                        <option value="accrual" {% if organization.accounting_method == 'accrual' %}selected{% endif %}>{% trans "Accrual Basis" %}</option>
+                                    </select>
+                                    <small class="form-text text-muted">{% trans "Choose between cash or accrual accounting" %}</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="fiscal_year_start" class="form-label">{% trans "Fiscal Year Start" %}</label>
+                                    <select class="form-select" id="fiscal_year_start" name="fiscal_year_start">
+                                        {% for month in organization.FISCAL_YEAR_START_CHOICES %}
+                                        <option value="{{ month.0 }}" {% if organization.fiscal_year_start == month.0 %}selected{% endif %}>{{ month.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-info-circle me-2"></i>{% trans "Organization Information" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-4">{% trans "Organization Name" %}:</dt>
+                                <dd class="col-sm-8">{{ organization.name|default:"-" }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Legal Name" %}:</dt>
+                                <dd class="col-sm-8">{{ organization.legal_name|default:"-" }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Code" %}:</dt>
+                                <dd class="col-sm-8">{{ organization.code|default:"-" }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Industry" %}:</dt>
+                                <dd class="col-sm-8">{{ organization.get_industry_display|default:"-" }}</dd>
+                                
+                                <dt class="col-sm-4">{% trans "Status" %}:</dt>
+                                <dd class="col-sm-8">
+                                    {% if organization.is_active %}
+                                        <span class="badge bg-success">{% trans "Active" %}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-4">{% trans "Created" %}:</dt>
+                                <dd class="col-sm-8">{{ organization.created_at|date:"Y-m-d H:i"|default:"-" }}</dd>
+                            </dl>
+                            <div class="mt-3">
+                                <a href="{% url 'organizations:edit' organization.id %}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> {% trans "Edit Organization" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users & Permissions Tab -->
+        <div class="tab-pane fade" id="users">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">{% trans "Organization Members" %}</h5>
+                            <div class="card-tools">
+                                <a href="#" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> {% trans "Add Member" %}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover" id="membersTable">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "User" %}</th>
+                                            <th>{% trans "Email" %}</th>
+                                            <th>{% trans "Role" %}</th>
+                                            <th>{% trans "Owner" %}</th>
+                                            <th>{% trans "Admin" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Actions" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for member in organization.members|default:[] %}
+                                        <tr>
+                                            <td>{{ member.user__get_full_name|default:member.user__email|default:"-" }}</td>
+                                            <td>{{ member.user__email|default:"-" }}</td>
+                                            <td>{{ member.role__name|default:"-" }}</td>
+                                            <td>
+                                                {% if member.is_owner %}
+                                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if member.is_admin %}
+                                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if member.user.is_active %}
+                                                    <span class="badge bg-success">{% trans "Active" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                                <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">{% trans "No members found" %}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Branches Tab -->
+        <div class="tab-pane fade" id="branches">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title">{% trans "Organization Branches" %}</h5>
+                            <div class="card-tools">
+                                <a href="#" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> {% trans "Add Branch" %}
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover" id="branchesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "Name" %}</th>
+                                            <th>{% trans "Code" %}</th>
+                                            <th>{% trans "Address" %}</th>
+                                            <th>{% trans "Phone" %}</th>
+                                            <th>{% trans "Manager" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Actions" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for branch in organization.branches|default:[] %}
+                                        <tr>
+                                            <td>{{ branch.name|default:"-" }}</td>
+                                            <td>{{ branch.code|default:"-" }}</td>
+                                            <td>{{ branch.address|truncatechars:50|default:"-" }}</td>
+                                            <td>{{ branch.phone|default:"-" }}</td>
+                                            <td>{{ branch.manager__get_full_name|default:"-" }}</td>
+                                            <td>
+                                                {% if branch.is_active %}
+                                                    <span class="badge bg-success">{% trans "Active" %}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                                <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                                <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">{% trans "No branches found" %}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div class="tab-pane fade" id="notifications">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title">{% trans "Email Notifications" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if organization.email_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="email_notifications">{% trans "Enable Email Notifications" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="notification_email" class="form-label">{% trans "Notification Email" %}</label>
+                                    <input type="email" class="form-control" id="notification_email" name="notification_email" 
+                                           value="{{ organization.notification_email|default:'' }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="card-title">{% trans "SMS Notifications" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications" {% if organization.sms_notifications %}checked{% endif %}>
+                                    <label class="form-check-label" for="sms_notifications">{% trans "Enable SMS Notifications" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sms_phone" class="form-label">{% trans "SMS Phone Number" %}</label>
+                                    <input type="tel" class="form-control" id="sms_phone" name="sms_phone" 
+                                           value="{{ organization.sms_phone|default:'' }}">
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Initialize DataTables
+$(document).ready(function() {
+    $('#membersTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+    
+    $('#branchesTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+});
+
+// Tab activation
+var url = window.location.href;
+if (url.indexOf('#') > 0) {
+    var tabId = url.substring(url.indexOf('#') + 1);
+    var tab = new bootstrap.Tab(document.querySelector('#' + tabId + '-tab'));
+    tab.show();
+}
+</script>
 {% endblock %}

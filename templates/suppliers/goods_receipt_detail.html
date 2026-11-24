@@ -1,20 +1,609 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Goods Receipt Detail %}{% endblock %}
+{% block title %}{% trans "Goods Receipt Details" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Goods Receipt Detail %}</h1>
+    <h1 class="page-title">{% trans "Goods Receipt Details" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'suppliers:goods_receipt_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+        </a>
+        <a href="{% url 'suppliers:goods_receipt_update' goods_receipt.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+        </a>
+        <button class="btn btn-success" onclick="verifyGR()">
+            <i class="fas fa-check"></i> {% trans "Verify" %}
+        </button>
+        <button class="btn btn-danger" onclick="cancelGR()">
+            <i class="fas fa-times"></i> {% trans "Cancel" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gr-detail-card {
+        margin-bottom: 20px;
+    }
+    .gr-detail-card .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .detail-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+    .type-badge {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .item-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .item-row:last-child {
+        border-bottom: none;
+    }
+    .total-row {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .timeline-item {
+        padding: 10px 0;
+        border-left: 3px solid #28a745;
+        padding-left: 15px;
+        margin-left: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- GR Status Alert -->
+    {% if goods_receipt.status == 'draft' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-body text-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-exclamation-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Draft Goods Receipt" %}</h5>
+                            <p class="mb-0">{% trans "This goods receipt is still in draft status. Please review and verify it." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if goods_receipt.status == 'pending' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-body text-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Pending Verification" %}</h5>
+                            <p class="mb-0">{% trans "This goods receipt is waiting for verification." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if goods_receipt.status == 'verified' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-body text-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Verified" %}</h5>
+                            <p class="mb-0">{% trans "This goods receipt has been verified and processed." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- GR Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Goods Receipt Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "GR Number:" %}</span>
+                                <span class="fw-bold">{{ goods_receipt.gr_number|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Supplier:" %}</span>
+                                <span>{{ goods_receipt.supplier.name|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Receipt Date:" %}</span>
+                                <span>{{ goods_receipt.receipt_date|date:"Y-m-d"|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Status:" %}</span>
+                                <span class="badge bg-{{ goods_receipt.status|lower }}">
+                                    {% trans goods_receipt.get_status_display %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Type:" %}</span>
+                                <span class="type-badge badge bg-{{ goods_receipt.receipt_type|lower }}">
+                                    {% trans goods_receipt.get_receipt_type_display %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Reference:" %}</span>
+                                <span>{{ goods_receipt.reference|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Received By:" %}</span>
+                                <span>{{ goods_receipt.received_by.get_full_name|default:goods_receipt.received_by.username|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Verified By:" %}</span>
+                                <span>{{ goods_receipt.verified_by.get_full_name|default:goods_receipt.verified_by.username|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card gr-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "GR Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if goods_receipt.status == 'draft' %}
+                            <a href="{% url 'suppliers:goods_receipt_update' goods_receipt.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>{% trans "Edit" %}
+                            </a>
+                            <button class="btn btn-success" onclick="submitForVerification()">
+                                <i class="fas fa-paper-plane me-2"></i>{% trans "Submit for Verification" %}
+                            </button>
+                        {% endif %}
+                        {% if goods_receipt.status == 'pending' %}
+                            <button class="btn btn-success" onclick="verifyGR()">
+                                <i class="fas fa-check me-2"></i>{% trans "Verify" %}
+                            </button>
+                            <button class="btn btn-warning" onclick="rejectGR()">
+                                <i class="fas fa-times me-2"></i>{% trans "Reject" %}
+                            </button>
+                        {% endif %}
+                        {% if goods_receipt.status == 'verified' %}
+                            <button class="btn btn-info" onclick="processGR()">
+                                <i class="fas fa-cog me-2"></i>{% trans "Process" %}
+                            </button>
+                        {% endif %}
+                        <button class="btn btn-secondary" onclick="printGR()">
+                            <i class="fas fa-print me-2"></i>{% trans "Print" %}
+                        </button>
+                        <button class="btn btn-danger" onclick="cancelGR()">
+                            <i class="fas fa-trash me-2"></i>{% trans "Cancel" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Order Information -->
+    {% if goods_receipt.purchase_order %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Purchase Order Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "PO Number:" %}</span>
+                                <span>{{ goods_receipt.purchase_order.po_number|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "PO Date:" %}</span>
+                                <span>{{ goods_receipt.purchase_order.order_date|date:"Y-m-d"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "PO Status:" %}</span>
+                                <span class="badge bg-{{ goods_receipt.purchase_order.status|lower }}">
+                                    {% trans goods_receipt.purchase_order.get_status_display %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Supplier Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Supplier Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Supplier Name:" %}</span>
+                                <span>{{ goods_receipt.supplier.name|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Contact Person:" %}</span>
+                                <span>{{ goods_receipt.supplier.contact_person|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Email:" %}</span>
+                                <span>{{ goods_receipt.supplier.email|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Phone:" %}</span>
+                                <span>{{ goods_receipt.supplier.phone|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Mobile:" %}</span>
+                                <span>{{ goods_receipt.supplier.mobile|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Tax ID:" %}</span>
+                                <span>{{ goods_receipt.supplier.tax_id|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Address:" %}</span>
+                                <span>{{ goods_receipt.supplier.address|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Received Items" %} ({{ goods_receipt.items.count|default:0 }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "#" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Ordered" %}</th>
+                                    <th>{% trans "Received" %}</th>
+                                    <th>{% trans "Unit" %}</th>
+                                    <th>{% trans "Unit Price" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in goods_receipt.items.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ item.product.name|default:item.product_code|default:"-" }}</td>
+                                    <td>{{ item.description|default:"-" }}</td>
+                                    <td>{{ item.ordered_quantity|default:0 }}</td>
+                                    <td>{{ item.received_quantity|default:0 }}</td>
+                                    <td>{{ item.unit|default:"-" }}</td>
+                                    <td>{{ item.unit_price|default:"0.00" }}</td>
+                                    <td>{{ item.total_price|default:"0.00" }}</td>
+                                    <td>
+                                        {% if item.received_quantity >= item.ordered_quantity %}
+                                            <span class="badge bg-success">{% trans "Complete" %}</span>
+                                        {% elif item.received_quantity > 0 %}
+                                            <span class="badge bg-warning text-dark">{% trans "Partial" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "Not Received" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">{% trans "No items found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="7" class="text-end">{% trans "Subtotal:" %}</td>
+                                    <td>{{ goods_receipt.subtotal|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="7" class="text-end">{% trans "Discount:" %}</td>
+                                    <td>{{ goods_receipt.discount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="7" class="text-end">{% trans "Tax:" %}</td>
+                                    <td>{{ goods_receipt.tax_amount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="7" class="text-end">{% trans "Total:" %}</td>
+                                    <td>{{ goods_receipt.total_amount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card gr-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Shipping Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Shipping Method:" %}</span>
+                        <span>{{ goods_receipt.shipping_method|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Carrier:" %}</span>
+                        <span>{{ goods_receipt.carrier|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Tracking Number:" %}</span>
+                        <span>{{ goods_receipt.tracking_number|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Waybill Number:" %}</span>
+                        <span>{{ goods_receipt.waybill_number|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card gr-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Delivery Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Delivery Date:" %}</span>
+                        <span>{{ goods_receipt.delivery_date|date:"Y-m-d"|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Received Date:" %}</span>
+                        <span>{{ goods_receipt.received_date|date:"Y-m-d"|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Received By:" %}</span>
+                        <span>{{ goods_receipt.received_by.get_full_name|default:goods_receipt.received_by.username|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Condition:" %}</span>
+                        <span>{{ goods_receipt.condition|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes and Attachments -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card gr-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Notes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ goods_receipt.notes|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card gr-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Attachments" %} ({{ goods_receipt.attachments.count|default:0 }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if goods_receipt.attachments.count %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "File" %}</th>
+                                        <th>{% trans "Size" %}</th>
+                                        <th>{% trans "Uploaded" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attachment in goods_receipt.attachments.all %}
+                                    <tr>
+                                        <td>{{ attachment.file.name|default:"-" }}</td>
+                                        <td>{{ attachment.file.size|filesizeformat|default:"-" }}</td>
+                                        <td>{{ attachment.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                        <td>
+                                            <a href="{{ attachment.file.url }}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">{% trans "No attachments" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Timeline" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for event in goods_receipt.events.all %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">{{ event.event_type|default:"-" }}</span>
+                                <span class="text-muted small">{{ event.created_at|date:"Y-m-d H:i"|default:"-" }}</span>
+                            </div>
+                            <p class="mb-0">{{ event.description|default:"-" }}</p>
+                            <div class="text-muted small">{{ event.created_by.get_full_name|default:event.created_by.username|default:"-" }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-stream fa-2x mb-3"></i>
+                            <p>{% trans "No timeline events" %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card gr-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Metadata" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Created At:" %}</span>
+                                <span>{{ goods_receipt.created_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Updated At:" %}</span>
+                                <span>{{ goods_receipt.updated_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "ID:" %}</span>
+                                <span>{{ goods_receipt.id|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize any required functionality
+});
+
+// GR Actions
+function submitForVerification() {
+    if (confirm('{% trans "Are you sure you want to submit this goods receipt for verification?" %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_submit" goods_receipt.id %}';
+    }
+}
+
+function verifyGR() {
+    if (confirm('{% trans "Are you sure you want to verify this goods receipt?" %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_verify" goods_receipt.id %}';
+    }
+}
+
+function rejectGR() {
+    if (confirm('{% trans "Are you sure you want to reject this goods receipt?" %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_reject" goods_receipt.id %}';
+    }
+}
+
+function processGR() {
+    if (confirm('{% trans "Are you sure you want to process this goods receipt?" %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_process" goods_receipt.id %}';
+    }
+}
+
+function cancelGR() {
+    if (confirm('{% trans "Are you sure you want to cancel this goods receipt? This action cannot be undone." %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_cancel" goods_receipt.id %}';
+    }
+}
+
+function printGR() {
+    window.open('{% url "suppliers:goods_receipt_print" goods_receipt.id %}', '_blank');
+}
+</script>
 {% endblock %}

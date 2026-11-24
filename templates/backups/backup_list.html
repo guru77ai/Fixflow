@@ -1,20 +1,214 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Backup List %}{% endblock %}
+{% block title %}{% trans "Backups" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Backup List %}</h1>
+    <h1 class="page-title">{% trans "Backups" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'backups:create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Create Backup" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-save fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Backups" %}</h6>
+                            <h3 class="mb-0">{{ stats.total|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-database fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Size" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_size|default:"0 MB" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Last Backup" %}</h6>
+                            <h3 class="mb-0">{{ stats.last_backup|default:"-" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-calendar-check fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Backup Retention" %}</h6>
+                            <h3 class="mb-0">{{ settings.backup_retention|default:30 }} {% trans "days" %}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Backup Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'backups:create' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-plus fa-2x mb-2"></i><br>
+                                <small>{% trans "Create Backup" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'backups:restore' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-undo fa-2x mb-2"></i><br>
+                                <small>{% trans "Restore Backup" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'backups:download_all' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-download fa-2x mb-2"></i><br>
+                                <small>{% trans "Download All" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'backups:cleanup' %}" class="btn btn-outline-danger btn-block">
+                                <i class="fas fa-trash fa-2x mb-2"></i><br>
+                                <small>{% trans "Cleanup Old Backups" %}</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backups Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Backup List" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="backupTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Size" %}</th>
+                                    <th>{% trans "Created" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td>{{ backup.name|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ backup.type|lower }}">
+                                            {% if backup.type == 'FULL' %}{% trans "Full" %}
+                                            {% elif backup.type == 'DIFFERENTIAL' %}{% trans "Differential" %}
+                                            {% else %}{% trans "Incremental" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ backup.size|filesizeformat|default:"-" }}</td>
+                                    <td>{{ backup.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ backup.description|truncatechars:50|default:"-" }}</td>
+                                    <td>
+                                        {% if backup.status == 'COMPLETED' %}
+                                            <span class="badge bg-success">{% trans "Completed" %}</span>
+                                        {% elif backup.status == 'FAILED' %}
+                                            <span class="badge bg-danger">{% trans "Failed" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">{% trans "In Progress" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'backups:download' backup.id %}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <a href="{% url 'backups:restore' backup.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-undo"></i>
+                                        </a>
+                                        <a href="{% url 'backups:detail' backup.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'backups:delete' backup.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No backups found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#backupTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[3, 'desc']], // Sort by created date
+        columnDefs: [
+            { orderable: false, targets: [6] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

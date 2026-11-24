@@ -1,20 +1,466 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans General %}{% endblock %}
+{% block title %}{% trans "General Settings" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans General %}</h1>
+    <h1 class="page-title">{% trans "General Settings" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .settings-section {
+        margin-bottom: 2rem;
+    }
+    .settings-card {
+        border-left: 4px solid #3b82f6;
+    }
+    .settings-card-header {
+        background-color: #f8f9fa;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Settings Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingsTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab">
+                                <i class="fas fa-cogs me-2"></i>{% trans "System Settings" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance" type="button" role="tab">
+                                <i class="fas fa-palette me-2"></i>{% trans "Appearance" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                                <i class="fas fa-lock me-2"></i>{% trans "Security" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notifications-tab" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+                                <i class="fas fa-bell me-2"></i>{% trans "Notifications" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="integration-tab" data-bs-toggle="tab" data-bs-target="#integration" type="button" role="tab">
+                                <i class="fas fa-link me-2"></i>{% trans "Integrations" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="tab-content" id="settingsTabContent">
+        <!-- System Settings Tab -->
+        <div class="tab-pane fade show active" id="system">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-globe me-2"></i>{% trans "General System Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:system' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="site_name" class="form-label">{% trans "Site Name" %}</label>
+                                    <input type="text" class="form-control" id="site_name" name="site_name" 
+                                           value="{{ settings.site_name|default:'FixFlow' }}" required>
+                                    <small class="form-text text-muted">{% trans "The name of your site" %}</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="site_description" class="form-label">{% trans "Site Description" %}</label>
+                                    <textarea class="form-control" id="site_description" name="site_description" rows="3">{{ settings.site_description|default:'' }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="default_language" class="form-label">{% trans "Default Language" %}</label>
+                                    <select class="form-select" id="default_language" name="default_language">
+                                        <option value="fr" {% if settings.default_language == 'fr' %}selected{% endif %}>Français</option>
+                                        <option value="ar" {% if settings.default_language == 'ar' %}selected{% endif %}>العربية</option>
+                                        <option value="en" {% if settings.default_language == 'en' %}selected{% endif %}>English</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="timezone" class="form-label">{% trans "Timezone" %}</label>
+                                    <select class="form-select" id="timezone" name="timezone">
+                                        <option value="Africa/Algiers" {% if settings.timezone == 'Africa/Algiers' %}selected{% endif %}>Africa/Algiers</option>
+                                        <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                                        <option value="Europe/Paris" {% if settings.timezone == 'Europe/Paris' %}selected{% endif %}>Europe/Paris</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-database me-2"></i>{% trans "Database & Backup" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Database Information" %}</label>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p><strong>{% trans "Database Name" %}:</strong> {{ settings.database_name|default:"-" }}</p>
+                                        <p><strong>{% trans "Database Size" %}:</strong> {{ settings.database_size|default:"-" }}</p>
+                                        <p><strong>{% trans "Last Backup" %}:</strong> {{ settings.last_backup|default:"-" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Backup Settings" %}</label>
+                                <form method="post" action="{% url 'settings:backup' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="auto_backup" class="form-label">{% trans "Auto Backup" %}</label>
+                                        <select class="form-select" id="auto_backup" name="auto_backup">
+                                            <option value="daily" {% if settings.auto_backup == 'daily' %}selected{% endif %}>{% trans "Daily" %}</option>
+                                            <option value="weekly" {% if settings.auto_backup == 'weekly' %}selected{% endif %}>{% trans "Weekly" %}</option>
+                                            <option value="monthly" {% if settings.auto_backup == 'monthly' %}selected{% endif %}>{% trans "Monthly" %}</option>
+                                            <option value="none" {% if settings.auto_backup == 'none' %}selected{% endif %}>{% trans "None" %}</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="backup_retention" class="form-label">{% trans "Backup Retention (days)" %}</label>
+                                        <input type="number" class="form-control" id="backup_retention" name="backup_retention" 
+                                               value="{{ settings.backup_retention|default:30 }}" min="1">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">{% trans "Save Backup Settings" %}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appearance Tab -->
+        <div class="tab-pane fade" id="appearance">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-palette me-2"></i>{% trans "Theme Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:appearance' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="theme" class="form-label">{% trans "Theme" %}</label>
+                                    <select class="form-select" id="theme" name="theme">
+                                        <option value="light" {% if settings.theme == 'light' %}selected{% endif %}>{% trans "Light" %}</option>
+                                        <option value="dark" {% if settings.theme == 'dark' %}selected{% endif %}>{% trans "Dark" %}</option>
+                                        <option value="auto" {% if settings.theme == 'auto' %}selected{% endif %}>{% trans "Auto (System Default)" %}</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="primary_color" class="form-label">{% trans "Primary Color" %}</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" 
+                                               value="{{ settings.primary_color|default:'#3b82f6' }}">
+                                        <input type="text" class="form-control" value="{{ settings.primary_color|default:'#3b82f6' }}" readonly>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="secondary_color" class="form-label">{% trans "Secondary Color" %}</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="secondary_color" name="secondary_color" 
+                                               value="{{ settings.secondary_color|default:'#10b981' }}">
+                                        <input type="text" class="form-control" value="{{ settings.secondary_color|default:'#10b981' }}" readonly>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Theme" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-font me-2"></i>{% trans "Typography" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:typography' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="font_family" class="form-label">{% trans "Font Family" %}</label>
+                                    <select class="form-select" id="font_family" name="font_family">
+                                        <option value="Inter" {% if settings.font_family == 'Inter' %}selected{% endif %}>Inter</option>
+                                        <option value="Roboto" {% if settings.font_family == 'Roboto' %}selected{% endif %}>Roboto</option>
+                                        <option value="Open Sans" {% if settings.font_family == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+                                        <option value="Arial" {% if settings.font_family == 'Arial' %}selected{% endif %}>Arial</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="font_size" class="form-label">{% trans "Base Font Size" %}</label>
+                                    <select class="form-select" id="font_size" name="font_size">
+                                        <option value="14px" {% if settings.font_size == '14px' %}selected{% endif %}>14px</option>
+                                        <option value="15px" {% if settings.font_size == '15px' %}selected{% endif %}>15px</option>
+                                        <option value="16px" {% if settings.font_size == '16px' %}selected{% endif %}>16px</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Typography" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div class="tab-pane fade" id="security">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-lock me-2"></i>{% trans "Authentication Settings" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:security' %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="session_timeout" class="form-label">{% trans "Session Timeout (minutes)" %}</label>
+                                    <input type="number" class="form-control" id="session_timeout" name="session_timeout" 
+                                           value="{{ settings.session_timeout|default:30 }}" min="5">
+                                    <small class="form-text text-muted">{% trans "Inactivity timeout before logout" %}</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password_min_length" class="form-label">{% trans "Password Minimum Length" %}</label>
+                                    <input type="number" class="form-control" id="password_min_length" name="password_min_length" 
+                                           value="{{ settings.password_min_length|default:8 }}" min="4">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password_expiry_days" class="form-label">{% trans "Password Expiry (days)" %}</label>
+                                    <input type="number" class="form-control" id="password_expiry_days" name="password_expiry_days" 
+                                           value="{{ settings.password_expiry_days|default:90 }}" min="1">
+                                    <small class="form-text text-muted">{% trans "Set to 0 to disable expiry" %}</small>
+                                </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="require_strong_password" name="require_strong_password" 
+                                           {% if settings.require_strong_password %}checked{% endif %}>
+                                    <label class="form-check-label" for="require_strong_password">{% trans "Require Strong Password" %}</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Security Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-shield-alt me-2"></i>{% trans "Access Control" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:access_control' %}">
+                                {% csrf_token %}
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_2fa" name="enable_2fa" 
+                                           {% if settings.enable_2fa %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_2fa">{% trans "Enable Two-Factor Authentication" %}</label>
+                                </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_ip_restriction" name="enable_ip_restriction" 
+                                           {% if settings.enable_ip_restriction %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_ip_restriction">{% trans "Enable IP Restriction" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="allowed_ips" class="form-label">{% trans "Allowed IP Addresses" %}</label>
+                                    <textarea class="form-control" id="allowed_ips" name="allowed_ips" rows="3" 
+                                              placeholder="{% trans 'One IP per line, leave empty to allow all' %}">{{ settings.allowed_ips|default:'' }}</textarea>
+                                </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="enable_login_attempts" name="enable_login_attempts" 
+                                           {% if settings.enable_login_attempts %}checked{% endif %}>
+                                    <label class="form-check-label" for="enable_login_attempts">{% trans "Enable Login Attempts Limit" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="max_login_attempts" class="form-label">{% trans "Max Login Attempts" %}</label>
+                                    <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" 
+                                           value="{{ settings.max_login_attempts|default:5 }}" min="1">
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Access Control" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div class="tab-pane fade" id="notifications">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-bell me-2"></i>{% trans "Email Notifications" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:notifications_email' %}">
+                                {% csrf_token %}
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="email_notifications_enabled" name="email_notifications_enabled" 
+                                           {% if settings.email_notifications_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="email_notifications_enabled">{% trans "Enable Email Notifications" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtp_host" class="form-label">{% trans "SMTP Host" %}</label>
+                                    <input type="text" class="form-control" id="smtp_host" name="smtp_host" 
+                                           value="{{ settings.smtp_host|default:'' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtp_port" class="form-label">{% trans "SMTP Port" %}</label>
+                                    <input type="number" class="form-control" id="smtp_port" name="smtp_port" 
+                                           value="{{ settings.smtp_port|default:587 }}" min="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtp_username" class="form-label">{% trans "SMTP Username" %}</label>
+                                    <input type="text" class="form-control" id="smtp_username" name="smtp_username" 
+                                           value="{{ settings.smtp_username|default:'' }}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtp_password" class="form-label">{% trans "SMTP Password" %}</label>
+                                    <input type="password" class="form-control" id="smtp_password" name="smtp_password" 
+                                           value="">
+                                </div>
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smtp_use_tls" name="smtp_use_tls" 
+                                           {% if settings.smtp_use_tls %}checked{% endif %}>
+                                    <label class="form-check-label" for="smtp_use_tls">{% trans "Use TLS" %}</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save Email Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card settings-card h-100">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-comment me-2"></i>{% trans "SMS Notifications" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{% url 'settings:notifications_sms' %}">
+                                {% csrf_token %}
+                                <div class="mb-3 form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="sms_notifications_enabled" name="sms_notifications_enabled" 
+                                           {% if settings.sms_notifications_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="sms_notifications_enabled">{% trans "Enable SMS Notifications" %}</label>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sms_provider" class="form-label">{% trans "SMS Provider" %}</label>
+                                    <select class="form-select" id="sms_provider" name="sms_provider">
+                                        <option value="twilio" {% if settings.sms_provider == 'twilio' %}selected{% endif %}>Twilio</option>
+                                        <option value="nexmo" {% if settings.sms_provider == 'nexmo' %}selected{% endif %}>Nexmo/Vonage</option>
+                                        <option value="custom" {% if settings.sms_provider == 'custom' %}selected{% endif %}>{% trans "Custom API" %}</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sms_api_key" class="form-label">{% trans "API Key" %}</label>
+                                    <input type="password" class="form-control" id="sms_api_key" name="sms_api_key" 
+                                           value="">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sms_api_secret" class="form-label">{% trans "API Secret" %}</label>
+                                    <input type="password" class="form-control" id="sms_api_secret" name="sms_api_secret" 
+                                           value="">
+                                </div>
+                                <button type="submit" class="btn btn-primary">{% trans "Save SMS Settings" %}</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrations Tab -->
+        <div class="tab-pane fade" id="integration">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card settings-card">
+                        <div class="card-header settings-card-header">
+                            <h5 class="card-title mb-0"><i class="fas fa-puzzle-piece me-2"></i>{% trans "Third-Party Integrations" %}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title">{% trans "Payment Gateway" %}</h5>
+                                            <p class="card-text">{% trans "Configure payment gateways for online payments" %}</p>
+                                            <a href="#" class="btn btn-outline-primary">{% trans "Configure" %}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                                            <h5 class="card-title">{% trans "Accounting Software" %}</h5>
+                                            <p class="card-text">{% trans "Integrate with accounting software like QuickBooks" %}</p>
+                                            <a href="#" class="btn btn-outline-success">{% trans "Configure" %}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-box fa-3x text-info mb-3"></i>
+                                            <h5 class="card-title">{% trans "E-commerce" %}</h5>
+                                            <p class="card-text">{% trans "Integrate with e-commerce platforms" %}</p>
+                                            <a href="#" class="btn btn-outline-info">{% trans "Configure" %}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Tab activation
+var url = window.location.href;
+if (url.indexOf('#') > 0) {
+    var tabId = url.substring(url.indexOf('#') + 1);
+    var tab = new bootstrap.Tab(document.querySelector('#' + tabId + '-tab'));
+    tab.show();
+}
+
+// Color picker sync
+$(document).ready(function() {
+    $('input[type="color"]').on('input', function() {
+        $(this).siblings('input[type="text"]').val($(this).val());
+    });
+    
+    $('input[type="text"]').on('input', function() {
+        $(this).siblings('input[type="color"]').val($(this).val());
+    });
+});
+</script>
 {% endblock %}

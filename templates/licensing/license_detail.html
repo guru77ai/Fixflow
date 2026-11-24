@@ -1,20 +1,450 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans License Detail %}{% endblock %}
+{% block title %}{% trans "License Details" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans License Detail %}</h1>
+    <h1 class="page-title">{% trans "License Details" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'licensing:list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+        </a>
+        {% if license.is_valid %}
+            <button class="btn btn-success" id="verifyBtn">
+                <i class="fas fa-check-circle"></i> {% trans "Verify License" %}
+            </button>
+        {% else %}
+            <button class="btn btn-warning" id="verifyBtn">
+                <i class="fas fa-exclamation-circle"></i> {% trans "Verify License" %}
+            </button>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .license-detail-card {
+        margin-bottom: 20px;
+    }
+    .license-detail-card .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .detail-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+    .progress-bar-container {
+        margin-top: 10px;
+    }
+    .module-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- License Status Alert -->
+    {% if not license.is_valid %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-body text-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-exclamation-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Invalid License" %}</h5>
+                            <p class="mb-0">{% trans "This license is not valid. Please check the license details and verify it." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if license.is_expired %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-body text-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "License Expired" %}</h5>
+                            <p class="mb-0">{% trans "This license has expired. Please renew it to continue using the application." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- License Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "License Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "License ID:" %}</span>
+                                <span class="fw-bold">{{ license.license_id|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Customer:" %}</span>
+                                <span>{{ license.customer_name|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Email:" %}</span>
+                                <span>{{ license.customer_email|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Phone:" %}</span>
+                                <span>{{ license.customer_phone|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Edition:" %}</span>
+                                <span class="badge bg-primary">
+                                    {% trans license.get_edition_display %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Status:" %}</span>
+                                <span class="badge bg-{{ license.status|lower }}">
+                                    {% trans license.get_status_display %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Issue Date:" %}</span>
+                                <span>{{ license.issue_date|date:"Y-m-d"|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Expiry Date:" %}</span>
+                                <span>
+                                    {% if license.expiry_date %}
+                                        {{ license.expiry_date|date:"Y-m-d" }}
+                                    {% else %}
+                                        <span class="badge bg-success">{% trans "Perpetual" %}</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card license-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "License Status" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="flex-shrink-0 me-3">
+                            {% if license.is_valid %}
+                                <i class="fas fa-check-circle fa-3x text-success"></i>
+                            {% else %}
+                                <i class="fas fa-times-circle fa-3x text-danger"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h4 class="mb-0">{{ license.status|title|default:"-" }}</h4>
+                            <p class="text-muted mb-0">{% trans "License Status" %}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{% trans "Active" %}</span>
+                            <span>{{ license.is_active|yesno:"Yes,No" }}</span>
+                        </div>
+                        <div class="progress progress-bar-container">
+                            {% if license.is_active %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{% trans "Perpetual" %}</span>
+                            <span>{{ license.is_perpetual|yesno:"Yes,No" }}</span>
+                        </div>
+                        <div class="progress progress-bar-container">
+                            {% if license.is_perpetual %}
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{% trans "Can Upgrade" %}</span>
+                            <span>{{ license.can_upgrade|yesno:"Yes,No" }}</span>
+                        </div>
+                        <div class="progress progress-bar-container">
+                            {% if license.can_upgrade %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% else %}
+                                <div class="progress-bar bg-secondary" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation Binding -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Installation Binding" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Binding Type:" %}</span>
+                                <span>
+                                    {% trans license.get_installation_binding_display %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Bound To:" %}</span>
+                                <span>{{ license.bound_to|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Max Installations:" %}</span>
+                                <span>{{ license.max_installations|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enabled Modules -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Enabled Modules" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for module_code in license.enabled_modules %}
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" checked disabled>
+                                <label class="form-check-label">
+                                    {{ license.get_module_display_name|default:module_code }}
+                                </label>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">{% trans "No modules enabled" %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Verification" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Last Verified:" %}</span>
+                        <span>{{ license.last_verified|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Verification Count:" %}</span>
+                        <span>{{ license.verification_count|default:0 }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Signature:" %}</span>
+                        <span class="text-break small">{{ license.signature|truncatechars:50|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Maintenance" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Maintenance Expires:" %}</span>
+                        <span>
+                            {% if license.maintenance_expires %}
+                                {{ license.maintenance_expires|date:"Y-m-d" }}
+                            {% else %}
+                                {% trans "No expiry" %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Status Reason:" %}</span>
+                        <span>{{ license.status_reason|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if license.notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Notes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ license.notes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Installations -->
+    {% if license.installations.count %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Installations" %} ({{ license.installations.count }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Installation ID" %}</th>
+                                    <th>{% trans "Machine Name" %}</th>
+                                    <th>{% trans "Machine ID" %}</th>
+                                    <th>{% trans "IP Address" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Last Active" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for installation in license.installations.all %}
+                                <tr>
+                                    <td>{{ installation.installation_id|default:"-" }}</td>
+                                    <td>{{ installation.machine_name|default:"-" }}</td>
+                                    <td>{{ installation.machine_id|truncatechars:20|default:"-" }}</td>
+                                    <td>{{ installation.ip_address|default:"-" }}</td>
+                                    <td>
+                                        {% if installation.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ installation.last_active|date:"Y-m-d H:i"|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Metadata -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card license-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Metadata" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Created At:" %}</span>
+                                <span>{{ license.created_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Updated At:" %}</span>
+                                <span>{{ license.updated_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "ID:" %}</span>
+                                <span>{{ license.id|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Verify button click handler
+    $('#verifyBtn').on('click', function() {
+        if (confirm('{% trans "Are you sure you want to verify this license?" %}')) {
+            // In a real implementation, this would call the verification API
+            alert('{% trans "License verification initiated. Please wait..." %}');
+        }
+    });
+});
+</script>
 {% endblock %}

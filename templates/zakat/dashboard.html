@@ -1,20 +1,558 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Dashboard %}{% endblock %}
+{% block title %}{% trans "Zakat Dashboard" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Dashboard %}</h1>
+    <h1 class="page-title">{% trans "Zakat Dashboard" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'zakat:calculation_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "New Calculation" %}
+        </a>
+        <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/chart.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    .zakat-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .zakat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .calculation-status {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-primary">
+                                <i class="fas fa-calculator"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Total Calculations" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_calculations|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-success">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Total Zakat Due" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_zakat|default:"0.00" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-info">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Zakat Rate" %}</h6>
+                            <h3 class="mb-0">{{ stats.zakat_rate|default:"2.50" }}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-warning">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Nisab Threshold" %}</h6>
+                            <h3 class="mb-0">{{ stats.nisab_threshold|default:"0.00" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Overdue" %}</h6>
+                            <h3 class="mb-0">{{ stats.overdue|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="stat-icon bg-secondary">
+                                <i class="fas fa-building"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1">{% trans "Organizations" %}</h6>
+                            <h3 class="mb-0">{{ stats.organizations|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Zakat by Organization" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="zakatByOrgChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Zakat by Period" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="zakatByPeriodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Asset Distribution" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="assetDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Calculation Methods" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="calculationMethodsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="newCalculation()">
+                                <div class="card-body">
+                                    <i class="fas fa-plus-circle fa-2x text-primary mb-2"></i>
+                                    <h6 class="mb-0">{% trans "New Calculation" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="viewCalculations()">
+                                <div class="card-body">
+                                    <i class="fas fa-list fa-2x text-success mb-2"></i>
+                                    <h6 class="mb-0">{% trans "All Calculations" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="viewSettings()">
+                                <div class="card-body">
+                                    <i class="fas fa-cog fa-2x text-info mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Settings" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="viewReports()">
+                                <div class="card-body">
+                                    <i class="fas fa-chart-bar fa-2x text-warning mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Reports" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="exportData()">
+                                <div class="card-body">
+                                    <i class="fas fa-file-export fa-2x text-danger mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Export" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card text-center zakat-card" onclick="viewHelp()">
+                                <div class="card-body">
+                                    <i class="fas fa-question-circle fa-2x text-secondary mb-2"></i>
+                                    <h6 class="mb-0">{% trans "Help" %}</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Calculations -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Zakat Calculations" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'zakat:calculation_list' %}" class="btn btn-sm btn-primary">{% trans "View All" %}</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Calculation #" %}</th>
+                                    <th>{% trans "Organization" %}</th>
+                                    <th>{% trans "Period" %}</th>
+                                    <th>{% trans "Method" %}</th>
+                                    <th>{% trans "Eligible Assets" %}</th>
+                                    <th>{% trans "Zakat Amount" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Calculated By" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for calculation in recent_calculations %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'zakat:calculation_detail' calculation.id %}" class="text-decoration-none">
+                                            {{ calculation.id|slice:":8"|upper|default:"-" }}
+                                        </a>
+                                    </td>
+                                    <td>{{ calculation.organization.name|default:"-" }}</td>
+                                    <td>
+                                        {{ calculation.start_date|date:"Y-m-d"|default:"-" }} 
+                                        {% trans "to" %} 
+                                        {{ calculation.end_date|date:"Y-m-d"|default:"-" }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {% trans calculation.get_calculation_method_display %}
+                                        </span>
+                                    </td>
+                                    <td>{{ calculation.net_eligible_assets|default:"0.00" }}</td>
+                                    <td>{{ calculation.zakat_amount|default:"0.00" }}</td>
+                                    <td>
+                                        {% if calculation.zakat_amount > 0 %}
+                                            <span class="badge bg-success">{% trans "Due" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Not Due" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ calculation.calculated_by.get_full_name|default:calculation.calculated_by.username|default:"-" }}</td>
+                                    <td>{{ calculation.created_at|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'zakat:calculation_detail' calculation.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'zakat:calculation_update' calculation.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-success" onclick="printCalculation('{{ calculation.id }}')">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">{% trans "No recent calculations" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zakat Information Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">{% trans "About Zakat" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{% trans "What is Zakat?" %}</h6>
+                            <p>{% trans "Zakat is an Islamic financial obligation that requires Muslims to donate a portion of their wealth to charitable causes. It is one of the Five Pillars of Islam." %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Zakat Rate" %}</h6>
+                            <p>{% trans "The standard Zakat rate is 2.5% of eligible assets that have been held for at least one lunar year (Hawl)." %}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6>{% trans "Nisab Threshold" %}</h6>
+                            <p>{% trans "The minimum amount of wealth that must be possessed for Zakat to be payable. This is typically equivalent to the value of 85 grams of gold or 595 grams of silver." %}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Eligible Assets" %}</h6>
+                            <p>{% trans "Assets that are subject to Zakat include cash, gold, silver, business inventory, and other wealth that is not personal use items." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize charts
+    initCharts();
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+});
+
+function initCharts() {
+    // Zakat by Organization Chart
+    const zakatByOrgCtx = document.getElementById('zakatByOrgChart');
+    if (zakatByOrgCtx) {
+        new Chart(zakatByOrgCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ stats.org_labels|default:"['Org 1', 'Org 2', 'Org 3']"|safe }},
+                datasets: [{
+                    label: '{% trans "Zakat Amount" %}',
+                    data: {{ stats.org_amounts|default:"[0, 0, 0]" }},
+                    backgroundColor: '#007bff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Zakat by Period Chart
+    const zakatByPeriodCtx = document.getElementById('zakatByPeriodChart');
+    if (zakatByPeriodCtx) {
+        new Chart(zakatByPeriodCtx, {
+            type: 'line',
+            data: {
+                labels: {{ stats.period_labels|default:"['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']"|safe }},
+                datasets: [{
+                    label: '{% trans "Zakat Amount" %}',
+                    data: {{ stats.period_amounts|default:"[0, 0, 0, 0, 0, 0]" }},
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // Asset Distribution Chart
+    const assetDistributionCtx = document.getElementById('assetDistributionChart');
+    if (assetDistributionCtx) {
+        new Chart(assetDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [{% trans "Cash" %}, {% trans "Inventory" %}, {% trans "Receivables" %}, {% trans "Financial Assets" %}],
+                datasets: [{
+                    data: {{ stats.asset_distribution|default:"[0, 0, 0, 0]" }},
+                    backgroundColor: ['#28a745', '#007bff', '#17a2b8', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Calculation Methods Chart
+    const calculationMethodsCtx = document.getElementById('calculationMethodsChart');
+    if (calculationMethodsCtx) {
+        new Chart(calculationMethodsCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ stats.method_labels|default:"['Standard', 'Conservative', 'Custom']"|safe }},
+                datasets: [{
+                    data: {{ stats.method_counts|default:"[0, 0, 0]" }},
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Quick action functions
+function newCalculation() {
+    window.location.href = '{% url "zakat:calculation_create" %}';
+}
+
+function viewCalculations() {
+    window.location.href = '{% url "zakat:calculation_list" %}';
+}
+
+function viewSettings() {
+    window.location.href = '{% url "zakat:settings" %}';
+}
+
+function viewReports() {
+    window.location.href = '{% url "reports:zakat_report" %}';
+}
+
+function exportData() {
+    window.location.href = '{% url "zakat:export" %}';
+}
+
+function viewHelp() {
+    alert('{% trans "Zakat calculation help would be displayed here." %}');
+}
+
+function printCalculation(calculationId) {
+    window.open('{% url "zakat:calculation_print" 0 %}'.replace('0', calculationId), '_blank');
+}
+</script>
 {% endblock %}

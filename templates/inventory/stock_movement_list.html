@@ -1,20 +1,100 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Stock Movement List %}{% endblock %}
+{% block title %}{% trans "Stock Movements" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock Movement List %}</h1>
+    <h1 class="page-title">{% trans "Stock Movements" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_movement_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Movement" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "Stock Movement List" %}</h3>
+        </div>
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="movementsTable">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Quantity" %}</th>
+                            <th>{% trans "Unit Cost" %}</th>
+                            <th>{% trans "Total Value" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                            <th>{% trans "Warehouse" %}</th>
+                            <th>{% trans "User" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movement in movements %}
+                        <tr>
+                            <td>{{ movement.date|date:"Y-m-d H:i"|default:"-" }}</td>
+                            <td>{{ movement.product__name|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if movement.type == 'in' %}bg-success{% elif movement.type == 'out' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {% if movement.type == 'in' %}{% trans "In" %}
+                                    {% elif movement.type == 'out' %}{% trans "Out" %}
+                                    {% else %}{% trans "Adjustment" %}{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ movement.quantity|default:0 }}</td>
+                            <td>{{ movement.unit_cost|floatformat:2|default:0 }}</td>
+                            <td>{{ movement.total_value|floatformat:2|default:0 }}</td>
+                            <td>{{ movement.reference|default:"-" }}</td>
+                            <td>{{ movement.warehouse__name|default:"-" }}</td>
+                            <td>{{ movement.user__get_full_name|default:movement.user|default:"-" }}</td>
+                            <td>{{ movement.notes|truncatechars:50|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'inventory:stock_movement_detail' movement.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:stock_movement_edit' movement.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="text-center text-muted">{% trans "No movements found" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#movementsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']], // Sort by date
+        columnDefs: [
+            { orderable: false, targets: [10] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

@@ -1,20 +1,405 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Financial Report %}{% endblock %}
+{% block title %}{% trans "Financial Report" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Financial Report %}</h1>
+    <h1 class="page-title">{% trans "Financial Report" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Income" %}</h6>
+                            <h3 class="mb-0 positive">{{ financial_data.income.total|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-minus-circle fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Expenses" %}</h6>
+                            <h3 class="mb-0 negative">{{ financial_data.expenses.total|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-balance-scale fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Net Profit" %}</h6>
+                            <h3 class="mb-0 {% if financial_data.profit_loss.net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                                {{ financial_data.profit_loss.net_profit|floatformat:2|default:0 }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-percentage fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Profit Margin" %}</h6>
+                            <h3 class="mb-0">{{ financial_data.profit_loss.profit_margin|floatformat:2|default:0 }}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Income Breakdown" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="incomeBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Expense Breakdown" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="expenseBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Income Details -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Income by Category" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Category" %}</th>
+                                    <th class="text-end">{% trans "Amount" %}</th>
+                                    <th class="text-end">{% trans "Percentage" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in financial_data.income.by_category %}
+                                <tr>
+                                    <td>{{ item.category|default:"-" }}</td>
+                                    <td class="text-end">{{ item.amount|floatformat:2|default:0 }}</td>
+                                    <td class="text-end">{{ item.percentage|floatformat:2|default:0 }}%</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">{% trans "No income data" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>{% trans "Total" %}</td>
+                                    <td class="text-end">{{ financial_data.income.total|floatformat:2|default:0 }}</td>
+                                    <td class="text-end">100%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Expenses by Category" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Category" %}</th>
+                                    <th class="text-end">{% trans "Amount" %}</th>
+                                    <th class="text-end">{% trans "Percentage" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in financial_data.expenses.by_category %}
+                                <tr>
+                                    <td>{{ item.category|default:"-" }}</td>
+                                    <td class="text-end negative">{{ item.amount|floatformat:2|default:0 }}</td>
+                                    <td class="text-end">{{ item.percentage|floatformat:2|default:0 }}%</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">{% trans "No expense data" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>{% trans "Total" %}</td>
+                                    <td class="text-end negative">{{ financial_data.expenses.total|floatformat:2|default:0 }}</td>
+                                    <td class="text-end">100%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profit & Loss Statement -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Profit & Loss Statement" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr class="table-success">
+                                    <td colspan="2" class="fw-bold">{% trans "INCOME" %}</td>
+                                    <td class="text-end fw-bold">{{ financial_data.profit_loss.total_income|floatformat:2|default:0 }}</td>
+                                </tr>
+                                {% for item in financial_data.income.by_category %}
+                                <tr class="table-success">
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;{{ item.category|default:"-" }}</td>
+                                    <td></td>
+                                    <td class="text-end">{{ item.amount|floatformat:2|default:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <tr class="table-danger">
+                                    <td colspan="2" class="fw-bold">{% trans "EXPENSES" %}</td>
+                                    <td class="text-end fw-bold">{{ financial_data.expenses.total|floatformat:2|default:0 }}</td>
+                                </tr>
+                                {% for item in financial_data.expenses.by_category %}
+                                <tr class="table-danger">
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;{{ item.category|default:"-" }}</td>
+                                    <td></td>
+                                    <td class="text-end">{{ item.amount|floatformat:2|default:0 }}</td>
+                                </tr>
+                                {% endfor %}
+                                
+                                <tr class="table-active">
+                                    <td colspan="2" class="fw-bold">{% trans "NET PROFIT" %}</td>
+                                    <td class="text-end fw-bold {% if financial_data.profit_loss.net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                                        {{ financial_data.profit_loss.net_profit|floatformat:2|default:0 }}
+                                    </td>
+                                </tr>
+                                <tr class="table-light">
+                                    <td colspan="2">{% trans "Profit Margin" %}</td>
+                                    <td class="text-end">{{ financial_data.profit_loss.profit_margin|floatformat:2|default:0 }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Period Comparison -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Financial Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{% trans "Income Summary" %}</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>{% trans "Total Income" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.income.total|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Sales Revenue" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.income.sales|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Other Income" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.income.other|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>{% trans "Expense Summary" %}</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>{% trans "Total Expenses" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.expenses.total|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Cost of Goods Sold" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.expenses.cogs|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>{% trans "Operating Expenses" %}</strong></td>
+                                            <td class="text-end">{{ financial_data.expenses.operating|floatformat:2|default:0 }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">{% trans "Start Date" %}</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">{% trans "End Date" %}</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Income Breakdown Chart
+var incomeBreakdownCtx = document.getElementById('incomeBreakdownChart').getContext('2d');
+var incomeBreakdownData = {{ financial_data.income.by_category|safe }};
+new Chart(incomeBreakdownCtx, {
+    type: 'pie',
+    data: {
+        labels: incomeBreakdownData.map(item => item.category),
+        datasets: [{
+            data: incomeBreakdownData.map(item => item.amount),
+            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#06b6d4', '#8b5cf6']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Expense Breakdown Chart
+var expenseBreakdownCtx = document.getElementById('expenseBreakdownChart').getContext('2d');
+var expenseBreakdownData = {{ financial_data.expenses.by_category|safe }};
+new Chart(expenseBreakdownCtx, {
+    type: 'pie',
+    data: {
+        labels: expenseBreakdownData.map(item => item.category),
+        datasets: [{
+            data: expenseBreakdownData.map(item => item.amount),
+            backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('.table').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+});
+</script>
 {% endblock %}

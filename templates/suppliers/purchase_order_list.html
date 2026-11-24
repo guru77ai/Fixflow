@@ -1,20 +1,351 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Purchase Order List %}{% endblock %}
+{% block title %}{% trans "Purchase Orders" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Purchase Order List %}</h1>
+    <h1 class="page-title">{% trans "Purchase Orders" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'suppliers:purchase_order_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "New Purchase Order" %}
+        </a>
+        <button class="btn btn-secondary" id="exportBtn">
+            <i class="fas fa-file-export"></i> {% trans "Export" %}
+        </button>
+        <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .po-status-badge {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .po-priority-badge {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+        border-radius: 3px;
+    }
+    .filter-card {
+        margin-bottom: 20px;
+    }
+    .filter-card .card-body {
+        padding: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total" %}</h6>
+                            <h3 class="mb-0">{{ purchase_orders.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shopping-cart fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Pending" %}</h6>
+                            <h3 class="mb-0">{{ stats.pending|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-box-open fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Approved" %}</h6>
+                            <h3 class="mb-0">{{ stats.approved|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shipping-fast fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Shipped" %}</h6>
+                            <h3 class="mb-0">{{ stats.shipped|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Received" %}</h6>
+                            <h3 class="mb-0">{{ stats.received|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Value" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_value|default:"0.00" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form id="filterForm" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="statusFilter" class="form-label">{% trans "Status" %}</label>
+                                <select class="form-select" id="statusFilter" name="status">
+                                    <option value="">{% trans "All Statuses" %}</option>
+                                    <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+                                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                                    <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>{% trans "Approved" %}</option>
+                                    <option value="shipped" {% if request.GET.status == 'shipped' %}selected{% endif %}>{% trans "Shipped" %}</option>
+                                    <option value="received" {% if request.GET.status == 'received' %}selected{% endif %}>{% trans "Received" %}</option>
+                                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="supplierFilter" class="form-label">{% trans "Supplier" %}</label>
+                                <select class="form-select" id="supplierFilter" name="supplier">
+                                    <option value="">{% trans "All Suppliers" %}</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {% if request.GET.supplier == supplier.id|stringformat:"s" %}selected{% endif %}>{{ supplier.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="priorityFilter" class="form-label">{% trans "Priority" %}</label>
+                                <select class="form-select" id="priorityFilter" name="priority">
+                                    <option value="">{% trans "All Priorities" %}</option>
+                                    <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>{% trans "Low" %}</option>
+                                    <option value="medium" {% if request.GET.priority == 'medium' %}selected{% endif %}>{% trans "Medium" %}</option>
+                                    <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>{% trans "High" %}</option>
+                                    <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>{% trans "Urgent" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateFrom" class="form-label">{% trans "Date From" %}</label>
+                                <input type="date" class="form-control" id="dateFrom" name="date_from" value="{{ request.GET.date_from }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateTo" class="form-label">{% trans "Date To" %}</label>
+                                <input type="date" class="form-control" id="dateTo" name="date_to" value="{{ request.GET.date_to }}">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                                </button>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <a href="?" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> {% trans "Clear" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Purchase Orders Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Purchase Orders" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="poTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "PO #" %}</th>
+                                    <th>{% trans "Supplier" %}</th>
+                                    <th>{% trans "Order Date" %}</th>
+                                    <th>{% trans "Expected Delivery" %}</th>
+                                    <th>{% trans "Total Amount" %}</th>
+                                    <th>{% trans "Items" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Priority" %}</th>
+                                    <th>{% trans "Created By" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for po in purchase_orders %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'suppliers:purchase_order_detail' po.id %}" class="text-decoration-none">
+                                            {{ po.po_number|default:"-" }}
+                                        </a>
+                                    </td>
+                                    <td>{{ po.supplier.name|default:"-" }}</td>
+                                    <td>{{ po.order_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ po.expected_delivery_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ po.total_amount|default:"0.00" }}</td>
+                                    <td>{{ po.items.count|default:0 }}</td>
+                                    <td>
+                                        <span class="po-status-badge badge bg-{{ po.status|lower }}">
+                                            {% trans po.get_status_display %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="po-priority-badge badge bg-{{ po.priority|lower }}">
+                                            {% trans po.get_priority_display %}
+                                        </span>
+                                    </td>
+                                    <td>{{ po.created_by.get_full_name|default:po.created_by.username|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'suppliers:purchase_order_detail' po.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'suppliers:purchase_order_update' po.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-success" onclick="approvePO('{{ po.id }}')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deletePO('{{ po.id }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">{% trans "No purchase orders found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            {% trans "Showing" %} {{ purchase_orders.start_index|default:1 }} {% trans "to" %} {{ purchase_orders.end_index|default:0 }} {% trans "of" %} {{ purchase_orders.paginator.count|default:0 }} {% trans "entries" %}
+                        </div>
+                        <div>
+                            {% if purchase_orders.has_previous %}
+                            <a href="?page=1{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "First" %}</a>
+                            <a href="?page={{ purchase_orders.previous_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Previous" %}</a>
+                            {% endif %}
+                            <span class="btn btn-sm btn-outline-secondary disabled">{% trans "Page" %} {{ purchase_orders.number|default:1 }} {% trans "of" %} {{ purchase_orders.paginator.num_pages|default:1 }}</span>
+                            {% if purchase_orders.has_next %}
+                            <a href="?page={{ purchase_orders.next_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Next" %}</a>
+                            <a href="?page={{ purchase_orders.paginator.num_pages }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Last" %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#poTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[2, 'desc']], // Sort by order date
+        columnDefs: [
+            { orderable: false, targets: [9] } // Disable ordering on Actions column
+        ],
+        dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>',
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+    
+    // Export button
+    $('#exportBtn').on('click', function() {
+        window.location.href = '{% url "suppliers:purchase_order_export" %}' + window.location.search;
+    });
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+});
+
+// Approve PO
+function approvePO(poId) {
+    if (confirm('{% trans "Are you sure you want to approve this purchase order?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_approve" 0 %}'.replace('0', poId);
+    }
+}
+
+// Delete PO
+function deletePO(poId) {
+    if (confirm('{% trans "Are you sure you want to delete this purchase order? This action cannot be undone." %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_delete" 0 %}'.replace('0', poId);
+    }
+}
+</script>
 {% endblock %}

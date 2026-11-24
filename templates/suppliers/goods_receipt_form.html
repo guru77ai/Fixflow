@@ -1,20 +1,669 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Goods Receipt Form %}{% endblock %}
+{% block title %}{% trans "Goods Receipt Form" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Goods Receipt Form %}</h1>
+    <h1 class="page-title">{% trans "Goods Receipt Form" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'suppliers:goods_receipt_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+        </a>
+        <button type="submit" form="grForm" class="btn btn-primary">
+            <i class="fas fa-save"></i> {% trans "Save" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        margin-bottom: 30px;
+    }
+    .form-section .card {
+        margin-bottom: 0;
+    }
+    .form-section .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .form-section .card-body {
+        padding: 20px;
+    }
+    .item-row {
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .item-row:last-child {
+        border-bottom: none;
+    }
+    .add-item-btn {
+        cursor: pointer;
+        color: #007bff;
+    }
+    .add-item-btn:hover {
+        color: #0056b3;
+    }
+    .remove-item-btn {
+        cursor: pointer;
+        color: #dc3545;
+    }
+    .remove-item-btn:hover {
+        color: #a71d2a;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form id="grForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Basic Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="gr_number" class="form-label">{% trans "GR Number" %}</label>
+                                <input type="text" class="form-control" id="gr_number" name="gr_number" value="{{ goods_receipt.gr_number|default:'' }}" required>
+                                <div class="form-text text-muted">{% trans "Unique goods receipt number" %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="supplier" class="form-label">{% trans "Supplier" %}</label>
+                                <select class="form-select" id="supplier" name="supplier" required>
+                                    <option value="">{% trans "Select Supplier" %}</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {% if goods_receipt.supplier_id == supplier.id %}selected{% endif %}>{{ supplier.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="receipt_date" class="form-label">{% trans "Receipt Date" %}</label>
+                                <input type="date" class="form-control" id="receipt_date" name="receipt_date" value="{{ goods_receipt.receipt_date|date:"Y-m-d"|default:'' }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="purchase_order" class="form-label">{% trans "Purchase Order" %}</label>
+                                <select class="form-select" id="purchase_order" name="purchase_order">
+                                    <option value="">{% trans "Select Purchase Order" %}</option>
+                                    {% for po in purchase_orders %}
+                                    <option value="{{ po.id }}" {% if goods_receipt.purchase_order_id == po.id %}selected{% endif %}>{{ po.po_number }} - {{ po.supplier.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="receipt_type" class="form-label">{% trans "Receipt Type" %}</label>
+                                <select class="form-select" id="receipt_type" name="receipt_type">
+                                    <option value="complete" {% if goods_receipt.receipt_type == 'complete' %}selected{% endif %}>{% trans "Complete" %}</option>
+                                    <option value="partial" {% if goods_receipt.receipt_type == 'partial' %}selected{% endif %}>{% trans "Partial" %}</option>
+                                    <option value="return" {% if goods_receipt.receipt_type == 'return' %}selected{% endif %}>{% trans "Return" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">{% trans "Status" %}</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="draft" {% if goods_receipt.status == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+                                    <option value="pending" {% if goods_receipt.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                                    <option value="received" {% if goods_receipt.status == 'received' %}selected{% endif %}>{% trans "Received" %}</option>
+                                    <option value="verified" {% if goods_receipt.status == 'verified' %}selected{% endif %}>{% trans "Verified" %}</option>
+                                    <option value="cancelled" {% if goods_receipt.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="reference" class="form-label">{% trans "Reference" %}</label>
+                                <input type="text" class="form-control" id="reference" name="reference" value="{{ goods_receipt.reference|default:'' }}">
+                                <div class="form-text text-muted">{% trans "Supplier delivery note or reference" %}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="currency" class="form-label">{% trans "Currency" %}</label>
+                                <select class="form-select" id="currency" name="currency">
+                                    <option value="DZD" {% if goods_receipt.currency == 'DZD' %}selected{% endif %}>DZD</option>
+                                    <option value="USD" {% if goods_receipt.currency == 'USD' %}selected{% endif %}>USD</option>
+                                    <option value="EUR" {% if goods_receipt.currency == 'EUR' %}selected{% endif %}>EUR</option>
+                                    <option value="GBP" {% if goods_receipt.currency == 'GBP' %}selected{% endif %}>GBP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="received_by" class="form-label">{% trans "Received By" %}</label>
+                                <select class="form-select" id="received_by" name="received_by">
+                                    <option value="">{% trans "Select User" %}</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if goods_receipt.received_by_id == user.id %}selected{% endif %}>{{ user.get_full_name|default:user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Items -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Received Items" %}</h5>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="addItem()">
+                            <i class="fas fa-plus"></i> {% trans "Add Item" %}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="loadPOItems()">
+                            <i class="fas fa-file-import"></i> {% trans "Load from PO" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="itemsContainer">
+                        {% for item in goods_receipt.items.all %}
+                        <div class="item-row" data-item-id="{{ item.id }}">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Product" %}</label>
+                                        <select class="form-select product-select" name="items[{{ forloop.counter0 }}][product]">
+                                            <option value="">{% trans "Select Product" %}</option>
+                                            {% for product in products %}
+                                            <option value="{{ product.id }}" {% if item.product_id == product.id %}selected{% endif %}>{{ product.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Ordered Qty" %}</label>
+                                        <input type="number" class="form-control ordered-qty-input" name="items[{{ forloop.counter0 }}][ordered_quantity]" value="{{ item.ordered_quantity|default:0 }}" min="0" step="0.001">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Received Qty" %}</label>
+                                        <input type="number" class="form-control received-qty-input" name="items[{{ forloop.counter0 }}][received_quantity]" value="{{ item.received_quantity|default:0 }}" min="0" step="0.001">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Unit" %}</label>
+                                        <select class="form-select unit-select" name="items[{{ forloop.counter0 }}][unit]">
+                                            {% for unit in units %}
+                                            <option value="{{ unit.code }}" {% if item.unit == unit.code %}selected{% endif %}>{{ unit.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Unit Price" %}</label>
+                                        <input type="number" class="form-control price-input" name="items[{{ forloop.counter0 }}][unit_price]" value="{{ item.unit_price|default:0 }}" min="0" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger btn-sm remove-item-btn" onclick="removeItem(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Description" %}</label>
+                                        <textarea class="form-control" name="items[{{ forloop.counter0 }}][description]" rows="2">{{ item.description|default:'' }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Tax Rate %" %}</label>
+                                        <input type="number" class="form-control tax-input" name="items[{{ forloop.counter0 }}][tax_rate]" value="{{ item.tax_rate|default:0 }}" min="0" max="100" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Total" %}</label>
+                                        <input type="text" class="form-control total-input" name="items[{{ forloop.counter0 }}][total]" value="{{ item.total_price|default:0 }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="item-row" data-item-id="0">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Product" %}</label>
+                                        <select class="form-select product-select" name="items[0][product]">
+                                            <option value="">{% trans "Select Product" %}</option>
+                                            {% for product in products %}
+                                            <option value="{{ product.id }}">{{ product.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Ordered Qty" %}</label>
+                                        <input type="number" class="form-control ordered-qty-input" name="items[0][ordered_quantity]" value="0" min="0" step="0.001">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Received Qty" %}</label>
+                                        <input type="number" class="form-control received-qty-input" name="items[0][received_quantity]" value="0" min="0" step="0.001">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Unit" %}</label>
+                                        <select class="form-select unit-select" name="items[0][unit]">
+                                            {% for unit in units %}
+                                            <option value="{{ unit.code }}">{{ unit.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Unit Price" %}</label>
+                                        <input type="number" class="form-control price-input" name="items[0][unit_price]" value="0" min="0" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger btn-sm remove-item-btn" onclick="removeItem(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Description" %}</label>
+                                        <textarea class="form-control" name="items[0][description]" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Tax Rate %" %}</label>
+                                        <input type="number" class="form-control tax-input" name="items[0][tax_rate]" value="0" min="0" max="100" step="0.01">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">{% trans "Total" %}</label>
+                                        <input type="text" class="form-control total-input" name="items[0][total]" value="0" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Totals -->
+                    <div class="row mt-3">
+                        <div class="col-md-8 text-end">
+                            <h5>{% trans "Subtotal:" %}</h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <h5 id="subtotal">0.00</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 text-end">
+                            <h5>{% trans "Discount:" %}</h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <input type="number" class="form-control text-end" id="totalDiscount" name="discount" value="{{ goods_receipt.discount|default:0 }}" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 text-end">
+                            <h5>{% trans "Tax:" %}</h5>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <input type="number" class="form-control text-end" id="totalTax" name="tax_amount" value="{{ goods_receipt.tax_amount|default:0 }}" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8 text-end">
+                            <h4>{% trans "Total:" %}</h4>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <h4 id="grandTotal">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Shipping Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="shipping_method" class="form-label">{% trans "Shipping Method" %}</label>
+                                <select class="form-select" id="shipping_method" name="shipping_method">
+                                    <option value="standard" {% if goods_receipt.shipping_method == 'standard' %}selected{% endif %}>{% trans "Standard" %}</option>
+                                    <option value="express" {% if goods_receipt.shipping_method == 'express' %}selected{% endif %}>{% trans "Express" %}</option>
+                                    <option value="overnight" {% if goods_receipt.shipping_method == 'overnight' %}selected{% endif %}>{% trans "Overnight" %}</option>
+                                    <option value="pickup" {% if goods_receipt.shipping_method == 'pickup' %}selected{% endif %}>{% trans "Pickup" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="carrier" class="form-label">{% trans "Carrier" %}</label>
+                                <input type="text" class="form-control" id="carrier" name="carrier" value="{{ goods_receipt.carrier|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="tracking_number" class="form-label">{% trans "Tracking Number" %}</label>
+                                <input type="text" class="form-control" id="tracking_number" name="tracking_number" value="{{ goods_receipt.tracking_number|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="waybill_number" class="form-label">{% trans "Waybill Number" %}</label>
+                                <input type="text" class="form-control" id="waybill_number" name="waybill_number" value="{{ goods_receipt.waybill_number|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="delivery_date" class="form-label">{% trans "Delivery Date" %}</label>
+                                <input type="date" class="form-control" id="delivery_date" name="delivery_date" value="{{ goods_receipt.delivery_date|date:"Y-m-d"|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="received_date" class="form-label">{% trans "Received Date" %}</label>
+                                <input type="date" class="form-control" id="received_date" name="received_date" value="{{ goods_receipt.received_date|date:"Y-m-d"|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="condition" class="form-label">{% trans "Condition" %}</label>
+                                <select class="form-select" id="condition" name="condition">
+                                    <option value="good" {% if goods_receipt.condition == 'good' %}selected{% endif %}>{% trans "Good" %}</option>
+                                    <option value="damaged" {% if goods_receipt.condition == 'damaged' %}selected{% endif %}>{% trans "Damaged" %}</option>
+                                    <option value="partial" {% if goods_receipt.condition == 'partial' %}selected{% endif %}>{% trans "Partial" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="verified_by" class="form-label">{% trans "Verified By" %}</label>
+                                <select class="form-select" id="verified_by" name="verified_by">
+                                    <option value="">{% trans "Select User" %}</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if goods_receipt.verified_by_id == user.id %}selected{% endif %}>{{ user.get_full_name|default:user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes and Attachments -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Notes and Attachments" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">{% trans "Notes" %}</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="5">{{ goods_receipt.notes|default:'' }}</textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="internal_notes" class="form-label">{% trans "Internal Notes" %}</label>
+                                <textarea class="form-control" id="internal_notes" name="internal_notes" rows="5">{{ goods_receipt.internal_notes|default:'' }}</textarea>
+                                <div class="form-text text-muted">{% trans "Visible only to staff" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">{% trans "Attachments" %}</label>
+                                <input type="file" class="form-control" name="attachments" multiple>
+                                <div class="form-text text-muted">{% trans "Upload one or more files" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-section">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'suppliers:goods_receipt_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>{% trans "Save" %}
+                                </button>
+                                <button type="submit" name="action" value="submit" class="btn btn-success">
+                                    <i class="fas fa-paper-plane me-2"></i>{% trans "Save & Submit" %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Calculate totals when page loads
+    calculateTotals();
+    
+    // Recalculate totals when any input changes
+    $('body').on('input', '.received-qty-input, .price-input, .tax-input', function() {
+        calculateItemTotal($(this).closest('.item-row'));
+        calculateTotals();
+    });
+    
+    // Recalculate totals when product or unit changes
+    $('body').on('change', '.product-select, .unit-select', function() {
+        calculateItemTotal($(this).closest('.item-row'));
+        calculateTotals();
+    });
+    
+    // Recalculate grand total when discount or tax changes
+    $('#totalDiscount, #totalTax').on('input', function() {
+        calculateTotals();
+    });
+    
+    // Load PO items when PO is selected
+    $('#purchase_order').on('change', function() {
+        loadPOItems();
+    });
+});
+
+let itemCounter = {{ goods_receipt.items.count|default:1 }};
+
+// Add new item row
+function addItem() {
+    const html = `
+        <div class="item-row" data-item-id="new_${itemCounter}">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Product" %}</label>
+                        <select class="form-select product-select" name="items[${itemCounter}][product]">
+                            <option value="">{% trans "Select Product" %}</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Ordered Qty" %}</label>
+                        <input type="number" class="form-control ordered-qty-input" name="items[${itemCounter}][ordered_quantity]" value="0" min="0" step="0.001">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Received Qty" %}</label>
+                        <input type="number" class="form-control received-qty-input" name="items[${itemCounter}][received_quantity]" value="0" min="0" step="0.001">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Unit" %}</label>
+                        <select class="form-select unit-select" name="items[${itemCounter}][unit]">
+                            {% for unit in units %}
+                            <option value="{{ unit.code }}">{{ unit.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Unit Price" %}</label>
+                        <input type="number" class="form-control price-input" name="items[${itemCounter}][unit_price]" value="0" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-sm remove-item-btn" onclick="removeItem(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Description" %}</label>
+                        <textarea class="form-control" name="items[${itemCounter}][description]" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Tax Rate %" %}</label>
+                        <input type="number" class="form-control tax-input" name="items[${itemCounter}][tax_rate]" value="0" min="0" max="100" step="0.01">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="mb-3">
+                        <label class="form-label">{% trans "Total" %}</label>
+                        <input type="text" class="form-control total-input" name="items[${itemCounter}][total]" value="0" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    $('#itemsContainer').append(html);
+    itemCounter++;
+}
+
+// Remove item row
+function removeItem(button) {
+    if (confirm('{% trans "Are you sure you want to remove this item?" %}')) {
+        $(button).closest('.item-row').remove();
+        calculateTotals();
+    }
+}
+
+// Load items from selected PO
+function loadPOItems() {
+    const poId = $('#purchase_order').val();
+    if (!poId) {
+        return;
+    }
+    
+    // In a real implementation, this would fetch PO items via AJAX
+    // For now, we'll clear existing items and show a message
+    if (confirm('{% trans "Load items from the selected purchase order? This will replace existing items." %}')) {
+        $('#itemsContainer').empty();
+        addItem();
+        alert('{% trans "In a real implementation, items would be loaded from the selected PO." %}');
+    }
+}
+
+// Calculate item total
+function calculateItemTotal(row) {
+    const receivedQty = parseFloat(row.find('.received-qty-input').val()) || 0;
+    const unitPrice = parseFloat(row.find('.price-input').val()) || 0;
+    const taxRate = parseFloat(row.find('.tax-input').val()) || 0;
+    
+    const subtotal = receivedQty * unitPrice;
+    const taxAmount = subtotal * (taxRate / 100);
+    const total = subtotal + taxAmount;
+    
+    row.find('.total-input').val(total.toFixed(2));
+}
+
+// Calculate all totals
+function calculateTotals() {
+    let subtotal = 0;
+    
+    // Calculate subtotal from all items
+    $('.item-row').each(function() {
+        const total = parseFloat($(this).find('.total-input').val()) || 0;
+        subtotal += total;
+    });
+    
+    // Get discount and tax
+    const discount = parseFloat($('#totalDiscount').val()) || 0;
+    const tax = parseFloat($('#totalTax').val()) || 0;
+    
+    // Calculate grand total
+    const grandTotal = subtotal - discount + tax;
+    
+    // Update display
+    $('#subtotal').text(subtotal.toFixed(2));
+    $('#grandTotal').text(grandTotal.toFixed(2));
+}
+</script>
 {% endblock %}

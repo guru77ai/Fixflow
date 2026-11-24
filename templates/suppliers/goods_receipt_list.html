@@ -1,20 +1,366 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Goods Receipt List %}{% endblock %}
+{% block title %}{% trans "Goods Receipts" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Goods Receipt List %}</h1>
+    <h1 class="page-title">{% trans "Goods Receipts" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'suppliers:goods_receipt_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "New Goods Receipt" %}
+        </a>
+        <button class="btn btn-secondary" id="exportBtn">
+            <i class="fas fa-file-export"></i> {% trans "Export" %}
+        </button>
+        <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .gr-status-badge {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .gr-type-badge {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+        border-radius: 3px;
+    }
+    .filter-card {
+        margin-bottom: 20px;
+    }
+    .filter-card .card-body {
+        padding: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total" %}</h6>
+                            <h3 class="mb-0">{{ goods_receipts.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-box-open fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Received" %}</h6>
+                            <h3 class="mb-0">{{ stats.received|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Verified" %}</h6>
+                            <h3 class="mb-0">{{ stats.verified|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Value" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_value|default:"0.00" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clipboard-list fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Items" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_items|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shipping-fast fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Suppliers" %}</h6>
+                            <h3 class="mb-0">{{ stats.suppliers|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form id="filterForm" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="statusFilter" class="form-label">{% trans "Status" %}</label>
+                                <select class="form-select" id="statusFilter" name="status">
+                                    <option value="">{% trans "All Statuses" %}</option>
+                                    <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>{% trans "Draft" %}</option>
+                                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>{% trans "Pending" %}</option>
+                                    <option value="received" {% if request.GET.status == 'received' %}selected{% endif %}>{% trans "Received" %}</option>
+                                    <option value="verified" {% if request.GET.status == 'verified' %}selected{% endif %}>{% trans "Verified" %}</option>
+                                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>{% trans "Cancelled" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="supplierFilter" class="form-label">{% trans "Supplier" %}</label>
+                                <select class="form-select" id="supplierFilter" name="supplier">
+                                    <option value="">{% trans "All Suppliers" %}</option>
+                                    {% for supplier in suppliers %}
+                                    <option value="{{ supplier.id }}" {% if request.GET.supplier == supplier.id|stringformat:"s" %}selected{% endif %}>{{ supplier.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="poFilter" class="form-label">{% trans "Purchase Order" %}</label>
+                                <select class="form-select" id="poFilter" name="purchase_order">
+                                    <option value="">{% trans "All POs" %}</option>
+                                    {% for po in purchase_orders %}
+                                    <option value="{{ po.id }}" {% if request.GET.purchase_order == po.id|stringformat:"s" %}selected{% endif %}>{{ po.po_number }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="typeFilter" class="form-label">{% trans "Type" %}</label>
+                                <select class="form-select" id="typeFilter" name="type">
+                                    <option value="">{% trans "All Types" %}</option>
+                                    <option value="partial" {% if request.GET.type == 'partial' %}selected{% endif %}>{% trans "Partial" %}</option>
+                                    <option value="complete" {% if request.GET.type == 'complete' %}selected{% endif %}>{% trans "Complete" %}</option>
+                                    <option value="return" {% if request.GET.type == 'return' %}selected{% endif %}>{% trans "Return" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateFrom" class="form-label">{% trans "Date From" %}</label>
+                                <input type="date" class="form-control" id="dateFrom" name="date_from" value="{{ request.GET.date_from }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateTo" class="form-label">{% trans "Date To" %}</label>
+                                <input type="date" class="form-control" id="dateTo" name="date_to" value="{{ request.GET.date_to }}">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                                </button>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <a href="?" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> {% trans "Clear" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goods Receipts Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Goods Receipts" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="grTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "GR #" %}</th>
+                                    <th>{% trans "PO #" %}</th>
+                                    <th>{% trans "Supplier" %}</th>
+                                    <th>{% trans "Receipt Date" %}</th>
+                                    <th>{% trans "Items" %}</th>
+                                    <th>{% trans "Total Amount" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Received By" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for gr in goods_receipts %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'suppliers:goods_receipt_detail' gr.id %}" class="text-decoration-none">
+                                            {{ gr.gr_number|default:"-" }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if gr.purchase_order %}
+                                            <a href="{% url 'suppliers:purchase_order_detail' gr.purchase_order.id %}" class="text-decoration-none">
+                                                {{ gr.purchase_order.po_number|default:"-" }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "N/A" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ gr.supplier.name|default:"-" }}</td>
+                                    <td>{{ gr.receipt_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ gr.items.count|default:0 }}</td>
+                                    <td>{{ gr.total_amount|default:"0.00" }}</td>
+                                    <td>
+                                        <span class="gr-type-badge badge bg-{{ gr.receipt_type|lower }}">
+                                            {% trans gr.get_receipt_type_display %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="gr-status-badge badge bg-{{ gr.status|lower }}">
+                                            {% trans gr.get_status_display %}
+                                        </span>
+                                    </td>
+                                    <td>{{ gr.received_by.get_full_name|default:gr.received_by.username|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'suppliers:goods_receipt_detail' gr.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'suppliers:goods_receipt_update' gr.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-success" onclick="verifyGR('{{ gr.id }}')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteGR('{{ gr.id }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">{% trans "No goods receipts found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            {% trans "Showing" %} {{ goods_receipts.start_index|default:1 }} {% trans "to" %} {{ goods_receipts.end_index|default:0 }} {% trans "of" %} {{ goods_receipts.paginator.count|default:0 }} {% trans "entries" %}
+                        </div>
+                        <div>
+                            {% if goods_receipts.has_previous %}
+                            <a href="?page=1{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "First" %}</a>
+                            <a href="?page={{ goods_receipts.previous_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Previous" %}</a>
+                            {% endif %}
+                            <span class="btn btn-sm btn-outline-secondary disabled">{% trans "Page" %} {{ goods_receipts.number|default:1 }} {% trans "of" %} {{ goods_receipts.paginator.num_pages|default:1 }}</span>
+                            {% if goods_receipts.has_next %}
+                            <a href="?page={{ goods_receipts.next_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Next" %}</a>
+                            <a href="?page={{ goods_receipts.paginator.num_pages }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Last" %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#grTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[3, 'desc']], // Sort by receipt date
+        columnDefs: [
+            { orderable: false, targets: [9] } // Disable ordering on Actions column
+        ],
+        dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>',
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+    
+    // Export button
+    $('#exportBtn').on('click', function() {
+        window.location.href = '{% url "suppliers:goods_receipt_export" %}' + window.location.search;
+    });
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+});
+
+// Verify GR
+function verifyGR(grId) {
+    if (confirm('{% trans "Are you sure you want to verify this goods receipt?" %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_verify" 0 %}'.replace('0', grId);
+    }
+}
+
+// Delete GR
+function deleteGR(grId) {
+    if (confirm('{% trans "Are you sure you want to delete this goods receipt? This action cannot be undone." %}')) {
+        window.location.href = '{% url "suppliers:goods_receipt_delete" 0 %}'.replace('0', grId);
+    }
+}
+</script>
 {% endblock %}

@@ -1,20 +1,404 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Repair Report %}{% endblock %}
+{% block title %}{% trans "Repair Report" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Repair Report %}</h1>
+    <h1 class="page-title">{% trans "Repair Report" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    .status-received { background-color: #fef3c7; }
+    .status-diagnosis { background-color: #fef3c7; }
+    .status-awaiting-approval { background-color: #fef3c7; }
+    .status-awaiting-parts { background-color: #fef3c7; }
+    .status-in-progress { background-color: #dbeafe; }
+    .status-testing { background-color: #dbeafe; }
+    .status-completed { background-color: #d1fae5; }
+    .status-delivered { background-color: #d1fae5; }
+    .status-cancelled { background-color: #fee2e2; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-tools fa-2x text-primary mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Total Repairs" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.total_repairs|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Pending" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.pending|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-spinner fa-2x text-info mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "In Progress" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.in_progress|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Completed" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.completed|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Total Revenue" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.total_revenue|floatformat:2|default:0 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-4 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex flex-column align-items-center">
+                        <i class="fas fa-hourglass-half fa-2x text-secondary mb-2"></i>
+                        <h6 class="text-muted mb-1 small">{% trans "Avg Duration" %}</h6>
+                        <h4 class="mb-0">{{ repair_data.summary.avg_duration|default:0 }} {% trans "days" %}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Status" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Technician" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByTechnicianChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Device" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByDeviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Day" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByDayChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repair List Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repair List" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="repairListTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Repair #" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Device" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Technician" %}</th>
+                                    <th>{% trans "Received Date" %}</th>
+                                    <th>{% trans "Est. Completion" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair in repair_data.repairs %}
+                                <tr>
+                                    <td>{{ repair.repair_number|default:"-" }}</td>
+                                    <td>{{ repair.customer__name|default:repair.customer }}</td>
+                                    <td>{{ repair.device__name|default:repair.device }}</td>
+                                    <td>
+                                        <span class="badge {% if repair.status == 'delivered' %}bg-success{% elif repair.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ repair.status|title|default:"-" }}
+                                        </span>
+                                    </td>
+                                    <td>{{ repair.technician__name|default:repair.technician|default:"-" }}</td>
+                                    <td>{{ repair.received_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ repair.estimated_completion|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ repair.total|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                        <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">{% trans "No repairs found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repair Status Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for status, count in repair_data.by_status %}
+                        <div class="col-md-2 col-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">{{ status|title }}</h6>
+                                    <h3 class="display-6">{{ count }}</h3>
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ count|percent_of:repair_data.summary.total_repairs }}%" aria-valuenow="{{ count|percent_of:repair_data.summary.total_repairs }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">{% trans "Start Date" %}</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">{% trans "End Date" %}</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">{% trans "Status" %}</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">{% trans "All Status" %}</option>
+                                <option value="received">{% trans "Received" %}</option>
+                                <option value="diagnosis">{% trans "Diagnosis" %}</option>
+                                <option value="awaiting_approval">{% trans "Awaiting Approval" %}</option>
+                                <option value="awaiting_parts">{% trans "Awaiting Parts" %}</option>
+                                <option value="in_progress">{% trans "In Progress" %}</option>
+                                <option value="testing">{% trans "Testing" %}</option>
+                                <option value="delivered">{% trans "Delivered" %}</option>
+                                <option value="cancelled">{% trans "Cancelled" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Repairs by Status Chart
+var repairsByStatusCtx = document.getElementById('repairsByStatusChart').getContext('2d');
+var repairsByStatusData = {{ repair_data.by_status|safe }};
+new Chart(repairsByStatusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: repairsByStatusData.map(item => item.status),
+        datasets: [{
+            data: repairsByStatusData.map(item => item.count),
+            backgroundColor: [
+                '#fef3c7', '#fef3c7', '#fef3c7', '#fef3c7',
+                '#dbeafe', '#dbeafe', '#d1fae5', '#d1fae5',
+                '#fee2e2'
+            ],
+            borderColor: [
+                '#f59e0b', '#f59e0b', '#f59e0b', '#f59e0b',
+                '#3b82f6', '#3b82f6', '#10b981', '#10b981',
+                '#ef4444'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Repairs by Technician Chart
+var repairsByTechnicianCtx = document.getElementById('repairsByTechnicianChart').getContext('2d');
+var repairsByTechnicianData = {{ repair_data.by_technician|safe }};
+new Chart(repairsByTechnicianCtx, {
+    type: 'bar',
+    data: {
+        labels: repairsByTechnicianData.map(item => item.technician),
+        datasets: [{
+            label: '{% trans "Number of Repairs" %}',
+            data: repairsByTechnicianData.map(item => item.count),
+            backgroundColor: '#3b82f6'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Repairs by Device Chart
+var repairsByDeviceCtx = document.getElementById('repairsByDeviceChart').getContext('2d');
+var repairsByDeviceData = {{ repair_data.by_device|safe }};
+new Chart(repairsByDeviceCtx, {
+    type: 'bar',
+    data: {
+        labels: repairsByDeviceData.map(item => item.device),
+        datasets: [{
+            label: '{% trans "Number of Repairs" %}',
+            data: repairsByDeviceData.map(item => item.count),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+
+// Repairs by Day Chart
+var repairsByDayCtx = document.getElementById('repairsByDayChart').getContext('2d');
+var repairsByDayData = {{ repair_data.by_day|safe }};
+new Chart(repairsByDayCtx, {
+    type: 'line',
+    data: {
+        labels: repairsByDayData.map(item => item.date),
+        datasets: [{
+            label: '{% trans "Repairs" %}',
+            data: repairsByDayData.map(item => item.count),
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#repairListTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[5, 'desc']] // Sort by received date
+    });
+});
+</script>
 {% endblock %}

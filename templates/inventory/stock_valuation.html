@@ -1,20 +1,280 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Stock Valuation %}{% endblock %}
+{% block title %}{% trans "Stock Valuation" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock Valuation %}</h1>
+    <h1 class="page-title">{% trans "Stock Valuation" %}</h1>
+    <div class="page-tools">
+        <a href="#" class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> {% trans "Print" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    @media print {
+        .no-print { display: none; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Cards -->
+    <div class="row mb-4 no-print">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-boxes fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Items" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_items|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Value" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_value|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Average Cost" %}</h6>
+                            <h3 class="mb-0">{{ stats.average_cost|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-warehouse fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Warehouses" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_warehouses|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valuation Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Valuation Report" %}</h5>
+                    <div class="card-tools no-print">
+                        <a href="{% url 'inventory:stock_valuation_export' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-export"></i> {% trans "Export" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="valuationTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Brand" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Total Value" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in valuation_items %}
+                                <tr>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td>{{ item.product__name|default:"-" }}</td>
+                                    <td>{{ item.category__name|default:"-" }}</td>
+                                    <td>{{ item.brand__name|default:"-" }}</td>
+                                    <td>{{ item.warehouse__name|default:"-" }}</td>
+                                    <td>{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ item.total_value|floatformat:2|default:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">{% trans "No items found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="5">{% trans "Total" %}</td>
+                                    <td>{{ stats.total_quantity|default:0 }}</td>
+                                    <td>{{ stats.average_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ stats.total_value|floatformat:2|default:0 }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Valuation by Category Chart -->
+    <div class="row mb-4 no-print">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Valuation by Category" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="valuationByCategoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Valuation by Warehouse" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="valuationByWarehouseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row no-print">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="warehouse" class="form-label">{% trans "Warehouse" %}</label>
+                            <select class="form-select" id="warehouse" name="warehouse">
+                                <option value="">{% trans "All Warehouses" %}</option>
+                                {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.id }}" {% if request.GET.warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="valuation_method" class="form-label">{% trans "Valuation Method" %}</label>
+                            <select class="form-select" id="valuation_method" name="valuation_method">
+                                <option value="fifo">{% trans "FIFO" %}</option>
+                                <option value="lifo">{% trans "LIFO" %}</option>
+                                <option value="average" {% if request.GET.valuation_method != 'fifo' and request.GET.valuation_method != 'lifo' %}selected{% endif %}>{% trans "Average Cost" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Valuation by Category Chart
+var valuationByCategoryCtx = document.getElementById('valuationByCategoryChart').getContext('2d');
+var valuationByCategoryData = {{ stats.valuation_by_category|safe }};
+new Chart(valuationByCategoryCtx, {
+    type: 'pie',
+    data: {
+        labels: valuationByCategoryData.map(item => item.category),
+        datasets: [{
+            data: valuationByCategoryData.map(item => item.value),
+            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Valuation by Warehouse Chart
+var valuationByWarehouseCtx = document.getElementById('valuationByWarehouseChart').getContext('2d');
+var valuationByWarehouseData = {{ stats.valuation_by_warehouse|safe }};
+new Chart(valuationByWarehouseCtx, {
+    type: 'bar',
+    data: {
+        labels: valuationByWarehouseData.map(item => item.warehouse),
+        datasets: [{
+            label: '{% trans "Value" %}',
+            data: valuationByWarehouseData.map(item => item.value),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#valuationTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+});
+</script>
 {% endblock %}

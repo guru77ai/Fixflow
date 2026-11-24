@@ -1,20 +1,432 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Audit Log List %}{% endblock %}
+{% block title %}{% trans "Audit Logs" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Audit Log List %}</h1>
+    <h1 class="page-title">{% trans "Audit Logs" %}</h1>
+    <div class="page-tools">
+        <button class="btn btn-primary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+        <button class="btn btn-secondary" id="exportBtn">
+            <i class="fas fa-file-export"></i> {% trans "Export" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .action-badge {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .filter-card {
+        margin-bottom: 20px;
+    }
+    .filter-card .card-body {
+        padding: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-list fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total" %}</h6>
+                            <h3 class="mb-0">{{ stats.total|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Users" %}</h6>
+                            <h3 class="mb-0">{{ stats.unique_users|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-building fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Organizations" %}</h6>
+                            <h3 class="mb-0">{{ stats.unique_organizations|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-code-branch fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Branches" %}</h6>
+                            <h3 class="mb-0">{{ stats.unique_branches|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Failed" %}</h6>
+                            <h3 class="mb-0">{{ stats.failed|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Last 24h" %}</h6>
+                            <h3 class="mb-0">{{ stats.last_24h|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-body">
+                    <form id="filterForm" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label for="actionFilter" class="form-label">{% trans "Action" %}</label>
+                                <select class="form-select" id="actionFilter" name="action">
+                                    <option value="">{% trans "All Actions" %}</option>
+                                    <option value="create" {% if request.GET.action == 'create' %}selected{% endif %}>{% trans "Create" %}</option>
+                                    <option value="update" {% if request.GET.action == 'update' %}selected{% endif %}>{% trans "Update" %}</option>
+                                    <option value="delete" {% if request.GET.action == 'delete' %}selected{% endif %}>{% trans "Delete" %}</option>
+                                    <option value="login" {% if request.GET.action == 'login' %}selected{% endif %}>{% trans "Login" %}</option>
+                                    <option value="logout" {% if request.GET.action == 'logout' %}selected{% endif %}>{% trans "Logout" %}</option>
+                                    <option value="financial_operation" {% if request.GET.action == 'financial_operation' %}selected{% endif %}>{% trans "Financial" %}</option>
+                                    <option value="stock_movement" {% if request.GET.action == 'stock_movement' %}selected{% endif %}>{% trans "Stock" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="userFilter" class="form-label">{% trans "User" %}</label>
+                                <select class="form-select" id="userFilter" name="user">
+                                    <option value="">{% trans "All Users" %}</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}" {% if request.GET.user == user.id|stringformat:"s" %}selected{% endif %}>{{ user.get_full_name|default:user.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="entityFilter" class="form-label">{% trans "Entity Type" %}</label>
+                                <select class="form-select" id="entityFilter" name="entity_type">
+                                    <option value="">{% trans "All Entities" %}</option>
+                                    {% for entity_type in entity_types %}
+                                    <option value="{{ entity_type }}" {% if request.GET.entity_type == entity_type %}selected{% endif %}>{{ entity_type }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="statusFilter" class="form-label">{% trans "Status" %}</label>
+                                <select class="form-select" id="statusFilter" name="status">
+                                    <option value="">{% trans "All Statuses" %}</option>
+                                    <option value="successful" {% if request.GET.status == 'successful' %}selected{% endif %}>{% trans "Successful" %}</option>
+                                    <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>{% trans "Failed" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateFrom" class="form-label">{% trans "Date From" %}</label>
+                                <input type="date" class="form-control" id="dateFrom" name="date_from" value="{{ request.GET.date_from }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="dateTo" class="form-label">{% trans "Date To" %}</label>
+                                <input type="date" class="form-control" id="dateTo" name="date_to" value="{{ request.GET.date_to }}">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                                </button>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <a href="?" class="btn btn-secondary w-100">
+                                    <i class="fas fa-times"></i> {% trans "Clear" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Logs Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Audit Log Entries" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="auditLogTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Timestamp" %}</th>
+                                    <th>{% trans "Action" %}</th>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Entity" %}</th>
+                                    <th>{% trans "Organization" %}</th>
+                                    <th>{% trans "Branch" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "IP Address" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>
+                                        <div class="text-muted small">{{ log.created_at|date:"Y-m-d" }}</div>
+                                        <div>{{ log.created_at|time:"H:i:s" }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="action-badge badge bg-{{ log.get_action_display|lower }}">
+                                            {% trans log.get_action_display %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.user %}
+                                            <div class="d-flex align-items-center">
+                                                {% if log.user.profile_picture %}
+                                                <img src="{{ log.user.profile_picture.url }}" alt="{{ log.user.get_full_name }}" class="user-avatar me-2">
+                                                {% else %}
+                                                <div class="user-avatar bg-primary text-white d-flex align-items-center justify-content-center me-2">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                {% endif %}
+                                                <div>
+                                                    <div>{{ log.user.get_full_name|default:log.user.username|truncatechars:20 }}</div>
+                                                    <div class="text-muted small">{{ log.user.email|truncatechars:25 }}</div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">{{ log.user_email|default:"-" }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ log.entity_type|default:"-" }}</div>
+                                        <div class="text-muted small">{{ log.entity_repr|truncatechars:30|default:"-" }}</div>
+                                    </td>
+                                    <td>{{ log.organization.name|default:"-" }}</td>
+                                    <td>{{ log.branch.name|default:"-" }}</td>
+                                    <td>
+                                        {% if log.is_successful %}
+                                            <span class="badge bg-success">{% trans "Success" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "Failed" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.ip_address|default:"-" }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="showDetails('{{ log.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">{% trans "No audit logs found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            {% trans "Showing" %} {{ logs.start_index|default:1 }} {% trans "to" %} {{ logs.end_index|default:0 }} {% trans "of" %} {{ logs.paginator.count|default:0 }} {% trans "entries" %}
+                        </div>
+                        <div>
+                            {% if logs.has_previous %}
+                            <a href="?page=1{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "First" %}</a>
+                            <a href="?page={{ logs.previous_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Previous" %}</a>
+                            {% endif %}
+                            <span class="btn btn-sm btn-outline-secondary disabled">{% trans "Page" %} {{ logs.number|default:1 }} {% trans "of" %} {{ logs.paginator.num_pages|default:1 }}</span>
+                            {% if logs.has_next %}
+                            <a href="?page={{ logs.next_page_number }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Next" %}</a>
+                            <a href="?page={{ logs.paginator.num_pages }}{% for key, value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}" class="btn btn-sm btn-outline-primary">{% trans "Last" %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">{% trans "Audit Log Details" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalBodyContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Initialize DataTable
+    $('#auditLogTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']], // Sort by timestamp
+        columnDefs: [
+            { orderable: false, targets: [8] } // Disable ordering on Actions column
+        ],
+        dom: '<"row mb-3"<"col-md-6"l><"col-md-6"f>>rt<"row"<"col-md-6"i><"col-md-6"p>>',
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+    
+    // Export button
+    $('#exportBtn').on('click', function() {
+        window.location.href = window.location.pathname + '?export=csv' + window.location.search;
+    });
+});
+
+function showDetails(logId) {
+    // In a real implementation, this would fetch the details via AJAX
+    // For now, we'll show a placeholder
+    let html = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>{% trans "Action" %}</h6>
+                <p id="detailAction"></p>
+                <h6>{% trans "User" %}</h6>
+                <p id="detailUser"></p>
+                <h6>{% trans "Entity Type" %}</h6>
+                <p id="detailEntityType"></p>
+                <h6>{% trans "Entity ID" %}</h6>
+                <p id="detailEntityId"></p>
+            </div>
+            <div class="col-md-6">
+                <h6>{% trans "Timestamp" %}</h6>
+                <p id="detailTimestamp"></p>
+                <h6>{% trans "Organization" %}</h6>
+                <p id="detailOrganization"></p>
+                <h6>{% trans "Branch" %}</h6>
+                <p id="detailBranch"></p>
+                <h6>{% trans "Status" %}</h6>
+                <p id="detailStatus"></p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>{% trans "Old Values" %}</h6>
+                <pre id="detailOldValues" class="bg-light p-3 rounded"></pre>
+                <h6 class="mt-2">{% trans "New Values" %}</h6>
+                <pre id="detailNewValues" class="bg-light p-3 rounded"></pre>
+                <h6 class="mt-2">{% trans "Changed Fields" %}</h6>
+                <pre id="detailChangedFields" class="bg-light p-3 rounded"></pre>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>{% trans "Notes" %}</h6>
+                <p id="detailNotes"></p>
+                <h6>{% trans "Error Message" %}</h6>
+                <p id="detailError"></p>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>{% trans "Request Information" %}</h6>
+                <p><strong>{% trans "IP Address:" %}</strong> <span id="detailIp"></span></p>
+                <p><strong>{% trans "User Agent:" %}</strong> <span id="detailUserAgent"></span></p>
+                <p><strong>{% trans "Request Path:" %}</strong> <span id="detailPath"></span></p>
+            </div>
+        </div>
+    `;
+    $('#modalBodyContent').html(html);
+    $('#detailsModal').modal('show');
+    
+    // In a real implementation, you would fetch the data via AJAX
+    // and populate the modal fields
+}
+</script>
 {% endblock %}

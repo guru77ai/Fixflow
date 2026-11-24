@@ -1,20 +1,420 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Backup Restore %}{% endblock %}
+{% block title %}{% trans "Restore Backup" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Backup Restore %}</h1>
+    <h1 class="page-title">{% trans "Restore Backup" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'backups:list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .restore-step {
+        margin-bottom: 30px;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        border-left: 4px solid #dee2e6;
+    }
+    .restore-step.active {
+        border-left-color: #007bff;
+        background-color: #e9f7fe;
+    }
+    .restore-step.completed {
+        border-left-color: #28a745;
+        background-color: #d4edda;
+    }
+    .restore-step.error {
+        border-left-color: #dc3545;
+        background-color: #f8d7da;
+    }
+    .restore-step-number {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 50%;
+        background-color: #6c757d;
+        color: white;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .restore-step.active .restore-step-number {
+        background-color: #007bff;
+    }
+    .restore-step.completed .restore-step-number {
+        background-color: #28a745;
+    }
+    .restore-step.error .restore-step-number {
+        background-color: #dc3545;
+    }
+    .backup-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .backup-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 0.5rem 1rem rgba(0, 123, 255, 0.15);
+    }
+    .backup-card.selected {
+        border-color: #007bff;
+        background-color: #e9f7fe;
+    }
+    .backup-card .card-body {
+        padding: 15px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Restore Warning -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-body text-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Warning: Restore Operation" %}</h5>
+                            <p class="mb-0">{% trans "Restoring a backup will overwrite your current database. This action cannot be undone. Please ensure you have a recent backup before proceeding." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Restore Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Restore Process" %}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Step 1: Select Backup -->
+                    <div class="restore-step active" id="step1">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="restore-step-number">1</span>
+                            <h4 class="mb-0">{% trans "Select Backup to Restore" %}</h4>
+                        </div>
+                        
+                        {% if backup %}
+                            <!-- Specific backup selected -->
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="backup-card selected">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <h6 class="mb-1">{{ backup.file_name|default:"-" }}</h6>
+                                                        <div class="text-muted small">
+                                                            <span class="me-3">
+                                                                <i class="fas fa-calendar me-1"></i>
+                                                                {{ backup.created_at|date:"Y-m-d H:i"|default:"-" }}
+                                                            </span>
+                                                            <span class="me-3">
+                                                                <i class="fas fa-database me-1"></i>
+                                                                {{ backup.get_file_size_display|default:"-" }}
+                                                            </span>
+                                                            <span class="me-3">
+                                                                <i class="fas fa-user me-1"></i>
+                                                                {{ backup.user.get_full_name|default:backup.user.username|default:"-" }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4 text-end">
+                                                        <span class="badge bg-primary">
+                                                            {% if backup.backup_type == 'manual' %}{% trans "Manual" %}
+                                                            {% elif backup.backup_type == 'automatic' %}{% trans "Automatic" %}
+                                                            {% else %}{% trans "Scheduled" %}{% endif %}
+                                                        </span>
+                                                        <span class="badge bg-{{ backup.is_successful|yesno:'success,danger' }} ms-1">
+                                                            {% if backup.is_successful %}{% trans "Successful" %}
+                                                            {% else %}{% trans "Failed" %}{% endif %}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mt-3 mt-md-0">
+                                        <p class="text-muted small">{{ backup.description|truncatechars:100|default:"-" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Show list of backups -->
+                            <div class="row">
+                                {% for b in backups %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="backup-card" onclick="selectBackup('{{ b.id }}')">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-9">
+                                                        <h6 class="mb-1">{{ b.file_name|default:"-" }}</h6>
+                                                        <div class="text-muted small">
+                                                            <span class="me-3">
+                                                                <i class="fas fa-calendar me-1"></i>
+                                                                {{ b.created_at|date:"Y-m-d H:i"|default:"-" }}
+                                                            </span>
+                                                            <span class="me-3">
+                                                                <i class="fas fa-database me-1"></i>
+                                                                {{ b.get_file_size_display|default:"-" }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-3 text-end">
+                                                        <span class="badge bg-primary">
+                                                            {% if b.backup_type == 'manual' %}{% trans "Manual" %}
+                                                            {% elif b.backup_type == 'automatic' %}{% trans "Automatic" %}
+                                                            {% else %}{% trans "Scheduled" %}{% endif %}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Step 2: Restore Options -->
+                    <div class="restore-step" id="step2">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="restore-step-number">2</span>
+                            <h4 class="mb-0">{% trans "Restore Options" %}</h4>
+                        </div>
+                        
+                        <form id="restoreForm" method="post" action="">
+                            {% csrf_token %}
+                            
+                            {% if backup %}
+                                <input type="hidden" name="backup_id" value="{{ backup.id }}">
+                            {% else %}
+                                <input type="hidden" name="backup_id" id="selectedBackupId">
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="restoreType" class="form-label">{% trans "Restore Type" %}</label>
+                                        <select class="form-select" id="restoreType" name="restore_type" required>
+                                            <option value="full">{% trans "Full Restore (All Data)" %}</option>
+                                            <option value="partial">{% trans "Partial Restore (Selected Modules)" %}</option>
+                                        </select>
+                                        <div class="form-text text-muted">{% trans "Choose whether to restore all data or only specific modules" %}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="restoreDatabase" class="form-label">{% trans "Database" %}</label>
+                                        <select class="form-select" id="restoreDatabase" name="database" required>
+                                            <option value="default">{% trans "Default Database" %}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Module Selection (for partial restore) -->
+                            <div class="row mb-3" id="moduleSelection" style="display: none;">
+                                <div class="col-12">
+                                    <label class="form-label">{% trans "Select Modules to Restore" %}</label>
+                                    <div class="row">
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="accounts" id="moduleAccounts" checked>
+                                            <label class="form-check-label" for="moduleAccounts">{% trans "Accounts" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="organizations" id="moduleOrganizations" checked>
+                                            <label class="form-check-label" for="moduleOrganizations">{% trans "Organizations" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="branches" id="moduleBranches" checked>
+                                            <label class="form-check-label" for="moduleBranches">{% trans "Branches" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="crm" id="moduleCrm" checked>
+                                            <label class="form-check-label" for="moduleCrm">{% trans "Customers" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="suppliers" id="moduleSuppliers" checked>
+                                            <label class="form-check-label" for="moduleSuppliers">{% trans "Suppliers" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="inventory" id="moduleInventory" checked>
+                                            <label class="form-check-label" for="moduleInventory">{% trans "Inventory" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="repair" id="moduleRepair" checked>
+                                            <label class="form-check-label" for="moduleRepair">{% trans "Repairs" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="pos" id="modulePos" checked>
+                                            <label class="form-check-label" for="modulePos">{% trans "POS" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="financial" id="moduleFinancial" checked>
+                                            <label class="form-check-label" for="moduleFinancial">{% trans "Financial" %}</label>
+                                        </div>
+                                        <div class="col-md-3 form-check">
+                                            <input class="form-check-input" type="checkbox" name="modules" value="settings" id="moduleSettings" checked>
+                                            <label class="form-check-label" for="moduleSettings">{% trans "Settings" %}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="restoreNotes" class="form-label">{% trans "Notes" %}</label>
+                                        <textarea class="form-control" id="restoreNotes" name="notes" rows="3" placeholder="{% trans 'Optional notes about this restore operation' %}"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div class="restore-step" id="step3">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="restore-step-number">3</span>
+                            <h4 class="mb-0">{% trans "Confirmation" %}</h4>
+                        </div>
+                        
+                        <div class="alert alert-danger">
+                            <h5 class="alert-heading">{% trans "Are you sure?" %}</h5>
+                            <p>{% trans "You are about to restore a backup. This will overwrite your current database and cannot be undone." %}</p>
+                            <p>{% trans "All existing data will be lost unless it has been backed up." %}</p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmRestore" required>
+                                <label class="form-check-label" for="confirmRestore">
+                                    {% trans "I understand the consequences and want to proceed with the restore." %}
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger btn-lg" id="confirmRestoreBtn" disabled>
+                                <i class="fas fa-undo me-2"></i>{% trans "Restore Backup" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore Logs -->
+    {% if restore_logs %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Restore Operations" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Backup" %}</th>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Notes" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in restore_logs %}
+                                <tr>
+                                    <td>{{ log.backup.file_name|default:"-" }}</td>
+                                    <td>{{ log.user.get_full_name|default:log.user.username|default:"-" }}</td>
+                                    <td>
+                                        {% if log.is_successful %}
+                                            <span class="badge bg-success">{% trans "Successful" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{% trans "Failed" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ log.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ log.notes|truncatechars:50|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Toggle module selection based on restore type
+    $('#restoreType').on('change', function() {
+        if ($(this).val() === 'partial') {
+            $('#moduleSelection').show();
+        } else {
+            $('#moduleSelection').hide();
+        }
+    });
+    
+    // Backup selection
+    function selectBackup(backupId) {
+        $('.backup-card').removeClass('selected');
+        $('#selectedBackupId').val(backupId);
+        $('#step1').removeClass('active').addClass('completed');
+        $('#step2').addClass('active');
+        scrollToStep('step2');
+    }
+    
+    function scrollToStep(stepId) {
+        $('html, body').animate({
+            scrollTop: $('#' + stepId).offset().top - 100
+        }, 500);
+    }
+    
+    // Confirmation checkbox
+    $('#confirmRestore').on('change', function() {
+        $('#confirmRestoreBtn').prop('disabled', !$(this).is(':checked'));
+    });
+    
+    // Form submission
+    $('#confirmRestoreBtn').on('click', function() {
+        if (confirm('{% trans "This will restore the backup and overwrite your current database. Are you absolutely sure?" %}')) {
+            $('#restoreForm').submit();
+        }
+    });
+    
+    // If backup is already selected, start from step 2
+    {% if backup %}
+        $('#step1').removeClass('active').addClass('completed');
+        $('#step2').addClass('active');
+    {% endif %}
+});
+</script>
 {% endblock %}

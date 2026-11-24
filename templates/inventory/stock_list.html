@@ -1,20 +1,269 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Stock List %}{% endblock %}
+{% block title %}{% trans "Stock List" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock List %}</h1>
+    <h1 class="page-title">{% trans "Stock List" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Stock" %}
+        </a>
+        <a href="{% url 'inventory:dashboard' %}" class="btn btn-info">
+            <i class="fas fa-tachometer-alt"></i> {% trans "Dashboard" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stock-low { background-color: #fee2e2; }
+    .stock-ok { background-color: #d1fae5; }
+    .stock-warning { background-color: #fef3c7; }
+    .stock-overstock { background-color: #fef3c7; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-boxes fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Products" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_products|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Value" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_value|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Low Stock" %}</h6>
+                            <h3 class="mb-0">{{ stats.low_stock|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-arrow-up fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Overstock" %}</h6>
+                            <h3 class="mb-0">{{ stats.overstock|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filters" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="brand" class="form-label">{% trans "Brand" %}</label>
+                            <select class="form-select" id="brand" name="brand">
+                                <option value="">{% trans "All Brands" %}</option>
+                                {% for brand in brands %}
+                                <option value="{{ brand.id }}" {% if request.GET.brand == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="warehouse" class="form-label">{% trans "Warehouse" %}</label>
+                            <select class="form-select" id="warehouse" name="warehouse">
+                                <option value="">{% trans "All Warehouses" %}</option>
+                                {% for warehouse in warehouses %}
+                                <option value="{{ warehouse.id }}" {% if request.GET.warehouse == warehouse.id|stringformat:"s" %}selected{% endif %}>{{ warehouse.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="stock_status" class="form-label">{% trans "Stock Status" %}</label>
+                            <select class="form-select" id="stock_status" name="stock_status">
+                                <option value="">{% trans "All Status" %}</option>
+                                <option value="low" {% if request.GET.stock_status == 'low' %}selected{% endif %}>{% trans "Low Stock" %}</option>
+                                <option value="ok" {% if request.GET.stock_status == 'ok' %}selected{% endif %}>{% trans "OK" %}</option>
+                                <option value="overstock" {% if request.GET.stock_status == 'overstock' %}selected{% endif %}>{% trans "Overstock" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                                </button>
+                                <a href="{% url 'inventory:stock_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> {% trans "Clear Filters" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Items" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:stock_import' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-import"></i> {% trans "Import" %}
+                        </a>
+                        <a href="{% url 'inventory:stock_export' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-file-export"></i> {% trans "Export" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="stockTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Brand" %}</th>
+                                    <th>{% trans "Warehouse" %}</th>
+                                    <th>{% trans "Current Stock" %}</th>
+                                    <th>{% trans "Min Stock" %}</th>
+                                    <th>{% trans "Max Stock" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Total Value" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in stock_list %}
+                                <tr class="{% if stock.quantity <= stock.min_stock %}stock-low{% elif stock.quantity > stock.max_stock %}stock-overstock{% else %}stock-ok{% endif %}">
+                                    <td>{{ stock.sku|default:"-" }}</td>
+                                    <td>{{ stock.product__name|default:"-" }}</td>
+                                    <td>{{ stock.category__name|default:"-" }}</td>
+                                    <td>{{ stock.brand__name|default:"-" }}</td>
+                                    <td>{{ stock.warehouse__name|default:"-" }}</td>
+                                    <td>{{ stock.quantity|default:0 }}</td>
+                                    <td>{{ stock.min_stock|default:0 }}</td>
+                                    <td>{{ stock.max_stock|default:0 }}</td>
+                                    <td>{{ stock.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ stock.total_value|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        {% if stock.quantity <= stock.min_stock %}
+                                            <span class="badge bg-danger">{% trans "Low Stock" %}</span>
+                                        {% elif stock.quantity > stock.max_stock %}
+                                            <span class="badge bg-warning text-dark">{% trans "Overstock" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{% trans "OK" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'inventory:stock_detail' stock.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'inventory:stock_edit' stock.id %}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'inventory:stock_movement' stock.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-exchange-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="12" class="text-center text-muted">{% trans "No stock items found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="5">{% trans "Total" %}</td>
+                                    <td>{{ stats.total_quantity|default:0 }}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>{{ stats.total_value|floatformat:2|default:0 }}</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#stockTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[5, 'asc']], // Sort by current stock
+        columnDefs: [
+            { orderable: false, targets: [11] } // Disable ordering on Actions column
+        ],
+        footerCallback: function(row, data, start, end, display) {
+            // Update footer totals if needed
+        }
+    });
+});
+</script>
 {% endblock %}

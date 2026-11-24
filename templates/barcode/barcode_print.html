@@ -1,20 +1,206 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Barcode Print %}{% endblock %}
+{% block title %}{% trans "Print Barcode" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Barcode Print %}</h1>
+    <h1 class="page-title">{% trans "Print Barcode" %}</h1>
+    <div class="page-tools">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> {% trans "Print" %}
+        </button>
+        <a href="{% url 'barcode:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print { display: none; }
+        .barcode-container { margin: 10px; }
+        .barcode-label { font-size: 12px; text-align: center; margin-top: 5px; }
+    }
+    .barcode-container {
+        display: inline-block;
+        margin: 10px;
+        text-align: center;
+        page-break-inside: avoid;
+    }
+    .barcode-label {
+        font-size: 12px;
+        text-align: center;
+        margin-top: 5px;
+        word-break: break-all;
+    }
+    .barcode-image {
+        max-width: 200px;
+        height: auto;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Barcode Information -->
+    <div class="row mb-4 no-print">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Barcode Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Barcode" %}:</strong> {{ barcode.code|default:"-" }}</p>
+                            <p><strong>{% trans "Type" %}:</strong> {{ barcode.barcode_type|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Product" %}:</strong> {{ barcode.product__name|default:"-" }}</p>
+                            <p><strong>{% trans "SKU" %}:</strong> {{ barcode.product__sku|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>{% trans "Generated" %}:</strong> {{ barcode.created_at|date:"Y-m-d H:i"|default:"-" }}</p>
+                            <p><strong>{% trans "Printed" %}:</strong> 
+                                {% if barcode.is_printed %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Settings -->
+    <div class="row mb-4 no-print">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Print Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="labels_per_row" class="form-label">{% trans "Labels per Row" %}</label>
+                                <select class="form-select" id="labels_per_row" onchange="updatePreview()">
+                                    <option value="1">1</option>
+                                    <option value="2" selected>2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="label_size" class="form-label">{% trans "Label Size" %}</label>
+                                <select class="form-select" id="label_size" onchange="updatePreview()">
+                                    <option value="small">{% trans "Small" %}</option>
+                                    <option value="medium" selected>{% trans "Medium" %}</option>
+                                    <option value="large">{% trans "Large" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="show_product_name" class="form-label">{% trans "Show Product Name" %}</label>
+                                <select class="form-select" id="show_product_name" onchange="updatePreview()">
+                                    <option value="yes" selected>{% trans "Yes" %}</option>
+                                    <option value="no">{% trans "No" %}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">{% trans "Quantity to Print" %}</label>
+                                <input type="number" class="form-control" id="quantity" value="1" min="1" onchange="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Preview -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header no-print">
+                    <h5 class="card-title">{% trans "Barcode Preview" %}</h5>
+                </div>
+                <div class="card-body" id="barcodePreview">
+                    <div id="barcodeLabels" class="text-center">
+                        {% for i in "1" %}
+                        <div class="barcode-container" style="width: 200px;">
+                            <div style="border: 1px solid #ccc; padding: 10px; display: inline-block;">
+                                {% if barcode.code %}
+                                <img src="https://barcode.tec-it.com/barcode.ashx?data={{ barcode.code }}&code={{ barcode.barcode_type|default:'Code128' }}&multiplebarcodes=false&translate-esc=true&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codetext=true&quietzone=1" 
+                                     alt="Barcode for {{ barcode.code }}" class="barcode-image">
+                                {% else %}
+                                <div style="height: 50px; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                                    <span class="text-muted">{% trans "No barcode available" %}</span>
+                                </div>
+                                {% endif %}
+                                <div class="barcode-label">
+                                    <strong>{{ barcode.product__name|default:"-" }}</strong><br>
+                                    {{ barcode.code|default:"-" }}<br>
+                                    {{ barcode.product__sku|default:"-" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updatePreview() {
+    var quantity = parseInt($('#quantity').val()) || 1;
+    var labelsPerRow = parseInt($('#labels_per_row').val()) || 2;
+    var labelSize = $('#label_size').val();
+    var showProductName = $('#show_product_name').val() === 'yes';
+    
+    // Clear existing labels
+    $('#barcodeLabels').empty();
+    
+    // Generate new labels
+    for (var i = 0; i < quantity; i++) {
+        var labelWidth = '200px';
+        if (labelSize === 'small') labelWidth = '150px';
+        else if (labelSize === 'large') labelWidth = '250px';
+        
+        var html = '<div class="barcode-container" style="width: ' + labelWidth + ';">' +
+            '<div style="border: 1px solid #ccc; padding: 10px; display: inline-block;">' +
+            '<img src="https://barcode.tec-it.com/barcode.ashx?data={{ barcode.code|default:"" }}&code={{ barcode.barcode_type|default:"Code128" }}&multiplebarcodes=false&translate-esc=true&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&codetext=true&quietzone=1" ' +
+            'alt="Barcode for {{ barcode.code|default:"" }}" class="barcode-image">' +
+            '<div class="barcode-label">' +
+            (showProductName ? '<strong>{{ barcode.product__name|default:"-" }}</strong><br>' : '') +
+            '{{ barcode.code|default:"-" }}<br>' +
+            '{{ barcode.product__sku|default:"-" }}' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        
+        $('#barcodeLabels').append(html);
+    }
+}
+
+// Initialize preview
+$(document).ready(function() {
+    updatePreview();
+});
+</script>
 {% endblock %}

@@ -1,20 +1,244 @@
 {% extends 'base/base.html' %}
-{% load i18n static %}
+{% load i18n static crispy_forms_tags %}
 
-{% block title %}{% trans Category Form %}{% endblock %}
+{% block title %}
+{% if object %}{% trans "Edit Category" %}{% else %}{% trans "Create Category" %}{% endif %}
+{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Category Form %}</h1>
+    <h1 class="page-title">
+        {% if object %}{% trans "Edit Category" %}{% else %}{% trans "Create Category" %}{% endif %}
+    </h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:category_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">{% trans "Category Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">{% trans "Name" %}</label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="{{ object.name|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="code" class="form-label">{% trans "Code" %}</label>
+                                    <input type="text" class="form-control" id="code" name="code" 
+                                           value="{{ object.code|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="parent" class="form-label">{% trans "Parent Category" %}</label>
+                                    <select class="form-select" id="parent" name="parent">
+                                        <option value="">{% trans "None (Top Level)" %}</option>
+                                        {% for category in categories %}
+                                        {% if category.id != object.id %}
+                                        <option value="{{ category.id }}" {% if object.parent_id == category.id %}selected{% endif %}>
+                                            {{ category.name|default:"-" }}
+                                        </option>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="is_active" class="form-label">{% trans "Active" %}</label>
+                                    <select class="form-select" id="is_active" name="is_active">
+                                        <option value="True" {% if object.is_active %}selected{% endif %}>{% trans "Yes" %}</option>
+                                        <option value="False" {% if not object.is_active %}selected{% endif %}>{% trans "No" %}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="icon" class="form-label">{% trans "Icon (Font Awesome)" %}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="icon" name="icon" 
+                                               value="{{ object.icon|default:'' }}" placeholder="e.g., mobile-alt">
+                                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#iconModal">
+                                            <i class="fas fa-icons"></i>
+                                        </button>
+                                    </div>
+                                    {% if object.icon %}
+                                    <div class="mt-2">
+                                        <i class="fas fa-{{ object.icon }} fa-2x"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="color" class="form-label">{% trans "Color" %}</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="color" name="color" 
+                                               value="{{ object.color|default:'#3b82f6' }}">
+                                        <input type="text" class="form-control" value="{{ object.color|default:'#3b82f6' }}" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">{% trans "Description" %}</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">{{ object.description|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> 
+                    {% if object %}{% trans "Update Category" %}{% else %}{% trans "Create Category" %}{% endif %}
+                </button>
+                <a href="{% url 'inventory:category_list' %}" class="btn btn-secondary btn-lg ms-3">
+                    <i class="fas fa-times"></i> {% trans "Cancel" %}
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Icon Picker Modal -->
+<div class="modal fade" id="iconModal" tabindex="-1" aria-labelledby="iconModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="iconModalLabel">{% trans "Select Icon" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h6>{% trans "Electronics" %}</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('mobile-alt')">
+                                <i class="fas fa-mobile-alt"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('laptop')">
+                                <i class="fas fa-laptop"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('tv')">
+                                <i class="fas fa-tv"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('headphones')">
+                                <i class="fas fa-headphones"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('camera')">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>{% trans "Tools" %}</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('tools')">
+                                <i class="fas fa-tools"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('wrench')">
+                                <i class="fas fa-wrench"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('screwdriver')">
+                                <i class="fas fa-screwdriver"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('hammer')">
+                                <i class="fas fa-hammer"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>{% trans "Parts" %}</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('cog')">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('microchip')">
+                                <i class="fas fa-microchip"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('battery-full')">
+                                <i class="fas fa-battery-full"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('memory')">
+                                <i class="fas fa-memory"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <h6>{% trans "Other" %}</h6>
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('box')">
+                                <i class="fas fa-box"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('tag')">
+                                <i class="fas fa-tag"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('star')">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="selectIcon('circle')">
+                                <i class="fas fa-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Close" %}</button>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectIcon(iconName) {
+    $('#icon').val(iconName);
+    $('#iconModal').modal('hide');
+    // Update the preview
+    if (iconName) {
+        $('#icon').after('<div class="mt-2"><i class="fas fa-' + iconName + ' fa-2x"></i></div>');
+    }
+}
+
+// Sync color picker with text input
+$(document).ready(function() {
+    $('input[type="color"]').on('input', function() {
+        $(this).siblings('input[type="text"]').val($(this).val());
+    });
+    
+    $('input[type="text"]').on('input', function() {
+        $(this).siblings('input[type="color"]').val($(this).val());
+    });
+});
+</script>
 {% endblock %}

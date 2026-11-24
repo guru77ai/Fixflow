@@ -1,20 +1,250 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Document List %}{% endblock %}
+{% block title %}{% trans "Documents" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Document List %}</h1>
+    <h1 class="page-title">{% trans "Documents" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'documents:upload' %}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> {% trans "Upload Document" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .document-type-badge {
+        font-size: 0.8rem;
+    }
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 5px;
+        font-size: 1.2rem;
+    }
+    .file-icon.pdf { background-color: #fee2e2; color: #ef4444; }
+    .file-icon.word { background-color: #dbeafe; color: #3b82f6; }
+    .file-icon.excel { background-color: #d1fae5; color: #10b981; }
+    .file-icon.image { background-color: #fef3c7; color: #f59e0b; }
+    .file-icon.other { background-color: #f3f4f6; color: #6b7280; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-file fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Documents" %}</h6>
+                            <h3 class="mb-0">{{ stats.total|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-database fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Size" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_size|default:"0 MB" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-folder fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Categories" %}</h6>
+                            <h3 class="mb-0">{{ stats.categories|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "My Documents" %}</h6>
+                            <h3 class="mb-0">{{ stats.my_documents|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filters" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="document_type" class="form-label">{% trans "Type" %}</label>
+                            <select class="form-select" id="document_type" name="document_type">
+                                <option value="">{% trans "All Types" %}</option>
+                                <option value="invoice" {% if request.GET.document_type == 'invoice' %}selected{% endif %}>{% trans "Invoice" %}</option>
+                                <option value="receipt" {% if request.GET.document_type == 'receipt' %}selected{% endif %}>{% trans "Receipt" %}</option>
+                                <option value="contract" {% if request.GET.document_type == 'contract' %}selected{% endif %}>{% trans "Contract" %}</option>
+                                <option value="report" {% if request.GET.document_type == 'report' %}selected{% endif %}>{% trans "Report" %}</option>
+                                <option value="other" {% if request.GET.document_type == 'other' %}selected{% endif %}>{% trans "Other" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date_range" class="form-label">{% trans "Date Range" %}</label>
+                            <select class="form-select" id="date_range" name="date_range">
+                                <option value="">{% trans "All Dates" %}</option>
+                                <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>{% trans "Today" %}</option>
+                                <option value="week" {% if request.GET.date_range == 'week' %}selected{% endif %}>{% trans "Last Week" %}</option>
+                                <option value="month" {% if request.GET.date_range == 'month' %}selected{% endif %}>{% trans "Last Month" %}</option>
+                                <option value="year" {% if request.GET.date_range == 'year' %}selected{% endif %}>{% trans "Last Year" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Document List" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'documents:folder_create' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-folder-plus"></i> {% trans "New Folder" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="documentTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Size" %}</th>
+                                    <th>{% trans "Uploaded By" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for document in documents %}
+                                <tr>
+                                    <td>
+                                        <div class="file-icon {% if document.file.name|lower|endswith:'.pdf' %}pdf{% elif document.file.name|lower|endswith:'.doc' or document.file.name|lower|endswith:'.docx' %}word{% elif document.file.name|lower|endswith:'.xls' or document.file.name|lower|endswith:'.xlsx' %}excel{% elif document.file.name|lower|endswith:'.jpg' or document.file.name|lower|endswith:'.jpeg' or document.file.name|lower|endswith:'.png' %}image{% else %}other{% endif %}">
+                                            {% if document.file.name|lower|endswith:'.pdf' %}
+                                                <i class="fas fa-file-pdf"></i>
+                                            {% elif document.file.name|lower|endswith:'.doc' or document.file.name|lower|endswith:'.docx' %}
+                                                <i class="fas fa-file-word"></i>
+                                            {% elif document.file.name|lower|endswith:'.xls' or document.file.name|lower|endswith:'.xlsx' %}
+                                                <i class="fas fa-file-excel"></i>
+                                            {% elif document.file.name|lower|endswith:'.jpg' or document.file.name|lower|endswith:'.jpeg' or document.file.name|lower|endswith:'.png' %}
+                                                <i class="fas fa-file-image"></i>
+                                            {% else %}
+                                                <i class="fas fa-file"></i>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>{{ document.name|default:document.file.name|truncatechars:50 }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ document.file.name|truncatechars:50 }}</small>
+                                    </td>
+                                    <td>{{ document.category__name|default:"-" }}</td>
+                                    <td>{{ document.file.size|filesizeformat|default:"-" }}</td>
+                                    <td>{{ document.uploaded_by__get_full_name|default:document.uploaded_by|default:"-" }}</td>
+                                    <td>{{ document.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'documents:download' document.id %}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <a href="{% url 'documents:detail' document.id %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'documents:delete' document.id %}" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No documents found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#documentTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[5, 'desc']], // Sort by date
+        columnDefs: [
+            { orderable: false, targets: [0, 6] } // Disable ordering on Type and Actions columns
+        ]
+    });
+});
+</script>
 {% endblock %}

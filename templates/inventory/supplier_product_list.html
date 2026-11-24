@@ -1,20 +1,101 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Supplier Product List %}{% endblock %}
+{% block title %}{% trans "Supplier Products" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Supplier Product List %}</h1>
+    <h1 class="page-title">{% trans "Supplier Products" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:supplier_product_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Supplier Product" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "Supplier Product List" %}</h3>
+        </div>
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="supplierProductTable">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Product" %}</th>
+                            <th>{% trans "SKU" %}</th>
+                            <th>{% trans "Supplier" %}</th>
+                            <th>{% trans "Supplier SKU" %}</th>
+                            <th>{% trans "Cost Price" %}</th>
+                            <th>{% trans "Currency" %}</th>
+                            <th>{% trans "Min Order Qty" %}</th>
+                            <th>{% trans "Lead Time (days)" %}</th>
+                            <th>{% trans "Active" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier_product in supplier_products %}
+                        <tr>
+                            <td>{{ supplier_product.product__name|default:"-" }}</td>
+                            <td>{{ supplier_product.product__sku|default:"-" }}</td>
+                            <td>{{ supplier_product.supplier__name|default:"-" }}</td>
+                            <td>{{ supplier_product.supplier_sku|default:"-" }}</td>
+                            <td>{{ supplier_product.cost_price|floatformat:2|default:0 }}</td>
+                            <td>{{ supplier_product.currency|default:"-" }}</td>
+                            <td>{{ supplier_product.min_order_quantity|default:0 }}</td>
+                            <td>{{ supplier_product.lead_time_days|default:0 }}</td>
+                            <td>
+                                {% if supplier_product.is_active %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'inventory:supplier_product_detail' supplier_product.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'inventory:supplier_product_edit' supplier_product.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'inventory:supplier_product_delete' supplier_product.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted">{% trans "No supplier products found" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#supplierProductTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'asc']], // Sort by product name
+        columnDefs: [
+            { orderable: false, targets: [9] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

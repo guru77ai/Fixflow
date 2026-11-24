@@ -1,20 +1,492 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch Dashboard %}{% endblock %}
+{% block title %}{{ branch.name|default:"Branch Dashboard" }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Branch Dashboard %}</h1>
+    <h1 class="page-title">{% trans "Branch Dashboard" %} - {{ branch.name|default:"-" }}</h1>
+    <div class="page-tools">
+        <a href="{% url 'branches:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Branch Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px; font-size: 2rem;">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <h2>{{ branch.name|default:"-" }}</h2>
+                            <p class="text-muted">{{ branch.code|default:"-" }} | {{ branch.organization__name|default:"-" }}</p>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Manager" %}:</strong> {{ branch.manager__get_full_name|default:"-" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Location" %}:</strong> {{ branch.city|default:"-" }}, {{ branch.country|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-tools fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Repairs" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_repairs|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shopping-cart fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Sales" %}</h6>
+                            <h3 class="mb-0">{{ stats.total_sales|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Revenue" %}</h6>
+                            <h3 class="mb-0">{{ stats.revenue|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Pending Repairs" %}</h6>
+                            <h3 class="mb-0">{{ stats.pending_repairs|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Status" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Day" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByDayChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Technician" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByTechnicianChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Repairs by Device" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="repairsByDeviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Repairs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Repairs" %}</h5>
+                    <div class="card-tools">
+                        <a href="#" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> {% trans "Add Repair" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="recentRepairsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Repair #" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Device" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Technician" %}</th>
+                                    <th>{% trans "Received Date" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair in recent_repairs %}
+                                <tr>
+                                    <td>{{ repair.repair_number|default:"-" }}</td>
+                                    <td>{{ repair.customer__get_full_name|default:repair.customer|default:"-" }}</td>
+                                    <td>{{ repair.device__name|default:repair.device|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if repair.status == 'delivered' %}bg-success{% elif repair.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ repair.get_status_display|default:"-" }}
+                                        </span>
+                                    </td>
+                                    <td>{{ repair.technician__get_full_name|default:repair.technician|default:"-" }}</td>
+                                    <td>{{ repair.received_date|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ repair.total|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                        <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted">{% trans "No recent repairs" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Sales" %}</h5>
+                    <div class="card-tools">
+                        <a href="#" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> {% trans "Add Sale" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="recentSalesTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Invoice #" %}</th>
+                                    <th>{% trans "Customer" %}</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Items" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Payment Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>{{ sale.invoice_number|default:"-" }}</td>
+                                    <td>{{ sale.customer__get_full_name|default:sale.customer|default:"-" }}</td>
+                                    <td>{{ sale.created_at|date:"Y-m-d"|default:"-" }}</td>
+                                    <td>{{ sale.items_count|default:0 }}</td>
+                                    <td>{{ sale.total|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        <span class="badge {% if sale.payment_status == 'paid' %}bg-success{% elif sale.payment_status == 'partial' %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ sale.get_payment_status_display|default:"-" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info"><i class="fas fa-eye"></i></a>
+                                        <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No recent sales" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Quick Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="#" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-plus fa-2x mb-2"></i><br>
+                                <small>{% trans "Add Repair" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="#" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>
+                                <small>{% trans "Add Sale" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="#" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-box fa-2x mb-2"></i><br>
+                                <small>{% trans "Add Product" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="#" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-users fa-2x mb-2"></i><br>
+                                <small>{% trans "Add Customer" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="#" class="btn btn-outline-secondary btn-block">
+                                <i class="fas fa-chart-bar fa-2x mb-2"></i><br>
+                                <small>{% trans "View Reports" %}</small>
+                            </a>
+                        </div>
+                        <div class="col-md-2 col-6 mb-3">
+                            <a href="{% url 'branches:edit' branch.id %}" class="btn btn-outline-dark btn-block">
+                                <i class="fas fa-cog fa-2x mb-2"></i><br>
+                                <small>{% trans "Branch Settings" %}</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Repairs by Status Chart
+var repairsByStatusCtx = document.getElementById('repairsByStatusChart').getContext('2d');
+var repairsByStatusData = {{ stats.repairs_by_status|safe }};
+new Chart(repairsByStatusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: repairsByStatusData.map(item => item.status),
+        datasets: [{
+            data: repairsByStatusData.map(item => item.count),
+            backgroundColor: [
+                '#fef3c7', '#fef3c7', '#fef3c7', '#fef3c7',
+                '#dbeafe', '#dbeafe', '#d1fae5', '#d1fae5',
+                '#fee2e2'
+            ],
+            borderColor: [
+                '#f59e0b', '#f59e0b', '#f59e0b', '#f59e0b',
+                '#3b82f6', '#3b82f6', '#10b981', '#10b981',
+                '#ef4444'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Sales by Day Chart
+var salesByDayCtx = document.getElementById('salesByDayChart').getContext('2d');
+var salesByDayData = {{ stats.sales_by_day|safe }};
+new Chart(salesByDayCtx, {
+    type: 'line',
+    data: {
+        labels: salesByDayData.map(item => item.date),
+        datasets: [{
+            label: '{% trans "Sales Count" %}',
+            data: salesByDayData.map(item => item.count),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+        }, {
+            label: '{% trans "Revenue" %}',
+            data: salesByDayData.map(item => item.total),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: '{% trans "Count" %}' }
+            },
+            y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: { display: true, text: '{% trans "Amount" %}' }
+            }
+        }
+    }
+});
+
+// Repairs by Technician Chart
+var repairsByTechnicianCtx = document.getElementById('repairsByTechnicianChart').getContext('2d');
+var repairsByTechnicianData = {{ stats.repairs_by_technician|safe }};
+new Chart(repairsByTechnicianCtx, {
+    type: 'bar',
+    data: {
+        labels: repairsByTechnicianData.map(item => item.technician),
+        datasets: [{
+            label: '{% trans "Number of Repairs" %}',
+            data: repairsByTechnicianData.map(item => item.count),
+            backgroundColor: '#3b82f6'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Repairs by Device Chart
+var repairsByDeviceCtx = document.getElementById('repairsByDeviceChart').getContext('2d');
+var repairsByDeviceData = {{ stats.repairs_by_device|safe }};
+new Chart(repairsByDeviceCtx, {
+    type: 'bar',
+    data: {
+        labels: repairsByDeviceData.map(item => item.device),
+        datasets: [{
+            label: '{% trans "Number of Repairs" %}',
+            data: repairsByDeviceData.map(item => item.count),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+
+// Initialize DataTables
+$(document).ready(function() {
+    $('#recentRepairsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[5, 'desc']], // Sort by received date
+        columnDefs: [
+            { orderable: false, targets: [7] } // Disable ordering on Actions column
+        ]
+    });
+    
+    $('#recentSalesTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[2, 'desc']], // Sort by date
+        columnDefs: [
+            { orderable: false, targets: [6] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

@@ -1,20 +1,437 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Technician List %}{% endblock %}
+{% block title %}{% trans "Technicians" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Technician List %}</h1>
+    <h1 class="page-title">{% trans "Technicians" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'repair:technician_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Technician" %}
+        </a>
+        <button class="btn btn-secondary" id="refreshBtn">
+            <i class="fas fa-sync"></i> {% trans "Refresh" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .technician-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .technician-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .technician-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #fff;
+    }
+    .technician-avatar-placeholder {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        border: 3px solid #fff;
+    }
+    .rating-stars {
+        color: #ffc107;
+        font-size: 16px;
+    }
+    .skill-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        margin: 2px;
+        border-radius: 10px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    .stat-box {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+    }
+    .stat-box .stat-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .stat-box .stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Technicians" %}</h6>
+                            <h3 class="mb-0">{{ technicians.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-user-check fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Active" %}</h6>
+                            <h3 class="mb-0">{{ stats.active|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-tools fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Current Repairs" %}</h6>
+                            <h3 class="mb-0">{{ stats.current_repairs|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Completed" %}</h6>
+                            <h3 class="mb-0">{{ stats.completed|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-star fa-2x text-danger"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Avg. Rating" %}</h6>
+                            <h3 class="mb-0">{{ stats.avg_rating|default:"0.0" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-clock fa-2x text-secondary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Avg. Turnaround" %}</h6>
+                            <h3 class="mb-0">{{ stats.avg_turnaround|default:"0" }} {% trans "days" %}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="filterForm" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="statusFilter" class="form-label">{% trans "Status" %}</label>
+                                <select class="form-select" id="statusFilter" name="status">
+                                    <option value="">{% trans "All Statuses" %}</option>
+                                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>{% trans "Active" %}</option>
+                                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>{% trans "Inactive" %}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="specialtyFilter" class="form-label">{% trans "Specialty" %}</label>
+                                <select class="form-select" id="specialtyFilter" name="specialty">
+                                    <option value="">{% trans "All Specialties" %}</option>
+                                    {% for specialty in specialties %}
+                                    <option value="{{ specialty }}" {% if request.GET.specialty == specialty %}selected{% endif %}>{{ specialty }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="ratingFilter" class="form-label">{% trans "Rating" %}</label>
+                                <select class="form-select" id="ratingFilter" name="rating">
+                                    <option value="">{% trans "All Ratings" %}</option>
+                                    <option value="5" {% if request.GET.rating == '5' %}selected{% endif %}>⭐⭐⭐⭐⭐</option>
+                                    <option value="4" {% if request.GET.rating == '4' %}selected{% endif %}>⭐⭐⭐⭐</option>
+                                    <option value="3" {% if request.GET.rating == '3' %}selected{% endif %}>⭐⭐⭐</option>
+                                    <option value="2" {% if request.GET.rating == '2' %}selected{% endif %}>⭐⭐</option>
+                                    <option value="1" {% if request.GET.rating == '1' %}selected{% endif %}>⭐</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technicians Grid View -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Technicians" %}</h5>
+                    <div class="card-tools">
+                        <button class="btn btn-sm btn-outline-primary" id="gridViewBtn">
+                            <i class="fas fa-th"></i> {% trans "Grid" %}
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" id="listViewBtn">
+                            <i class="fas fa-list"></i> {% trans "List" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Grid View (Default) -->
+                    <div id="gridView" class="row">
+                        {% for technician in technicians %}
+                        <div class="col-md-4 col-6 mb-4">
+                            <div class="card technician-card" onclick="viewTechnician('{{ technician.id }}')">
+                                <div class="card-body text-center">
+                                    <div class="mb-3">
+                                        {% if technician.profile_picture %}
+                                            <img src="{{ technician.profile_picture.url }}" alt="{{ technician.get_full_name }}" class="technician-avatar mx-auto">
+                                        {% else %}
+                                            <div class="technician-avatar-placeholder mx-auto">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <h5 class="mb-1">{{ technician.get_full_name|default:technician.username|default:"-" }}</h5>
+                                    <div class="text-muted small mb-2">{{ technician.email|default:"-" }}</div>
+                                    
+                                    <div class="mb-2">
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= technician.rating|default:0 %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        {% for skill in technician.skills|default:""|slice:":3" %}
+                                            <span class="skill-badge badge bg-info">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div class="stats-grid mb-2">
+                                        <div class="stat-box">
+                                            <div class="stat-value">{{ technician.repair_count|default:0 }}</div>
+                                            <div class="stat-label">{% trans "Repairs" %}</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-value">{{ technician.completed_count|default:0 }}</div>
+                                            <div class="stat-label">{% trans "Completed" %}</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-value">{{ technician.avg_turnaround|default:"0" }}d</div>
+                                            <div class="stat-label">{% trans "Avg. Time" %}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        {% if technician.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                        {% if technician.is_online %}
+                                            <span class="badge bg-success">{% trans "Online" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Offline" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-users fa-3x mb-3"></i>
+                                <p>{% trans "No technicians found" %}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- List View -->
+                    <div id="listView" class="table-responsive" style="display: none;">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Photo" %}</th>
+                                    <th>{% trans "Name" %}</th>
+                                    <th>{% trans "Email" %}</th>
+                                    <th>{% trans "Specialty" %}</th>
+                                    <th>{% trans "Rating" %}</th>
+                                    <th>{% trans "Repairs" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for technician in technicians %}
+                                <tr>
+                                    <td>
+                                        {% if technician.profile_picture %}
+                                            <img src="{{ technician.profile_picture.url }}" alt="{{ technician.get_full_name }}" class="user-avatar">
+                                        {% else %}
+                                            <div class="user-avatar bg-primary text-white d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ technician.get_full_name|default:technician.username|default:"-" }}</td>
+                                    <td>{{ technician.email|default:"-" }}</td>
+                                    <td>{{ technician.specialty|default:"-" }}</td>
+                                    <td>
+                                        <div class="rating-stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= technician.rating|default:0 %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                    <td>{{ technician.repair_count|default:0 }}</td>
+                                    <td>
+                                        {% if technician.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" onclick="viewTechnician('{{ technician.id }}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" onclick="editTechnician('{{ technician.id }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">{% trans "No technicians found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // View toggle
+    $('#gridViewBtn').on('click', function() {
+        $('#gridView').show();
+        $('#listView').hide();
+        $('#gridViewBtn').addClass('active');
+        $('#listViewBtn').removeClass('active');
+    });
+    
+    $('#listViewBtn').on('click', function() {
+        $('#gridView').hide();
+        $('#listView').show();
+        $('#gridViewBtn').removeClass('active');
+        $('#listViewBtn').addClass('active');
+    });
+    
+    // Initialize DataTable for list view
+    if ($('#listView').is(':visible')) {
+        $('#listView table').DataTable({
+            responsive: true,
+            autoWidth: false,
+            order: [[1, 'asc']],
+            columnDefs: [
+                { orderable: false, targets: [0, 7] }
+            ]
+        });
+    }
+    
+    // Refresh button
+    $('#refreshBtn').on('click', function() {
+        location.reload();
+    });
+});
+
+// View technician
+function viewTechnician(technicianId) {
+    window.location.href = '{% url "repair:technician_detail" 0 %}'.replace('0', technicianId);
+}
+
+// Edit technician
+function editTechnician(technicianId) {
+    window.location.href = '{% url "repair:technician_update" 0 %}'.replace('0', technicianId);
+}
+</script>
 {% endblock %}

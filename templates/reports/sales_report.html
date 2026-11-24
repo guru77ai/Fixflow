@@ -1,20 +1,356 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Sales Report %}{% endblock %}
+{% block title %}{% trans "Sales Report" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Sales Report %}</h1>
+    <h1 class="page-title">{% trans "Sales Report" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-receipt fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Sales" %}</h6>
+                            <h3 class="mb-0">{{ sales_data.summary.total_sales|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Revenue" %}</h6>
+                            <h3 class="mb-0">{{ sales_data.summary.total_revenue|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-percentage fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Tax" %}</h6>
+                            <h3 class="mb-0">{{ sales_data.summary.total_tax|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-chart-line fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Average Sale" %}</h6>
+                            <h3 class="mb-0">{{ sales_data.summary.average_sale|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Day" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByDayChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Product" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByProductChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Customer" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByCustomerChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales by Payment Method" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="salesByPaymentMethodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Sales Data -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Sales Summary" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="salesSummaryTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Metric" %}</th>
+                                    <th>{% trans "Value" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>{% trans "Total Sales" %}</strong></td>
+                                    <td>{{ sales_data.summary.total_sales|default:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Total Revenue" %}</strong></td>
+                                    <td>{{ sales_data.summary.total_revenue|floatformat:2|default:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Total Tax" %}</strong></td>
+                                    <td>{{ sales_data.summary.total_tax|floatformat:2|default:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Total Discount" %}</strong></td>
+                                    <td>{{ sales_data.summary.total_discount|floatformat:2|default:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Net Revenue" %}</strong></td>
+                                    <td>{{ sales_data.summary.net_revenue|floatformat:2|default:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>{% trans "Average Sale Value" %}</strong></td>
+                                    <td>{{ sales_data.summary.average_sale|floatformat:2|default:0 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">{% trans "Start Date" %}</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">{% trans "End Date" %}</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="product" class="form-label">{% trans "Product" %}</label>
+                            <select class="form-select" id="product" name="product">
+                                <option value="">{% trans "All Products" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Sales by Day Chart
+var salesByDayCtx = document.getElementById('salesByDayChart').getContext('2d');
+var salesByDayData = {{ sales_data.by_day|safe }};
+new Chart(salesByDayCtx, {
+    type: 'line',
+    data: {
+        labels: salesByDayData.map(item => item.date),
+        datasets: [{
+            label: '{% trans "Sales Count" %}',
+            data: salesByDayData.map(item => item.count),
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+        }, {
+            label: '{% trans "Revenue" %}',
+            data: salesByDayData.map(item => item.total),
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4,
+            yAxisID: 'y1'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: '{% trans "Count" %}' }
+            },
+            y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: { display: true, text: '{% trans "Amount" %}' }
+            }
+        }
+    }
+});
+
+// Sales by Product Chart
+var salesByProductCtx = document.getElementById('salesByProductChart').getContext('2d');
+var salesByProductData = {{ sales_data.by_product|safe }};
+new Chart(salesByProductCtx, {
+    type: 'bar',
+    data: {
+        labels: salesByProductData.map(item => item.product__name || item.product),
+        datasets: [{
+            label: '{% trans "Quantity Sold" %}',
+            data: salesByProductData.map(item => item.quantity),
+            backgroundColor: '#3b82f6'
+        }, {
+            label: '{% trans "Revenue" %}',
+            data: salesByProductData.map(item => item.total),
+            backgroundColor: '#10b981'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Sales by Customer Chart
+var salesByCustomerCtx = document.getElementById('salesByCustomerChart').getContext('2d');
+var salesByCustomerData = {{ sales_data.by_customer|safe }};
+new Chart(salesByCustomerCtx, {
+    type: 'horizontalBar',
+    data: {
+        labels: salesByCustomerData.map(item => item.customer__name || item.customer),
+        datasets: [{
+            label: '{% trans "Total Spent" %}',
+            data: salesByCustomerData.map(item => item.total),
+            backgroundColor: '#f59e0b'
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { beginAtZero: true }
+        }
+    }
+});
+
+// Sales by Payment Method Chart
+var salesByPaymentMethodCtx = document.getElementById('salesByPaymentMethodChart').getContext('2d');
+var salesByPaymentMethodData = {{ sales_data.by_payment_method|safe }};
+new Chart(salesByPaymentMethodCtx, {
+    type: 'doughnut',
+    data: {
+        labels: salesByPaymentMethodData.map(item => item.payment_method),
+        datasets: [{
+            data: salesByPaymentMethodData.map(item => item.total),
+            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#salesSummaryTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+});
+</script>
 {% endblock %}

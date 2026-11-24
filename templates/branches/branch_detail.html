@@ -1,19 +1,248 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch Detail %}{% endblock %}
+{% block title %}{{ branch.name|default:"Branch" }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Branch Detail %}</h1>
+    <h1 class="page-title">{{ branch.name|default:"Branch" }}</h1>
+    <div class="page-tools">
+        <a href="{% url 'branches:list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+        <a href="{% url 'branches:edit' branch.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Branch Header Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4 mb-md-0">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                            <h3 class="mt-2">{{ branch.code|default:"-" }}</h3>
+                        </div>
+                        <div class="col-md-9">
+                            <h2>{{ branch.name|default:"-" }}</h2>
+                            <p class="text-muted">{{ branch.organization__name|default:"-" }}</p>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Organization" %}:</strong> {{ branch.organization__name|default:"-" }}</p>
+                                    <p><strong>{% trans "Manager" %}:</strong> {{ branch.manager__get_full_name|default:"-" }}</p>
+                                    <p><strong>{% trans "Main Branch" %}:</strong> 
+                                        {% if branch.is_main_branch %}
+                                            <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Status" %}:</strong> 
+                                        {% if branch.is_active %}
+                                            <span class="badge bg-success">{% trans "Active" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>{% trans "Created" %}:</strong> {{ branch.created_at|date:"Y-m-d H:i"|default:"-" }}</p>
+                                    <p><strong>{% trans "Last Updated" %}:</strong> {{ branch.updated_at|date:"Y-m-d H:i"|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact and Address Information -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-phone me-2"></i>{% trans "Contact Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Phone" %}:</strong> {{ branch.phone|default:"-" }}</p>
+                    <p><strong>{% trans "Mobile" %}:</strong> {{ branch.mobile|default:"-" }}</p>
+                    <p><strong>{% trans "Email" %}:</strong> {{ branch.email|default:"-" }}</p>
+                    <p><strong>{% trans "Website" %}:</strong> {{ branch.website|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-map-marker-alt me-2"></i>{% trans "Address" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Address" %}:</strong> {{ branch.address|default:"-" }}</p>
+                    <p><strong>{% trans "City" %}:</strong> {{ branch.city|default:"-" }}</p>
+                    <p><strong>{% trans "State" %}:</strong> {{ branch.state|default:"-" }}</p>
+                    <p><strong>{% trans "Postal Code" %}:</strong> {{ branch.postal_code|default:"-" }}</p>
+                    <p><strong>{% trans "Country" %}:</strong> {{ branch.country|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Settings -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-file-alt me-2"></i>{% trans "Document Settings" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Auto Generate Documents" %}:</strong> 
+                        {% if branch.auto_generate_documents %}
+                            <span class="badge bg-success">{% trans "Yes" %}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{% trans "No" %}</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>{% trans "Next Sale Number" %}:</strong> {{ branch.next_sale_number|default:0 }}</p>
+                    <p><strong>{% trans "Next Repair Number" %}:</strong> {{ branch.next_repair_number|default:0 }}</p>
+                    <p><strong>{% trans "Next Purchase Number" %}:</strong> {{ branch.next_purchase_number|default:0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-users me-2"></i>{% trans "Branch Statistics" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="border-end pe-3">
+                                <h3 class="mb-0">{{ branch.total_repairs|default:0 }}</h3>
+                                <small class="text-muted">{% trans "Total Repairs" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h3 class="mb-0">{{ branch.total_sales|default:0 }}</h3>
+                            <small class="text-muted">{% trans "Total Sales" %}</small>
+                        </div>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="border-end pe-3">
+                                <h3 class="mb-0">{{ branch.pending_repairs|default:0 }}</h3>
+                                <small class="text-muted">{% trans "Pending Repairs" %}</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <h3 class="mb-0">{{ branch.completed_repairs|default:0 }}</h3>
+                            <small class="text-muted">{% trans "Completed Repairs" %}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes -->
+    {% if branch.notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-sticky-note me-2"></i>{% trans "Notes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="pre-wrap">{{ branch.notes }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Branch Users -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-users me-2"></i>{% trans "Branch Users" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "User" %}</th>
+                                    <th>{% trans "Email" %}</th>
+                                    <th>{% trans "Can Access" %}</th>
+                                    <th>{% trans "Can Manage" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user_access in branch.user_access.all %}
+                                <tr>
+                                    <td>{{ user_access.user.get_full_name|default:user_access.user.email|default:"-" }}</td>
+                                    <td>{{ user_access.user.email|default:"-" }}</td>
+                                    <td>
+                                        {% if user_access.can_access %}
+                                            <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user_access.can_manage %}
+                                            <span class="badge bg-success">{% trans "Yes" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                                        <a href="#" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">{% trans "No users with access to this branch" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a href="{% url 'branches:edit' branch.id %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-edit"></i> {% trans "Edit Branch" %}
+                    </a>
+                    <a href="{% url 'branches:switch' branch.id %}" class="btn btn-success btn-lg me-3">
+                        <i class="fas fa-exchange-alt"></i> {% trans "Switch to Branch" %}
+                    </a>
+                    <a href="{% url 'branches:dashboard' branch.id %}" class="btn btn-info btn-lg me-3">
+                        <i class="fas fa-tachometer-alt"></i> {% trans "Branch Dashboard" %}
+                    </a>
+                    <a href="{% url 'branches:delete' branch.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> {% trans "Delete Branch" %}
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

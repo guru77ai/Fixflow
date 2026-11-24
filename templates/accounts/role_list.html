@@ -1,20 +1,107 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Role List %}{% endblock %}
+{% block title %}{% trans "Roles" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Role List %}</h1>
+    <h1 class="page-title">{% trans "Roles" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'accounts:role_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {% trans "Add Role" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
     <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "Role List" %}</h3>
+        </div>
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" id="roleTable">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Users" %}</th>
+                            <th>{% trans "Permissions" %}</th>
+                            <th>{% trans "System Role" %}</th>
+                            <th>{% trans "Active" %}</th>
+                            <th>{% trans "Created" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for role in roles %}
+                        <tr>
+                            <td>{{ role.name|default:"-" }}</td>
+                            <td>{{ role.code|default:"-" }}</td>
+                            <td>{{ role.description|truncatechars:50|default:"-" }}</td>
+                            <td>{{ role.users_count|default:0 }}</td>
+                            <td>{{ role.permissions_count|default:0 }}</td>
+                            <td>
+                                {% if role.is_system %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if role.is_active %}
+                                    <span class="badge bg-success">{% trans "Yes" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "No" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ role.created_at|date:"Y-m-d"|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'accounts:role_detail' role.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'accounts:role_edit' role.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if not role.is_system %}
+                                <a href="{% url 'accounts:role_delete' role.id %}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted">{% trans "No roles found" %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#roleTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[7, 'desc']], // Sort by created date
+        columnDefs: [
+            { orderable: false, targets: [8] } // Disable ordering on Actions column
+        ]
+    });
+});
+</script>
 {% endblock %}

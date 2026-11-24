@@ -1,20 +1,422 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Stock Detail %}{% endblock %}
+{% block title %}{{ stock.product__name|default:"Stock Detail" }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Stock Detail %}</h1>
+    <h1 class="page-title">{{ stock.product__name|default:"Stock Detail" }}</h1>
+    <div class="page-tools">
+        <a href="{% url 'inventory:stock_list' %}" class="btn btn-secondary">
+            <i class="fas fa-list"></i> {% trans "Back to List" %}
+        </a>
+        <a href="{% url 'inventory:stock_edit' stock.id %}" class="btn btn-warning">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+        </a>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Stock Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-4 mb-md-0">
+                            {% if stock.product__image %}
+                                <img src="{{ stock.product__image.url }}" alt="{{ stock.product__name }}" class="img-fluid rounded" style="max-height: 200px;">
+                            {% else %}
+                                <div class="bg-primary text-white rounded d-inline-flex align-items-center justify-content-center" style="width: 200px; height: 200px; font-size: 4rem;">
+                                    <i class="fas fa-box"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h2>{{ stock.product__name|default:"-" }}</h2>
+                            <p class="text-muted">{{ stock.sku|default:"-" }}</p>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Category" %}:</strong> {{ stock.category__name|default:"-" }}</p>
+                                    <p><strong>{% trans "Brand" %}:</strong> {{ stock.brand__name|default:"-" }}</p>
+                                    <p><strong>{% trans "Warehouse" %}:</strong> {{ stock.warehouse__name|default:"-" }}</p>
+                                    <p><strong>{% trans "Location" %}:</strong> {{ stock.location|default:"-" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>{% trans "Unit" %}:</strong> {{ stock.unit__name|default:"-" }}</p>
+                                    <p><strong>{% trans "Barcode" %}:</strong> {{ stock.barcode|default:"-" }}</p>
+                                    <p><strong>{% trans "Serial Number" %}:</strong> {{ stock.serial_number|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Information Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100 {% if stock.quantity <= stock.min_stock %}border-danger{% elif stock.quantity > stock.max_stock %}border-warning{% else %}border-success{% endif %}">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes fa-3x mb-2 {% if stock.quantity <= stock.min_stock %}text-danger{% elif stock.quantity > stock.max_stock %}text-warning{% else %}text-success{% endif %}"></i>
+                    <h3 class="mb-0">{{ stock.quantity|default:0 }}</h3>
+                    <p class="text-muted mb-0">{% trans "Current Stock" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-arrow-down fa-3x mb-2 text-primary"></i>
+                    <h3 class="mb-0">{{ stock.min_stock|default:0 }}</h3>
+                    <p class="text-muted mb-0">{% trans "Minimum Stock" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100 border-primary">
+                <div class="card-body text-center">
+                    <i class="fas fa-arrow-up fa-3x mb-2 text-primary"></i>
+                    <h3 class="mb-0">{{ stock.max_stock|default:0 }}</h3>
+                    <p class="text-muted mb-0">{% trans "Maximum Stock" %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card h-100 border-info">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-3x mb-2 text-info"></i>
+                    <h3 class="mb-0">{{ stock.unit_cost|floatformat:2|default:0 }}</h3>
+                    <p class="text-muted mb-0">{% trans "Unit Cost" %}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Status and Value -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Status" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p><strong>{% trans "Status" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            {% if stock.quantity <= stock.min_stock %}
+                                <span class="badge bg-danger p-2">{% trans "Low Stock" %}</span>
+                            {% elif stock.quantity > stock.max_stock %}
+                                <span class="badge bg-warning p-2">{% trans "Overstock" %}</span>
+                            {% else %}
+                                <span class="badge bg-success p-2">{% trans "OK" %}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Quantity Available" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.quantity|default:0 }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Quantity Reserved" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.reserved|default:0 }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Quantity Available for Sale" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.available|default:0 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Value" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p><strong>{% trans "Unit Cost" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.unit_cost|floatformat:2|default:0 }} {{ stock.currency|default:"DZD" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Total Value" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.total_value|floatformat:2|default:0 }} {{ stock.currency|default:"DZD" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Average Cost" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.average_cost|floatformat:2|default:0 }} {{ stock.currency|default:"DZD" }}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <p><strong>{% trans "Last Cost" %}:</strong></p>
+                        </div>
+                        <div class="col-6">
+                            <p>{{ stock.last_cost|floatformat:2|default:0 }} {{ stock.currency|default:"DZD" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Information -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-info-circle me-2"></i>{% trans "Product Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Product Name" %}:</strong> {{ stock.product__name|default:"-" }}</p>
+                    <p><strong>{% trans "SKU" %}:</strong> {{ stock.sku|default:"-" }}</p>
+                    <p><strong>{% trans "Barcode" %}:</strong> {{ stock.barcode|default:"-" }}</p>
+                    <p><strong>{% trans "Description" %}:</strong> {{ stock.product__description|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title"><i class="fas fa-tag me-2"></i>{% trans "Classification" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>{% trans "Category" %}:</strong> {{ stock.category__name|default:"-" }}</p>
+                    <p><strong>{% trans "Brand" %}:</strong> {{ stock.brand__name|default:"-" }}</p>
+                    <p><strong>{% trans "Unit of Measure" %}:</strong> {{ stock.unit__name|default:"-" }}</p>
+                    <p><strong>{% trans "Product Type" %}:</strong> {{ stock.product__get_product_type_display|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Movements Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Movements History" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="stockMovementsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Movements Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Stock Movements" %}</h5>
+                    <div class="card-tools">
+                        <a href="{% url 'inventory:stock_movement_list' %}?product={{ stock.product__id }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> {% trans "All Movements" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="movementsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Reference" %}</th>
+                                    <th>{% trans "Quantity In" %}</th>
+                                    <th>{% trans "Quantity Out" %}</th>
+                                    <th>{% trans "Balance" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Total Value" %}</th>
+                                    <th>{% trans "Notes" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in stock.movements.all|slice:":10" %}
+                                <tr>
+                                    <td>{{ movement.date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if movement.type == 'in' %}bg-success{% elif movement.type == 'out' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {% if movement.type == 'in' %}{% trans "In" %}
+                                            {% elif movement.type == 'out' %}{% trans "Out" %}
+                                            {% else %}{% trans "Adjustment" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ movement.reference|default:"-" }}</td>
+                                    <td>{{ movement.quantity_in|default:0 }}</td>
+                                    <td>{{ movement.quantity_out|default:0 }}</td>
+                                    <td>{{ movement.balance|default:0 }}</td>
+                                    <td>{{ movement.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ movement.total_value|floatformat:2|default:0 }}</td>
+                                    <td>{{ movement.notes|truncatechars:50|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted">{% trans "No stock movements found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <a href="{% url 'inventory:stock_edit' stock.id %}" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-edit"></i> {% trans "Edit Stock" %}
+                    </a>
+                    <a href="{% url 'inventory:stock_movement_create' %}?stock={{ stock.id }}" class="btn btn-success btn-lg me-3">
+                        <i class="fas fa-plus"></i> {% trans "Add Movement" %}
+                    </a>
+                    <a href="{% url 'inventory:stock_adjustment' stock.id %}" class="btn btn-warning btn-lg me-3">
+                        <i class="fas fa-balance-scale"></i> {% trans "Adjust Stock" %}
+                    </a>
+                    <a href="{% url 'inventory:stock_transfer_create' %}?stock={{ stock.id }}" class="btn btn-info btn-lg me-3">
+                        <i class="fas fa-exchange-alt"></i> {% trans "Transfer Stock" %}
+                    </a>
+                    <a href="{% url 'inventory:barcode_print' stock.id %}" class="btn btn-secondary btn-lg me-3">
+                        <i class="fas fa-barcode"></i> {% trans "Print Barcode" %}
+                    </a>
+                    <a href="{% url 'inventory:stock_delete' stock.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> {% trans "Delete Stock" %}
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Stock Movements Chart
+var movementsCtx = document.getElementById('stockMovementsChart').getContext('2d');
+var movementsData = {{ stock.movements.all|safe }};
+
+// Prepare data for chart
+var dates = [];
+var balances = [];
+var inQuantities = [];
+var outQuantities = [];
+
+{% for movement in stock.movements.all|slice:":20" %}
+    dates.push('{{ movement.date|date:"Y-m-d"|default:"-" }}');
+    balances.push({{ movement.balance|default:0 }});
+    inQuantities.push({{ movement.quantity_in|default:0 }});
+    outQuantities.push({{ movement.quantity_out|default:0 }});
+{% endfor %}
+
+new Chart(movementsCtx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [
+            {
+                label: '{% trans "Balance" %}',
+                data: balances,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.4,
+                yAxisID: 'y'
+            },
+            {
+                label: '{% trans "Quantity In" %}',
+                data: inQuantities,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y1'
+            },
+            {
+                label: '{% trans "Quantity Out" %}',
+                data: outQuantities,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                fill: false,
+                tension: 0.4,
+                yAxisID: 'y1'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: { display: true, text: '{% trans "Balance" %}' }
+            },
+            y1: {
+                beginAtZero: true,
+                position: 'right',
+                title: { display: true, text: '{% trans "Quantity" %}' }
+            }
+        }
+    }
+});
+
+// Initialize DataTable
+$(document).ready(function() {
+    $('#movementsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']], // Sort by date
+        columnDefs: [
+            { orderable: false, targets: [8] } // Disable ordering on Notes column
+        ]
+    });
+});
+</script>
 {% endblock %}

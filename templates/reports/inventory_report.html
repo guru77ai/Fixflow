@@ -1,20 +1,401 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Inventory Report %}{% endblock %}
+{% block title %}{% trans "Inventory Report" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Inventory Report %}</h1>
+    <h1 class="page-title">{% trans "Inventory Report" %}</h1>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
+<style>
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    .stock-low { color: #ef4444; }
+    .stock-ok { color: #10b981; }
+    .stock-warning { color: #f59e0b; }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-boxes fa-2x text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Products" %}</h6>
+                            <h3 class="mb-0">{{ inventory_data.summary.total_products|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-dollar-sign fa-2x text-success"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Total Stock Value" %}</h6>
+                            <h3 class="mb-0">{{ inventory_data.summary.total_value|floatformat:2|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Low Stock Items" %}</h6>
+                            <h3 class="mb-0">{{ inventory_data.low_stock.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-arrows-alt-v fa-2x text-info"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="text-muted mb-1">{% trans "Stock Movements" %}</h6>
+                            <h3 class="mb-0">{{ inventory_data.stock_movements.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Inventory by Product" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="inventoryByProductChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Stock Levels" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="stockLevelsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alerts -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title">{% trans "Low Stock Alerts" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="lowStockTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Current Stock" %}</th>
+                                    <th>{% trans "Minimum Stock" %}</th>
+                                    <th>{% trans "Location" %}</th>
+                                    <th>{% trans "Last Movement" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in inventory_data.low_stock.items %}
+                                <tr>
+                                    <td>{{ item.product__name|default:item.product }}</td>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td class="stock-low fw-bold">{{ item.current_stock|default:0 }}</td>
+                                    <td>{{ item.min_stock|default:0 }}</td>
+                                    <td>{{ item.location|default:"-" }}</td>
+                                    <td>{{ item.last_movement|date:"Y-m-d"|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">{% trans "No low stock items" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Movements -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Recent Stock Movements" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="stockMovementsTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Type" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "From" %}</th>
+                                    <th>{% trans "To" %}</th>
+                                    <th>{% trans "Reference" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for movement in inventory_data.stock_movements.items %}
+                                <tr>
+                                    <td>{{ movement.date|date:"Y-m-d H:i"|default:"-" }}</td>
+                                    <td>{{ movement.product__name|default:movement.product }}</td>
+                                    <td>
+                                        <span class="badge {% if movement.type == 'in' %}bg-success{% elif movement.type == 'out' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {% if movement.type == 'in' %}{% trans "In" %}
+                                            {% elif movement.type == 'out' %}{% trans "Out" %}
+                                            {% else %}{% trans "Adjustment" %}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ movement.quantity|default:0 }}</td>
+                                    <td>{{ movement.from_location|default:"-" }}</td>
+                                    <td>{{ movement.to_location|default:"-" }}</td>
+                                    <td>{{ movement.reference|default:"-" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No stock movements" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory by Product Table -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Inventory by Product" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="inventoryByProductTable">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "SKU" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                    <th>{% trans "Current Stock" %}</th>
+                                    <th>{% trans "Unit Cost" %}</th>
+                                    <th>{% trans "Total Value" %}</th>
+                                    <th>{% trans "Status" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in inventory_data.by_product %}
+                                <tr>
+                                    <td>{{ item.product__name|default:item.product }}</td>
+                                    <td>{{ item.sku|default:"-" }}</td>
+                                    <td>{{ item.category|default:"-" }}</td>
+                                    <td>{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.unit_cost|floatformat:2|default:0 }}</td>
+                                    <td>{{ item.total_value|floatformat:2|default:0 }}</td>
+                                    <td>
+                                        {% if item.quantity <= item.min_stock %}
+                                            <span class="badge bg-danger">{% trans "Low Stock" %}</span>
+                                        {% elif item.quantity <= item.max_stock %}
+                                            <span class="badge bg-success">{% trans "OK" %}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">{% trans "Overstock" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">{% trans "No inventory data" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="4">{% trans "Total" %}</td>
+                                    <td></td>
+                                    <td>{{ inventory_data.summary.total_value|floatformat:2|default:0 }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Options -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Filter Options" %}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="category" class="form-label">{% trans "Category" %}</label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="">{% trans "All Categories" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="location" class="form-label">{% trans "Location" %}</label>
+                            <select class="form-select" id="location" name="location">
+                                <option value="">{% trans "All Locations" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="stock_status" class="form-label">{% trans "Stock Status" %}</label>
+                            <select class="form-select" id="stock_status" name="stock_status">
+                                <option value="">{% trans "All Status" %}</option>
+                                <option value="low">{% trans "Low Stock" %}</option>
+                                <option value="ok">{% trans "OK" %}</option>
+                                <option value="overstock">{% trans "Overstock" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter"></i> {% trans "Apply Filters" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/chart.min.js' %}"></script>
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+// Inventory by Product Chart
+var inventoryByProductCtx = document.getElementById('inventoryByProductChart').getContext('2d');
+var inventoryByProductData = {{ inventory_data.by_product|safe }};
+new Chart(inventoryByProductCtx, {
+    type: 'bar',
+    data: {
+        labels: inventoryByProductData.slice(0, 10).map(item => item.product__name || item.product),
+        datasets: [{
+            label: '{% trans "Quantity" %}',
+            data: inventoryByProductData.slice(0, 10).map(item => item.quantity),
+            backgroundColor: '#3b82f6'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+// Stock Levels Chart
+var stockLevelsCtx = document.getElementById('stockLevelsChart').getContext('2d');
+var stockLevelsData = {
+    low: {{ inventory_data.low_stock.count|default:0 }},
+    ok: {{ inventory_data.by_product|length|default:0 }},
+    overstock: 0
+};
+
+// Count overstock items
+{{ inventory_data.by_product|forloop:"counter" as loop_counter }}
+{% for item in inventory_data.by_product %}
+    {% if item.quantity > item.max_stock %}
+        stockLevelsData.overstock++;
+    {% endif %}
+{% endfor %}
+
+new Chart(stockLevelsCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['{% trans "Low Stock" %}', '{% trans "OK" %}', '{% trans "Overstock" %}'],
+        datasets: [{
+            data: [stockLevelsData.low, stockLevelsData.ok, stockLevelsData.overstock],
+            backgroundColor: ['#ef4444', '#10b981', '#f59e0b']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Initialize DataTables
+$(document).ready(function() {
+    $('#lowStockTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[2, 'asc']] // Sort by current stock
+    });
+    
+    $('#stockMovementsTable').DataTable({
+        responsive: true,
+        autoWidth: false,
+        order: [[0, 'desc']] // Sort by date
+    });
+    
+    $('#inventoryByProductTable').DataTable({
+        responsive: true,
+        autoWidth: false
+    });
+});
+</script>
 {% endblock %}

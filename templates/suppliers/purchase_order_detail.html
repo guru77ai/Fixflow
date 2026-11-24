@@ -1,20 +1,624 @@
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Purchase Order Detail %}{% endblock %}
+{% block title %}{% trans "Purchase Order Details" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Purchase Order Detail %}</h1>
+    <h1 class="page-title">{% trans "Purchase Order Details" %}</h1>
+    <div class="page-tools">
+        <a href="{% url 'suppliers:purchase_order_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> {% trans "Back to List" %}
+        </a>
+        <a href="{% url 'suppliers:purchase_order_update' purchase_order.id %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> {% trans "Edit" %}
+        </a>
+        <button class="btn btn-success" onclick="approvePO()">
+            <i class="fas fa-check"></i> {% trans "Approve" %}
+        </button>
+        <button class="btn btn-danger" onclick="cancelPO()">
+            <i class="fas fa-times"></i> {% trans "Cancel" %}
+        </button>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .po-detail-card {
+        margin-bottom: 20px;
+    }
+    .po-detail-card .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .detail-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 5px 10px;
+    }
+    .priority-badge {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+    .item-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .item-row:last-child {
+        border-bottom: none;
+    }
+    .total-row {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .timeline-item {
+        padding: 10px 0;
+        border-left: 3px solid #007bff;
+        padding-left: 15px;
+        margin-left: 10px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <!-- PO Status Alert -->
+    {% if purchase_order.status == 'draft' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-body text-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-exclamation-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Draft Purchase Order" %}</h5>
+                            <p class="mb-0">{% trans "This purchase order is still in draft status. Please review and submit it for approval." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if purchase_order.status == 'pending' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-body text-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-info-circle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Pending Approval" %}</h5>
+                            <p class="mb-0">{% trans "This purchase order is waiting for approval." %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if purchase_order.is_overdue %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-body text-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h5 class="mb-0">{% trans "Overdue" %}</h5>
+                            <p class="mb-0">{% trans "This purchase order is overdue. Expected delivery was on" %} {{ purchase_order.expected_delivery_date|date:"Y-m-d" }}.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- PO Overview -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card po-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Purchase Order Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "PO Number:" %}</span>
+                                <span class="fw-bold">{{ purchase_order.po_number|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Supplier:" %}</span>
+                                <span>{{ purchase_order.supplier.name|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Order Date:" %}</span>
+                                <span>{{ purchase_order.order_date|date:"Y-m-d"|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Expected Delivery:" %}</span>
+                                <span>{{ purchase_order.expected_delivery_date|date:"Y-m-d"|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Status:" %}</span>
+                                <span class="badge bg-{{ purchase_order.status|lower }}">
+                                    {% trans purchase_order.get_status_display %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Priority:" %}</span>
+                                <span class="priority-badge badge bg-{{ purchase_order.priority|lower }}">
+                                    {% trans purchase_order.get_priority_display %}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Reference:" %}</span>
+                                <span>{{ purchase_order.reference|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Payment Terms:" %}</span>
+                                <span>{{ purchase_order.payment_terms|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Shipping Method:" %}</span>
+                                <span>{{ purchase_order.shipping_method|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Created By:" %}</span>
+                                <span>{{ purchase_order.created_by.get_full_name|default:purchase_order.created_by.username|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card po-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "PO Actions" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if purchase_order.status == 'draft' %}
+                            <a href="{% url 'suppliers:purchase_order_update' purchase_order.id %}" class="btn btn-primary">
+                                <i class="fas fa-edit me-2"></i>{% trans "Edit" %}
+                            </a>
+                            <button class="btn btn-success" onclick="submitForApproval()">
+                                <i class="fas fa-paper-plane me-2"></i>{% trans "Submit for Approval" %}
+                            </button>
+                        {% endif %}
+                        {% if purchase_order.status == 'pending' %}
+                            <button class="btn btn-success" onclick="approvePO()">
+                                <i class="fas fa-check me-2"></i>{% trans "Approve" %}
+                            </button>
+                            <button class="btn btn-warning" onclick="rejectPO()">
+                                <i class="fas fa-times me-2"></i>{% trans "Reject" %}
+                            </button>
+                        {% endif %}
+                        {% if purchase_order.status == 'approved' %}
+                            <button class="btn btn-info" onclick="markAsShipped()">
+                                <i class="fas fa-shipping-fast me-2"></i>{% trans "Mark as Shipped" %}
+                            </button>
+                        {% endif %}
+                        {% if purchase_order.status == 'shipped' %}
+                            <button class="btn btn-success" onclick="markAsReceived()">
+                                <i class="fas fa-check-circle me-2"></i>{% trans "Mark as Received" %}
+                            </button>
+                        {% endif %}
+                        <button class="btn btn-secondary" onclick="printPO()">
+                            <i class="fas fa-print me-2"></i>{% trans "Print" %}
+                        </button>
+                        <button class="btn btn-danger" onclick="cancelPO()">
+                            <i class="fas fa-trash me-2"></i>{% trans "Cancel" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supplier Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card po-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Supplier Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Supplier Name:" %}</span>
+                                <span>{{ purchase_order.supplier.name|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Contact Person:" %}</span>
+                                <span>{{ purchase_order.supplier.contact_person|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Email:" %}</span>
+                                <span>{{ purchase_order.supplier.email|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Phone:" %}</span>
+                                <span>{{ purchase_order.supplier.phone|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Mobile:" %}</span>
+                                <span>{{ purchase_order.supplier.mobile|default:"-" }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Tax ID:" %}</span>
+                                <span>{{ purchase_order.supplier.tax_id|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Address:" %}</span>
+                                <span>{{ purchase_order.supplier.address|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card po-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Items" %} ({{ purchase_order.items.count|default:0 }})</h5>
+                    <div class="card-tools">
+                        <button class="btn btn-sm btn-primary" onclick="addItem()">
+                            <i class="fas fa-plus"></i> {% trans "Add Item" %}
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "#" %}</th>
+                                    <th>{% trans "Product" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Unit" %}</th>
+                                    <th>{% trans "Unit Price" %}</th>
+                                    <th>{% trans "Discount" %}</th>
+                                    <th>{% trans "Tax" %}</th>
+                                    <th>{% trans "Total" %}</th>
+                                    <th>{% trans "Actions" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in purchase_order.items.all %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ item.product.name|default:item.product_code|default:"-" }}</td>
+                                    <td>{{ item.description|default:"-" }}</td>
+                                    <td>{{ item.quantity|default:0 }}</td>
+                                    <td>{{ item.unit|default:"-" }}</td>
+                                    <td>{{ item.unit_price|default:"0.00" }}</td>
+                                    <td>{{ item.discount|default:"0.00" }}</td>
+                                    <td>{{ item.tax_rate|default:0 }}%</td>
+                                    <td>{{ item.total_price|default:"0.00" }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" onclick="editItem('{{ item.id }}')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteItem('{{ item.id }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">{% trans "No items found" %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8" class="text-end">{% trans "Subtotal:" %}</td>
+                                    <td>{{ purchase_order.subtotal|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8" class="text-end">{% trans "Discount:" %}</td>
+                                    <td>{{ purchase_order.discount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8" class="text-end">{% trans "Tax:" %}</td>
+                                    <td>{{ purchase_order.tax_amount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="8" class="text-end">{% trans "Total:" %}</td>
+                                    <td>{{ purchase_order.total_amount|default:"0.00" }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card po-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Shipping Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Shipping Method:" %}</span>
+                        <span>{{ purchase_order.shipping_method|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Shipping Address:" %}</span>
+                        <span>{{ purchase_order.shipping_address|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Shipping Cost:" %}</span>
+                        <span>{{ purchase_order.shipping_cost|default:"0.00" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Tracking Number:" %}</span>
+                        <span>{{ purchase_order.tracking_number|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card po-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Billing Information" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Billing Address:" %}</span>
+                        <span>{{ purchase_order.billing_address|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Payment Terms:" %}</span>
+                        <span>{{ purchase_order.payment_terms|default:"-" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Payment Status:" %}</span>
+                        <span class="badge bg-{{ purchase_order.payment_status|lower }}">
+                            {% trans purchase_order.get_payment_status_display %}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">{% trans "Currency:" %}</span>
+                        <span>{{ purchase_order.currency|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes and Attachments -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card po-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Notes" %}</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ purchase_order.notes|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card po-detail-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Attachments" %} ({{ purchase_order.attachments.count|default:0 }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if purchase_order.attachments.count %}
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{% trans "File" %}</th>
+                                        <th>{% trans "Size" %}</th>
+                                        <th>{% trans "Uploaded" %}</th>
+                                        <th>{% trans "Actions" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attachment in purchase_order.attachments.all %}
+                                    <tr>
+                                        <td>{{ attachment.file.name|default:"-" }}</td>
+                                        <td>{{ attachment.file.size|filesizeformat|default:"-" }}</td>
+                                        <td>{{ attachment.created_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                                        <td>
+                                            <a href="{{ attachment.file.url }}" class="btn btn-sm btn-success">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteAttachment('{{ attachment.id }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">{% trans "No attachments" %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card po-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Timeline" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% for event in purchase_order.events.all %}
+                        <div class="timeline-item">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">{{ event.event_type|default:"-" }}</span>
+                                <span class="text-muted small">{{ event.created_at|date:"Y-m-d H:i"|default:"-" }}</span>
+                            </div>
+                            <p class="mb-0">{{ event.description|default:"-" }}</p>
+                            <div class="text-muted small">{{ event.created_by.get_full_name|default:event.created_by.username|default:"-" }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-stream fa-2x mb-3"></i>
+                            <p>{% trans "No timeline events" %}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card po-detail-card">
+                <div class="card-header">
+                    <h5 class="card-title">{% trans "Metadata" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Created At:" %}</span>
+                                <span>{{ purchase_order.created_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "Updated At:" %}</span>
+                                <span>{{ purchase_order.updated_at|date:"Y-m-d H:i:s"|default:"-" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="detail-row">
+                                <span class="detail-label">{% trans "ID:" %}</span>
+                                <span>{{ purchase_order.id|default:"-" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize any required functionality
+});
+
+// PO Actions
+function submitForApproval() {
+    if (confirm('{% trans "Are you sure you want to submit this purchase order for approval?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_submit" purchase_order.id %}';
+    }
+}
+
+function approvePO() {
+    if (confirm('{% trans "Are you sure you want to approve this purchase order?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_approve" purchase_order.id %}';
+    }
+}
+
+function rejectPO() {
+    if (confirm('{% trans "Are you sure you want to reject this purchase order?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_reject" purchase_order.id %}';
+    }
+}
+
+function markAsShipped() {
+    if (confirm('{% trans "Are you sure you want to mark this purchase order as shipped?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_ship" purchase_order.id %}';
+    }
+}
+
+function markAsReceived() {
+    if (confirm('{% trans "Are you sure you want to mark this purchase order as received?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_receive" purchase_order.id %}';
+    }
+}
+
+function cancelPO() {
+    if (confirm('{% trans "Are you sure you want to cancel this purchase order? This action cannot be undone." %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_cancel" purchase_order.id %}';
+    }
+}
+
+function printPO() {
+    window.open('{% url "suppliers:purchase_order_print" purchase_order.id %}', '_blank');
+}
+
+// Item Actions
+function addItem() {
+    window.location.href = '{% url "suppliers:purchase_order_item_create" purchase_order.id %}';
+}
+
+function editItem(itemId) {
+    window.location.href = '{% url "suppliers:purchase_order_item_update" purchase_order.id itemId %}';
+}
+
+function deleteItem(itemId) {
+    if (confirm('{% trans "Are you sure you want to delete this item?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_item_delete" purchase_order.id itemId %}';
+    }
+}
+
+// Attachment Actions
+function deleteAttachment(attachmentId) {
+    if (confirm('{% trans "Are you sure you want to delete this attachment?" %}')) {
+        window.location.href = '{% url "suppliers:purchase_order_attachment_delete" purchase_order.id attachmentId %}';
+    }
+}
+</script>
 {% endblock %}
