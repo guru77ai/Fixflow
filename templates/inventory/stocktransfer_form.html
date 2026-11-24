@@ -1,21 +1,236 @@
-<!-- TODO: This is a stub template based on inventory/stock_transfer_form.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Stock Transfer Form %}{% endblock %}
+{% block title %}{% trans "Stock Transfers" %}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Stock Transfer Form %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Stock Transfers" %}</h1>
+        <p class="page-subtitle">{% trans "Manage inventory transfers between warehouses" %}</p>
+    </div>
+    <div>
+        <a href="{% url 'inventory:stocktransfer_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>{% trans "Create Transfer" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-truck-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Transfers" %}</h6>
+                            <h3 class="stat-value mb-0">{{ object_list.count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Pending" %}</h6>
+                            <h3 class="stat-value mb-0">{{ pending_count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "In Transit" %}</h6>
+                            <h3 class="stat-value mb-0">{{ transit_count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Completed" %}</h6>
+                            <h3 class="stat-value mb-0">{{ completed_count|default:0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">{% trans "Search" %}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="{% trans 'Transfer number or notes' %}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">{% trans "All Statuses" %}</option>
+                        <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>
+                            {% trans "Draft" %}
+                        </option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>
+                            {% trans "Pending" %}
+                        </option>
+                        <option value="in_transit" {% if request.GET.status == 'in_transit' %}selected{% endif %}>
+                            {% trans "In Transit" %}
+                        </option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>
+                            {% trans "Completed" %}
+                        </option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>
+                            {% trans "Cancelled" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="source_warehouse" class="form-label">{% trans "Source Warehouse" %}</label>
+                    <select class="form-select" id="source_warehouse" name="source_warehouse">
+                        <option value="">{% trans "All Warehouses" %}</option>
+                        {% for warehouse in warehouses %}
+                        <option value="{{ warehouse.pk }}" {% if request.GET.source_warehouse == warehouse.pk|stringformat:"s" %}selected{% endif %}>
+                            {{ warehouse.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-2"></i>{% trans "Apply" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stock Transfers Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">{% trans "Stock Transfers" %} ({{ object_list.count|default:0 }})</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Transfer #" %}</th>
+                            <th>{% trans "From" %}</th>
+                            <th>{% trans "To" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Items" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transfer in object_list %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'inventory:stocktransfer_detail' transfer.pk %}" class="text-decoration-none">
+                                    {{ transfer.transfer_number }}
+                                </a>
+                            </td>
+                            <td>{{ transfer.source_warehouse.name }}</td>
+                            <td>{{ transfer.destination_warehouse.name }}</td>
+                            <td>
+                                <span class="badge bg-{{ transfer.get_status_display|lower }}">
+                                    {% trans transfer.get_status_display %}
+                                </span>
+                            </td>
+                            <td>{{ transfer.items.count|default:0 }}</td>
+                            <td>{{ transfer.transfer_date|date:"Y-m-d"|default:"-" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'inventory:stocktransfer_detail' transfer.pk %}" 
+                                       class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'inventory:stocktransfer_edit' transfer.pk %}" 
+                                       class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'inventory:stocktransfer_delete' transfer.pk %}" 
+                                       class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                {% trans "No stock transfers found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.table').DataTable({
+        responsive: true,
+        ordering: true,
+        pageLength: 20,
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

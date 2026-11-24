@@ -1,20 +1,101 @@
-<!-- TODO: This is a stub template based on inventory/unit_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Unit List %}{% endblock %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Unit List %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ object.name }}</h1>
+        <p class="page-subtitle">{% trans "Unit of Measure" %} #{{ object.code }}</p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'inventory:unitofmeasure_form' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'inventory:unitofmeasure_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row">
+        <!-- Unit Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                            <i class="bi bi-rulers text-warning fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1">{{ object.name }}</h4>
+                    <p class="text-muted mb-3">{{ object.code }}</p>
+                    
+                    {% if object.is_active %}
+                    <span class="badge bg-success me-2">{% trans "Active" %}</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">{% trans "Inactive" %}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Unit Details -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Unit Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Unit Name" %}:</label>
+                                <p>{{ object.name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Unit Code" %}:</label>
+                                <p>{{ object.code }}</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Description" %}:</label>
+                                <p>{{ object.description|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Status" %}:</label>
+                                <p>
+                                    <span class="badge {% if object.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if object.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6"></div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Created At" %}:</label>
+                                <p>{{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Updated At" %}:</label>
+                                <p>{{ object.updated_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

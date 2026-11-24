@@ -1,20 +1,59 @@
-<!-- TODO: This is a stub template based on branches/branch_form.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch Form %}{% endblock %}
+{% block title %}{% trans "Delete Branch" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header">
-    <h1 class="page-title">{% trans Branch Form %}</h1>
+    <h1 class="page-title">{% trans "Delete Branch" %}</h1>
+    <p class="page-subtitle">{% trans "Confirm deletion of branch" %}</p>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="icon-lg bg-danger bg-opacity-10 text-danger rounded-circle d-inline-flex align-items-center justify-content-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">{% trans "Are you sure?" %}</h4>
+                    <p class="text-muted mb-4">
+                        {% trans "You are about to delete the following branch:" %}
+                    </p>
+                    <div class="bg-light p-3 rounded mb-4">
+                        <h5>{{ branch.name }}</h5>
+                        <p class="mb-0 text-muted">
+                            {% trans "Branch Code" %}: {{ branch.code }}<br>
+                            {% trans "Organization" %}: {{ branch.organization.name }} ({{ branch.organization.code }})<br>
+                            {% trans "Manager" %}: {{ branch.manager.email if branch.manager else "-" }}<br>
+                            {% trans "Status" %}: 
+                            <span class="badge {% if branch.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if branch.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                    <p class="text-danger mb-4">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        {% trans "This action cannot be undone. All related data (repairs, sales, purchases) associated with this branch will also be affected." %}
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'branches:detail' branch.id %}" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-arrow-left me-2"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-trash me-2"></i>{% trans "Delete Branch" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

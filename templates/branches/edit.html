@@ -1,21 +1,257 @@
-<!-- TODO: This is a stub template based on branches/branch_form.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch Form %}{% endblock %}
+{% block title %}{% trans "Edit Branch" %}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Branch Form %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Edit Branch" %}</h1>
+        <p class="page-subtitle">{% trans "Update branch information and settings" %}</p>
+    </div>
+    <div>
+        <a href="{% url 'branches:detail' branch.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back to Detail" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row">
+        <div class="col-lg-10 col-md-12">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Basic Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Basic Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                    {% trans "Organization" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.organization }}
+                                <div class="invalid-feedback">
+                                    {{ form.organization.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.code.id_for_label }}" class="form-label">
+                                    {% trans "Branch Code" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.code }}
+                                <div class="invalid-feedback">
+                                    {{ form.code.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    {% trans "Branch Name" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                <div class="invalid-feedback">
+                                    {{ form.name.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.manager.id_for_label }}" class="form-label">
+                                    {% trans "Branch Manager" %}
+                                </label>
+                                {{ form.manager }}
+                                <div class="invalid-feedback">
+                                    {{ form.manager.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    {% trans "Notes" %}
+                                </label>
+                                {{ form.notes }}
+                                <div class="invalid-feedback">
+                                    {{ form.notes.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Contact Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                    {% trans "Phone" %}
+                                </label>
+                                {{ form.phone }}
+                                <div class="invalid-feedback">
+                                    {{ form.phone.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.secondary_phone.id_for_label }}" class="form-label">
+                                    {% trans "Secondary Phone" %}
+                                </label>
+                                {{ form.secondary_phone }}
+                                <div class="invalid-feedback">
+                                    {{ form.secondary_phone.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {% trans "Email" %}
+                                </label>
+                                {{ form.email }}
+                                <div class="invalid-feedback">
+                                    {{ form.email.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.website.id_for_label }}" class="form-label">
+                                    {% trans "Website" %}
+                                </label>
+                                {{ form.website }}
+                                <div class="invalid-feedback">
+                                    {{ form.website.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Address Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Address Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">
+                                    {% trans "Address" %}
+                                </label>
+                                {{ form.address }}
+                                <div class="invalid-feedback">
+                                    {{ form.address.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">
+                                    {% trans "City" %}
+                                </label>
+                                {{ form.city }}
+                                <div class="invalid-feedback">
+                                    {{ form.city.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.state.id_for_label }}" class="form-label">
+                                    {% trans "State/Province" %}
+                                </label>
+                                {{ form.state }}
+                                <div class="invalid-feedback">
+                                    {{ form.state.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+                                    {% trans "Postal Code" %}
+                                </label>
+                                {{ form.postal_code }}
+                                <div class="invalid-feedback">
+                                    {{ form.postal_code.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">
+                                    {% trans "Country" %}
+                                </label>
+                                {{ form.country }}
+                                <div class="invalid-feedback">
+                                    {{ form.country.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.is_main_branch }}
+                                    <label class="form-check-label" for="{{ form.is_main_branch.id_for_label }}">
+                                        {% trans "Main Branch" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.auto_generate_documents }}
+                                    <label class="form-check-label" for="{{ form.auto_generate_documents.id_for_label }}">
+                                        {% trans "Auto Generate Documents" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {% trans "Active Branch" %}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Card -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'branches:detail' branch.id %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>{% trans "Update Branch" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
 {% endblock %}

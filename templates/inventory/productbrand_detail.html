@@ -1,90 +1,119 @@
-<!-- TODO: This is a stub template based on inventory/productbrand_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans "Product Brands" %}{% endblock %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1 class="page-title">{% trans "Product Brands" %}</h1>
-        <p class="page-subtitle">{% trans "Manage product brands for your inventory" %}</p>
+        <h1 class="page-title">{{ object.name }}</h1>
+        <p class="page-subtitle">{% trans "Product Brand" %} #{{ object.code }}</p>
     </div>
-    <a href="{% url 'inventory:productbrand_form' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Brand" %}
-    </a>
+    <div class="btn-group" role="group">
+        <a href="{% url 'inventory:productbrand_form' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'inventory:productbrand_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">{% trans "Product Brands" %}</h5>
+    <div class="row">
+        <!-- Brand Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        {% if object.logo %}
+                        <img src="{{ object.logo.url }}" alt="{{ object.name }}" class="rounded-circle mx-auto" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                            <span class="text-primary fs-1">{{ object.name|slice:":1"|upper }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <h4 class="mb-1">{{ object.name }}</h4>
+                    <p class="text-muted mb-3">{{ object.code }}</p>
+                    
+                    {% if object.is_active %}
+                    <span class="badge bg-success me-2">{% trans "Active" %}</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">{% trans "Inactive" %}</span>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        {% if object.website %}
+                        <a href="{{ object.website }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="bi bi-globe me-2"></i>{% trans "Visit Website" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped" id="productbrand-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{% trans "Code" %}</th>
-                            <th>{% trans "Name" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th>{% trans "Website" %}</th>
-                            <th>{% trans "Is Active" %}</th>
-                            <th>{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for brand in object_list %}
-                        <tr>
-                            <td>{{ brand.code }}</td>
-                            <td>{{ brand.name }}</td>
-                            <td>{{ brand.description|truncatechars:50 }}</td>
-                            <td>{{ brand.website|default:"-" }}</td>
-                            <td>
-                                <span class="badge bg-{{ brand.is_active|yesno:'success,danger' }}">
-                                    {{ brand.is_active|yesno:"Active,Inactive" }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'inventory:productbrand_detail' brand.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'inventory:productbrand_form' brand.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'inventory:productbrand_confirm_delete' brand.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                {% trans "No product brands found." %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        
+        <!-- Brand Details -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Brand Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Brand Name" %}:</label>
+                                <p>{{ object.name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Brand Code" %}:</label>
+                                <p>{{ object.code }}</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Description" %}:</label>
+                                <p>{{ object.description|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Website" %}:</label>
+                                <p><a href="{{ object.website }}" target="_blank">{{ object.website|default:"-" }}</a></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Status" %}:</label>
+                                <p>
+                                    <span class="badge {% if object.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if object.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Created At" %}:</label>
+                                <p>{{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Updated At" %}:</label>
+                                <p>{{ object.updated_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        $('#productbrand-table').DataTable({
-            responsive: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
-            }
-        });
-    });
-</script>
 {% endblock %}

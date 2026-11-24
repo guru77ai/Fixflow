@@ -1,21 +1,230 @@
-<!-- TODO: This is a stub template based on branches/branch_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch List %}{% endblock %}
+{% block title %}{% trans "Branches" %}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Branch List %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Branches" %}</h1>
+        <p class="page-subtitle">{% trans "Manage all branches and their settings" %}</p>
+    </div>
+    <div>
+        <a href="{% url 'branches:create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>{% trans "Add Branch" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-shop-window"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Branches" %}</h6>
+                            <h3 class="stat-value mb-0">{{ branches|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Active" %}</h6>
+                            <h3 class="stat-value mb-0">{{ branches|selectattr:"is_active"|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Main Branches" %}</h6>
+                            <h3 class="stat-value mb-0">{{ branches|selectattr:"is_main_branch"|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "My Branches" %}</h6>
+                            <h3 class="stat-value mb-0">{{ request.user.branch_access.count if request.user.is_authenticated else 0 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">{% trans "Search" %}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="{% trans 'Name, code, or organization' %}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">{% trans "All Statuses" %}</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>
+                            {% trans "Active" %}
+                        </option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>
+                            {% trans "Inactive" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-2"></i>{% trans "Apply Filters" %}
+                    </button>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <a href="{% url 'branches:list' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Clear" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Branches Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">{% trans "Branches" %} ({{ branches|length }})</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Organization" %}</th>
+                            <th>{% trans "Code" %}</th>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Manager" %}</th>
+                            <th>{% trans "Main" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Created" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td>{{ branch.organization.name }} ({{ branch.organization.code }})</td>
+                            <td>{{ branch.code }}</td>
+                            <td>
+                                <a href="{% url 'branches:detail' branch.id %}" class="text-decoration-none">
+                                    {{ branch.name }}
+                                </a>
+                            </td>
+                            <td>{{ branch.manager.email if branch.manager else "-" }}</td>
+                            <td>
+                                {% if branch.is_main_branch %}
+                                <span class="badge bg-primary">{% trans "Main" %}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if branch.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if branch.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ branch.created_at|date:"Y-m-d" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'branches:detail' branch.id %}" 
+                                       class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'branches:edit' branch.id %}" 
+                                       class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% if branch.is_active %}
+                                    <a href="{% url 'branches:delete' branch.id %}" 
+                                       class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                {% trans "No branches found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.table').DataTable({
+        responsive: true,
+        ordering: true,
+        pageLength: 20,
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

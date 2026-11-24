@@ -1,21 +1,417 @@
-<!-- TODO: This is a stub template based on organizations/organization_form.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Organization Form %}{% endblock %}
+{% block title %}{% trans "Create Organization" %}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Organization Form %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Create Organization" %}</h1>
+        <p class="page-subtitle">{% trans "Create a new organization with its settings and preferences" %}</p>
+    </div>
+    <div>
+        <a href="{% url 'organizations:organization_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back to List" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row">
+        <div class="col-lg-10 col-md-12">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Basic Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Basic Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    {% trans "Organization Name" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                <div class="invalid-feedback">
+                                    {{ form.name.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.legal_name.id_for_label }}" class="form-label">
+                                    {% trans "Legal Name" %}
+                                </label>
+                                {{ form.legal_name }}
+                                <div class="invalid-feedback">
+                                    {{ form.legal_name.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.code.id_for_label }}" class="form-label">
+                                    {% trans "Organization Code" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.code }}
+                                <div class="invalid-feedback">
+                                    {{ form.code.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.logo.id_for_label }}" class="form-label">
+                                    {% trans "Logo" %}
+                                </label>
+                                {{ form.logo }}
+                                <div class="invalid-feedback">
+                                    {{ form.logo.errors|first }}
+                                </div>
+                                <small class="text-muted">{% trans "Upload your organization logo (recommended: 300x300 pixels)" %}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.industry.id_for_label }}" class="form-label">
+                                    {% trans "Industry" %}
+                                </label>
+                                {{ form.industry }}
+                                <div class="invalid-feedback">
+                                    {{ form.industry.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.business_activity.id_for_label }}" class="form-label">
+                                    {% trans "Business Activity" %}
+                                </label>
+                                {{ form.business_activity }}
+                                <div class="invalid-feedback">
+                                    {{ form.business_activity.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                    {% trans "Notes" %}
+                                </label>
+                                {{ form.notes }}
+                                <div class="invalid-feedback">
+                                    {{ form.notes.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tax & Legal Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Tax & Legal Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.tax_identification_number.id_for_label }}" class="form-label">
+                                    {% trans "Tax Identification Number" %}
+                                </label>
+                                {{ form.tax_identification_number }}
+                                <div class="invalid-feedback">
+                                    {{ form.tax_identification_number.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.tax_authority.id_for_label }}" class="form-label">
+                                    {% trans "Tax Authority" %}
+                                </label>
+                                {{ form.tax_authority }}
+                                <div class="invalid-feedback">
+                                    {{ form.tax_authority.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Contact Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                    {% trans "Phone" %}
+                                </label>
+                                {{ form.phone }}
+                                <div class="invalid-feedback">
+                                    {{ form.phone.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.secondary_phone.id_for_label }}" class="form-label">
+                                    {% trans "Secondary Phone" %}
+                                </label>
+                                {{ form.secondary_phone }}
+                                <div class="invalid-feedback">
+                                    {{ form.secondary_phone.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {% trans "Email" %}
+                                </label>
+                                {{ form.email }}
+                                <div class="invalid-feedback">
+                                    {{ form.email.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.website.id_for_label }}" class="form-label">
+                                    {% trans "Website" %}
+                                </label>
+                                {{ form.website }}
+                                <div class="invalid-feedback">
+                                    {{ form.website.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Address Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Address Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="{{ form.address.id_for_label }}" class="form-label">
+                                    {% trans "Address" %}
+                                </label>
+                                {{ form.address }}
+                                <div class="invalid-feedback">
+                                    {{ form.address.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">
+                                    {% trans "City" %}
+                                </label>
+                                {{ form.city }}
+                                <div class="invalid-feedback">
+                                    {{ form.city.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.state.id_for_label }}" class="form-label">
+                                    {% trans "State/Province" %}
+                                </label>
+                                {{ form.state }}
+                                <div class="invalid-feedback">
+                                    {{ form.state.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+                                    {% trans "Postal Code" %}
+                                </label>
+                                {{ form.postal_code }}
+                                <div class="invalid-feedback">
+                                    {{ form.postal_code.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.country.id_for_label }}" class="form-label">
+                                    {% trans "Country" %}
+                                </label>
+                                {{ form.country }}
+                                <div class="invalid-feedback">
+                                    {{ form.country.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.timezone.id_for_label }}" class="form-label">
+                                    {% trans "Timezone" %}
+                                </label>
+                                {{ form.timezone }}
+                                <div class="invalid-feedback">
+                                    {{ form.timezone.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Localization & Settings Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Localization & Settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.currency.id_for_label }}" class="form-label">
+                                    {% trans "Currency" %}
+                                </label>
+                                {{ form.currency }}
+                                <div class="invalid-feedback">
+                                    {{ form.currency.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.default_language.id_for_label }}" class="form-label">
+                                    {% trans "Default Language" %}
+                                </label>
+                                {{ form.default_language }}
+                                <div class="invalid-feedback">
+                                    {{ form.default_language.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.date_format.id_for_label }}" class="form-label">
+                                    {% trans "Date Format" %}
+                                </label>
+                                {{ form.date_format }}
+                                <div class="invalid-feedback">
+                                    {{ form.date_format.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice & Document Settings Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Invoice & Document Settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.invoice_prefix.id_for_label }}" class="form-label">
+                                    {% trans "Invoice Prefix" %}
+                                </label>
+                                {{ form.invoice_prefix }}
+                                <div class="invalid-feedback">
+                                    {{ form.invoice_prefix.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.repair_prefix.id_for_label }}" class="form-label">
+                                    {% trans "Repair Prefix" %}
+                                </label>
+                                {{ form.repair_prefix }}
+                                <div class="invalid-feedback">
+                                    {{ form.repair_prefix.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Accounting Settings Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Accounting Settings" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.accounting_method.id_for_label }}" class="form-label">
+                                    {% trans "Accounting Method" %}
+                                </label>
+                                {{ form.accounting_method }}
+                                <div class="invalid-feedback">
+                                    {{ form.accounting_method.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.fiscal_year_start.id_for_label }}" class="form-label">
+                                    {% trans "Fiscal Year Start" %}
+                                </label>
+                                {{ form.fiscal_year_start }}
+                                <div class="invalid-feedback">
+                                    {{ form.fiscal_year_start.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- License Information Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "License Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.license_id.id_for_label }}" class="form-label">
+                                    {% trans "License ID" %}
+                                </label>
+                                {{ form.license_id }}
+                                <div class="invalid-feedback">
+                                    {{ form.license_id.errors|first }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.license_expiry.id_for_label }}" class="form-label">
+                                    {% trans "License Expiry" %}
+                                </label>
+                                {{ form.license_expiry }}
+                                <div class="invalid-feedback">
+                                    {{ form.license_expiry.errors|first }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status & Submit Card -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {% trans "Active Organization" %}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6"></div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="reset" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle me-2"></i>{% trans "Reset" %}
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-2"></i>{% trans "Create Organization" %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
 {% endblock %}

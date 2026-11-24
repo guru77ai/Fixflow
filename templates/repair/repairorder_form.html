@@ -1,21 +1,20 @@
-<!-- TODO: This is a stub template based on crm/customer_form.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
 {% block title %}
-{% if object %}{% trans "Edit Customer" %}{% else %}{% trans "Add Customer" %}{% endif %}
+{% if object %}{% trans "Edit Repair Order" %}{% else %}{% trans "Create Repair Order" %}{% endif %}
 {% endblock %}
 
 {% block page_header %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
         <h1 class="page-title">
-            {% if object %}{% trans "Edit Customer" %}{% else %}{% trans "Add Customer" %}{% endif %}
+            {% if object %}{% trans "Edit Repair Order" %}{% else %}{% trans "Create Repair Order" %}{% endif %}
         </h1>
-        <p class="page-subtitle">{% trans "Create or update customer information" %}</p>
+        <p class="page-subtitle">{% trans "Create or update repair order information" %}</p>
     </div>
     <div>
-        <a href="{% url 'crm:customer_list' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'repair:repairorder_list' %}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>{% trans "Back to List" %}
         </a>
     </div>
@@ -24,11 +23,12 @@
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="row">
-        <div class="col-lg-8 col-md-12">
-            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                {% csrf_token %}
-                
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-8 col-md-12">
+                <!-- Basic Information Card -->
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="card-title mb-0">{% trans "Basic Information" %}</h5>
@@ -36,203 +36,316 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                    {% trans "First Name" %} <span class="text-danger">*</span>
+                                <label for="{{ form.order_type.id_for_label }}" class="form-label">
+                                    {% trans "Order Type" %}
                                 </label>
-                                {{ form.first_name }}
-                                <div class="invalid-feedback">
-                                    {{ form.first_name.errors|first }}
-                                </div>
+                                {{ form.order_type }}
+                                <div class="invalid-feedback">{{ form.order_type.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                    {% trans "Last Name" %} <span class="text-danger">*</span>
+                                <label for="{{ form.warranty_type.id_for_label }}" class="form-label">
+                                    {% trans "Warranty Type" %}
                                 </label>
-                                {{ form.last_name }}
-                                <div class="invalid-feedback">
-                                    {{ form.last_name.errors|first }}
-                                </div>
+                                {{ form.warranty_type }}
+                                <div class="invalid-feedback">{{ form.warranty_type.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.customer_number.id_for_label }}" class="form-label">
-                                    {% trans "Customer Number" %}
+                                <label for="{{ form.customer.id_for_label }}" class="form-label">
+                                    {% trans "Customer" %} <span class="text-danger">*</span>
                                 </label>
-                                {{ form.customer_number }}
-                                <div class="invalid-feedback">
-                                    {{ form.customer_number.errors|first }}
-                                </div>
+                                {{ form.customer }}
+                                <div class="invalid-feedback">{{ form.customer.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="{{ form.status.id_for_label }}" class="form-label">
                                     {% trans "Status" %}
                                 </label>
                                 {{ form.status }}
-                                <div class="invalid-feedback">
-                                    {{ form.status.errors|first }}
-                                </div>
+                                <div class="invalid-feedback">{{ form.status.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.phone.id_for_label }}" class="form-label">
-                                    {% trans "Phone" %}
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                    {% trans "Priority" %}
                                 </label>
-                                {{ form.phone }}
-                                <div class="invalid-feedback">
-                                    {{ form.phone.errors|first }}
-                                </div>
+                                {{ form.priority }}
+                                <div class="invalid-feedback">{{ form.priority.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.email.id_for_label }}" class="form-label">
-                                    {% trans "Email" %}
+                                <label for="{{ form.assigned_to.id_for_label }}" class="form-label">
+                                    {% trans "Assigned To" %}
                                 </label>
-                                {{ form.email }}
-                                <div class="invalid-feedback">
-                                    {{ form.email.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.customer_type.id_for_label }}" class="form-label">
-                                    {% trans "Customer Type" %}
-                                </label>
-                                {{ form.customer_type }}
-                                <div class="invalid-feedback">
-                                    {{ form.customer_type.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.source.id_for_label }}" class="form-label">
-                                    {% trans "Source" %}
-                                </label>
-                                {{ form.source }}
-                                <div class="invalid-feedback">
-                                    {{ form.source.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.group.id_for_label }}" class="form-label">
-                                    {% trans "Group" %}
-                                </label>
-                                {{ form.group }}
-                                <div class="invalid-feedback">
-                                    {{ form.group.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check mt-4">
-                                    {{ form.is_vip }}
-                                    <label class="form-check-label" for="{{ form.is_vip.id_for_label }}">
-                                        {% trans "VIP Customer" %}
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check mt-4">
-                                    {{ form.is_wholesale }}
-                                    <label class="form-check-label" for="{{ form.is_wholesale.id_for_label }}">
-                                        {% trans "Wholesale Customer" %}
-                                    </label>
-                                </div>
+                                {{ form.assigned_to }}
+                                <div class="invalid-feedback">{{ form.assigned_to.errors|first }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Device Information Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">{% trans "Address Information" %}</h5>
+                        <h5 class="card-title mb-0">{% trans "Device Information" %}</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label for="{{ form.address.id_for_label }}" class="form-label">
-                                    {% trans "Address" %}
+                            <div class="col-md-6">
+                                <label for="{{ form.device.id_for_label }}" class="form-label">
+                                    {% trans "Device" %}
                                 </label>
-                                {{ form.address }}
-                                <div class="invalid-feedback">
-                                    {{ form.address.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.city.id_for_label }}" class="form-label">
-                                    {% trans "City" %}
-                                </label>
-                                {{ form.city }}
-                                <div class="invalid-feedback">
-                                    {{ form.city.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.state.id_for_label }}" class="form-label">
-                                    {% trans "State/Province" %}
-                                </label>
-                                {{ form.state }}
-                                <div class="invalid-feedback">
-                                    {{ form.state.errors|first }}
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">
-                                    {% trans "Postal Code" %}
-                                </label>
-                                {{ form.postal_code }}
-                                <div class="invalid-feedback">
-                                    {{ form.postal_code.errors|first }}
-                                </div>
+                                {{ form.device }}
+                                <div class="invalid-feedback">{{ form.device.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.country.id_for_label }}" class="form-label">
-                                    {% trans "Country" %}
+                                <label for="{{ form.device_name.id_for_label }}" class="form-label">
+                                    {% trans "Device Name" %}
                                 </label>
-                                {{ form.country }}
-                                <div class="invalid-feedback">
-                                    {{ form.country.errors|first }}
-                                </div>
+                                {{ form.device_name }}
+                                <div class="invalid-feedback">{{ form.device_name.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.tax_id.id_for_label }}" class="form-label">
-                                    {% trans "Tax ID" %}
+                                <label for="{{ form.device_brand.id_for_label }}" class="form-label">
+                                    {% trans "Device Brand" %}
                                 </label>
-                                {{ form.tax_id }}
-                                <div class="invalid-feedback">
-                                    {{ form.tax_id.errors|first }}
-                                </div>
+                                {{ form.device_brand }}
+                                <div class="invalid-feedback">{{ form.device_brand.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.device_model.id_for_label }}" class="form-label">
+                                    {% trans "Device Model" %}
+                                </label>
+                                {{ form.device_model }}
+                                <div class="invalid-feedback">{{ form.device_model.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.device_imei.id_for_label }}" class="form-label">
+                                    {% trans "Device IMEI" %}
+                                </label>
+                                {{ form.device_imei }}
+                                <div class="invalid-feedback">{{ form.device_imei.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.device_serial.id_for_label }}" class="form-label">
+                                    {% trans "Device Serial" %}
+                                </label>
+                                {{ form.device_serial }}
+                                <div class="invalid-feedback">{{ form.device_serial.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.device_password.id_for_label }}" class="form-label">
+                                    {% trans "Device Password" %}
+                                </label>
+                                {{ form.device_password }}
+                                <div class="invalid-feedback">{{ form.device_password.errors|first }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Repair Details Card -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h5 class="card-title mb-0">{% trans "Additional Information" %}</h5>
+                        <h5 class="card-title mb-0">{% trans "Repair Details" %}</h5>
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-12">
-                                <label for="{{ form.notes.id_for_label }}" class="form-label">
-                                    {% trans "Notes" %}
+                            <div class="col-md-6">
+                                <label for="{{ form.repair_type.id_for_label }}" class="form-label">
+                                    {% trans "Repair Type" %}
                                 </label>
-                                {{ form.notes }}
-                                <div class="invalid-feedback">
-                                    {{ form.notes.errors|first }}
-                                </div>
+                                {{ form.repair_type }}
+                                <div class="invalid-feedback">{{ form.repair_type.errors|first }}</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.avatar.id_for_label }}" class="form-label">
-                                    {% trans "Profile Picture" %}
+                                <label for="{{ form.repair_category.id_for_label }}" class="form-label">
+                                    {% trans "Repair Category" %}
                                 </label>
-                                {{ form.avatar }}
-                                <div class="invalid-feedback">
-                                    {{ form.avatar.errors|first }}
-                                </div>
-                                {% if object.avatar %}
-                                <div class="mt-2">
-                                    <img src="{{ object.avatar.url }}" alt="Current avatar" class="img-thumbnail" style="max-height: 100px;">
-                                </div>
-                                {% endif %}
+                                {{ form.repair_category }}
+                                <div class="invalid-feedback">{{ form.repair_category.errors|first }}</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.issue_description.id_for_label }}" class="form-label">
+                                    {% trans "Issue Description" %} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.issue_description }}
+                                <div class="invalid-feedback">{{ form.issue_description.errors|first }}</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.reported_issue.id_for_label }}" class="form-label">
+                                    {% trans "Reported Issue" %}
+                                </label>
+                                {{ form.reported_issue }}
+                                <div class="invalid-feedback">{{ form.reported_issue.errors|first }}</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.diagnosis.id_for_label }}" class="form-label">
+                                    {% trans "Diagnosis" %}
+                                </label>
+                                {{ form.diagnosis }}
+                                <div class="invalid-feedback">{{ form.diagnosis.errors|first }}</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.repair_notes.id_for_label }}" class="form-label">
+                                    {% trans "Repair Notes" %}
+                                </label>
+                                {{ form.repair_notes }}
+                                <div class="invalid-feedback">{{ form.repair_notes.errors|first }}</div>
+                            </div>
+                            <div class="col-12">
+                                <label for="{{ form.internal_notes.id_for_label }}" class="form-label">
+                                    {% trans "Internal Notes" %}
+                                </label>
+                                {{ form.internal_notes }}
+                                <div class="invalid-feedback">{{ form.internal_notes.errors|first }}</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Costs & Pricing Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Costs & Pricing" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="{{ form.labor_cost.id_for_label }}" class="form-label">
+                                    {% trans "Labor Cost" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.labor_cost }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.labor_cost.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.parts_cost.id_for_label }}" class="form-label">
+                                    {% trans "Parts Cost" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.parts_cost }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.parts_cost.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.other_cost.id_for_label }}" class="form-label">
+                                    {% trans "Other Cost" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.other_cost }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.other_cost.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.labor_price.id_for_label }}" class="form-label">
+                                    {% trans "Labor Price" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.labor_price }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.labor_price.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.parts_price.id_for_label }}" class="form-label">
+                                    {% trans "Parts Price" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.parts_price }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.parts_price.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.other_price.id_for_label }}" class="form-label">
+                                    {% trans "Other Price" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.other_price }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.other_price.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.discount.id_for_label }}" class="form-label">
+                                    {% trans "Discount" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.discount }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.discount.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.tax_rate.id_for_label }}" class="form-label">
+                                    {% trans "Tax Rate" %}
+                                </label>
+                                <div class="input-group">
+                                    {{ form.tax_rate }}
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <div class="invalid-feedback">{{ form.tax_rate.errors|first }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="{{ form.tax_amount.id_for_label }}" class="form-label">
+                                    {% trans "Tax Amount" %}
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">DZD</span>
+                                    {{ form.tax_amount }}
+                                </div>
+                                <div class="invalid-feedback">{{ form.tax_amount.errors|first }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dates Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Dates" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.received_date.id_for_label }}" class="form-label">
+                                    {% trans "Received Date" %}
+                                </label>
+                                {{ form.received_date }}
+                                <div class="invalid-feedback">{{ form.received_date.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.promised_date.id_for_label }}" class="form-label">
+                                    {% trans "Promised Date" %}
+                                </label>
+                                {{ form.promised_date }}
+                                <div class="invalid-feedback">{{ form.promised_date.errors|first }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.completed_date.id_for_label }}" class="form-label">
+                                    {% trans "Completed Date" %}
+                                </label>
+                                {{ form.completed_date }}
+                                <div class="invalid-feedback">{{ form.completed_date.errors|first }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Notes" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.notes }}
+                        <div class="invalid-feedback">{{ form.notes.errors|first }}</div>
+                    </div>
+                </div>
+                
+                <!-- Submit Card -->
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-end gap-2">
@@ -241,49 +354,49 @@
                             </button>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-2"></i>
-                                {% if object %}{% trans "Update Customer" %}{% else %}{% trans "Create Customer" %}{% endif %}
+                                {% if object %}{% trans "Update Repair Order" %}{% else %}{% trans "Create Repair Order" %}{% endif %}
                             </button>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
-        
-        <div class="col-lg-4 col-md-12">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+            </div>
+            
+            <div class="col-lg-4 col-md-12">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Quick Actions" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'repair:repairorder_list' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-list me-2"></i>{% trans "View All Orders" %}
+                            </a>
+                            <a href="{% url 'crm:customer_list' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-people me-2"></i>{% trans "View Customers" %}
+                            </a>
+                            <a href="{% url 'crm:device_list' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-phone me-2"></i>{% trans "View Devices" %}
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'crm:customer_list' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-list me-2"></i>{% trans "View All Customers" %}
-                        </a>
-                        <a href="{% url 'crm:device_create' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-phone me-2"></i>{% trans "Add Device" %}
-                        </a>
-                        <a href="{% url 'crm:customertype_list' %}" class="btn btn-outline-primary">
-                            <i class="bi bi-tags me-2"></i>{% trans "Manage Types" %}
-                        </a>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">{% trans "Information" %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">
+                            {% trans "Fill in all required fields marked with an asterisk (*)." %}
+                        </p>
+                        <p class="text-muted small">
+                            {% trans "Repair order data will be associated with your current organization and branch." %}
+                        </p>
                     </div>
                 </div>
             </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">{% trans "Information" %}</h5>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small">
-                        {% trans "Fill in all required fields marked with an asterisk (*)." %}
-                    </p>
-                    <p class="text-muted small">
-                        {% trans "Customer data will be associated with your current organization and branch." %}
-                    </p>
-                </div>
-            </div>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}
 

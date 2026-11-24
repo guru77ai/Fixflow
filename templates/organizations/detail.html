@@ -1,20 +1,325 @@
-<!-- TODO: This is a stub template based on organizations/organization_detail.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Organization Detail %}{% endblock %}
+{% block title %}{{ organization.name }}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Organization Detail %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ organization.name }}</h1>
+        <p class="page-subtitle">
+            {% trans "Organization" %} #{{ organization.code }} |
+            {% trans "Status" %}: 
+            <span class="badge {% if organization.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if organization.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+            </span>
+        </p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'organizations:organization_edit' organization.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'organizations:organization_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row">
+        <!-- Organization Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3">
+                            {% if organization.logo %}
+                            <img src="{{ organization.logo }}" alt="{{ organization.name }}" class="rounded-circle w-100 h-100">
+                            {% else %}
+                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center w-100 h-100">
+                                <span class="text-primary fs-1">{{ organization.name|slice:":1"|upper }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-1">{{ organization.name }}</h4>
+                        <p class="text-muted mb-3">{{ organization.code }}</p>
+                        
+                        {% if organization.legal_name %}
+                        <p class="text-muted small mb-3">{{ organization.legal_name }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        {% if organization.phone %}
+                        <a href="tel:{{ organization.phone }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-telephone me-2"></i>{{ organization.phone }}
+                        </a>
+                        {% endif %}
+                        {% if organization.email %}
+                        <a href="mailto:{{ organization.email }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-envelope me-2"></i>{{ organization.email }}
+                        </a>
+                        {% endif %}
+                        {% if organization.website %}
+                        <a href="{{ organization.website }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="bi bi-globe me-2"></i>{% trans "Website" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Address" %}</h6>
+                        <p class="mb-0">
+                            {{ organization.address|default:"-" }}<br>
+                            {% if organization.city %}{{ organization.city }}, {% endif %}
+                            {% if organization.state %}{{ organization.state }}, {% endif %}
+                            {{ organization.postal_code|default:"" }}<br>
+                            {{ organization.country|default:"" }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Industry" %}</h6>
+                        <p class="mb-0">{{ organization.industry|default:"-" }}</p>
+                    </div>
+                    
+                    <div>
+                        <h6 class="text-muted mb-3">{% trans "Statistics" %}</h6>
+                        <div class="row text-center">
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ organization.next_invoice_number|default:0 }}</div>
+                                <small class="text-muted">{% trans "Next Invoice" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ organization.next_repair_number|default:0 }}</div>
+                                <small class="text-muted">{% trans "Next Repair" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Organization Details Tabs -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="organizationTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#overview" type="button" role="tab">
+                                <i class="bi bi-house me-2"></i>{% trans "Overview" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#settings" type="button" role="tab">
+                                <i class="bi bi-gear me-2"></i>{% trans "Settings" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tax-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#tax" type="button" role="tab">
+                                <i class="bi bi-receipt me-2"></i>{% trans "Tax & Legal" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#notes" type="button" role="tab">
+                                <i class="bi bi-sticky me-2"></i>{% trans "Notes" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="organizationTabsContent">
+                        <!-- Overview Tab -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                            <h5>{% trans "Basic Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Organization Name" %}:</th>
+                                            <td>{{ organization.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Legal Name" %}:</th>
+                                            <td>{{ organization.legal_name|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Code" %}:</th>
+                                            <td>{{ organization.code }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Business Activity" %}:</th>
+                                            <td>{{ organization.business_activity|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Industry" %}:</th>
+                                            <td>{{ organization.industry }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Status" %}:</th>
+                                            <td>
+                                                <span class="badge {% if organization.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                                    {% if organization.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5 class="mt-4">{% trans "Contact Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Phone" %}:</th>
+                                            <td>{{ organization.phone|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Secondary Phone" %}:</th>
+                                            <td>{{ organization.secondary_phone|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Email" %}:</th>
+                                            <td>{{ organization.email|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Website" %}:</th>
+                                            <td><a href="{{ organization.website }}" target="_blank">{{ organization.website|default:"-" }}</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Tab -->
+                        <div class="tab-pane fade" id="settings" role="tabpanel">
+                            <h5>{% trans "Localization Settings" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Currency" %}:</th>
+                                            <td>{{ organization.currency }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Default Language" %}:</th>
+                                            <td>{{ organization.default_language }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Timezone" %}:</th>
+                                            <td>{{ organization.timezone }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Date Format" %}:</th>
+                                            <td>{{ organization.date_format }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5 class="mt-4">{% trans "Invoice & Document Settings" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Invoice Prefix" %}:</th>
+                                            <td>{{ organization.invoice_prefix }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Repair Prefix" %}:</th>
+                                            <td>{{ organization.repair_prefix }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Next Invoice Number" %}:</th>
+                                            <td>{{ organization.next_invoice_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Next Repair Number" %}:</th>
+                                            <td>{{ organization.next_repair_number }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5 class="mt-4">{% trans "Accounting Settings" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Accounting Method" %}:</th>
+                                            <td>{{ organization.accounting_method }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Fiscal Year Start" %}:</th>
+                                            <td>{{ organization.fiscal_year_start }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Tax & Legal Tab -->
+                        <div class="tab-pane fade" id="tax" role="tabpanel">
+                            <h5>{% trans "Tax Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Tax Identification Number" %}:</th>
+                                            <td>{{ organization.tax_identification_number|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Tax Authority" %}:</th>
+                                            <td>{{ organization.tax_authority|default:"-" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5 class="mt-4">{% trans "License Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "License ID" %}:</th>
+                                            <td>{{ organization.license_id|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "License Expiry" %}:</th>
+                                            <td>{{ organization.license_expiry|date:"Y-m-d"|default:"-" }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Tab -->
+                        <div class="tab-pane fade" id="notes" role="tabpanel">
+                            <div class="mb-3">
+                                <h5>{% trans "Notes" %}</h5>
+                                {% if organization.notes %}
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="mb-0">{{ organization.notes }}</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted text-center py-4">
+                                    {% trans "No notes for this organization." %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

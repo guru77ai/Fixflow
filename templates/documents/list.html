@@ -1,21 +1,409 @@
-<!-- TODO: This is a stub template based on documents/document_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Document List %}{% endblock %}
+{% block title %}{% trans "Documents" %}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Document List %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{% trans "Documents" %}</h1>
+        <p class="page-subtitle">{% trans "Manage all uploaded documents and files" %}</p>
+    </div>
+    <div>
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
+            <i class="bi bi-upload me-2"></i>{% trans "Upload Document" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-file-earmark-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Total Documents" %}</h6>
+                            <h3 class="stat-value mb-0">{{ documents|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Approved" %}</h6>
+                            <h3 class="stat-value mb-0">{{ documents|selectattr:"is_approved"|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Pending" %}</h6>
+                            <h3 class="stat-value mb-0">{{ documents|rejectattr:"is_approved"|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-globe"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h6 class="stat-label mb-1">{% trans "Public" %}</h6>
+                            <h3 class="stat-value mb-0">{{ documents|selectattr:"is_public"|list|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
         <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">{% trans "Search" %}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ request.GET.search }}" placeholder="{% trans 'Title, description, or reference' %}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="document_type" class="form-label">{% trans "Document Type" %}</label>
+                    <select class="form-select" id="document_type" name="document_type">
+                        <option value="">{% trans "All Types" %}</option>
+                        <option value="invoice" {% if request.GET.document_type == 'invoice' %}selected{% endif %}>
+                            {% trans "Invoice" %}
+                        </option>
+                        <option value="receipt" {% if request.GET.document_type == 'receipt' %}selected{% endif %}>
+                            {% trans "Receipt" %}
+                        </option>
+                        <option value="contract" {% if request.GET.document_type == 'contract' %}selected{% endif %}>
+                            {% trans "Contract" %}
+                        </option>
+                        <option value="agreement" {% if request.GET.document_type == 'agreement' %}selected{% endif %}>
+                            {% trans "Agreement" %}
+                        </option>
+                        <option value="certificate" {% if request.GET.document_type == 'certificate' %}selected{% endif %}>
+                            {% trans "Certificate" %}
+                        </option>
+                        <option value="license" {% if request.GET.document_type == 'license' %}selected{% endif %}>
+                            {% trans "License" %}
+                        </option>
+                        <option value="report" {% if request.GET.document_type == 'report' %}selected{% endif %}>
+                            {% trans "Report" %}
+                        </option>
+                        <option value="other" {% if request.GET.document_type == 'other' %}selected{% endif %}>
+                            {% trans "Other" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">{% trans "Status" %}</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">{% trans "All Statuses" %}</option>
+                        <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>
+                            {% trans "Approved" %}
+                        </option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>
+                            {% trans "Pending" %}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-2"></i>{% trans "Apply" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">{% trans "Documents" %} ({{ documents|length }})</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{% trans 'Export' %}">
+                    <i class="bi bi-download"></i>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Title" %}</th>
+                            <th>{% trans "Reference" %}</th>
+                            <th>{% trans "File" %}</th>
+                            <th>{% trans "Uploaded By" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documents %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary">{{ doc.document_type|title }}</span>
+                            </td>
+                            <td>
+                                <a href="#" class="text-decoration-none" data-bs-toggle="modal" 
+                                   data-bs-target="#documentModal-{{ doc.id }}">
+                                    {{ doc.title }}
+                                </a>
+                            </td>
+                            <td>{{ doc.reference_number|default:"-" }}</td>
+                            <td>
+                                <small class="text-muted">{{ doc.file_name }} ({{ doc.file_size|filesizeformat }})</small>
+                            </td>
+                            <td>{{ doc.uploaded_by_email|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if doc.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if doc.is_approved %}{% trans "Approved" %}{% else %}{% trans "Pending" %}{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ doc.created_at|date:"Y-m-d" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="#" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}"
+                                       data-bs-toggle="modal" data-bs-target="#documentModal-{{ doc.id }}">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" 
+                                       title="{% trans 'Download' %}" download>
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                {% trans "No documents found." %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Upload Document Modal -->
+<div class="modal fade" id="uploadDocumentModal" tabindex="-1" aria-labelledby="uploadDocumentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadDocumentModalLabel">{% trans "Upload Document" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="document_type" class="form-label">{% trans "Document Type" %} <span class="text-danger">*</span></label>
+                            <select class="form-select" id="document_type" name="document_type" required>
+                                <option value="">{% trans "Select Type" %}</option>
+                                <option value="invoice">{% trans "Invoice" %}</option>
+                                <option value="receipt">{% trans "Receipt" %}</option>
+                                <option value="contract">{% trans "Contract" %}</option>
+                                <option value="agreement">{% trans "Agreement" %}</option>
+                                <option value="certificate">{% trans "Certificate" %}</option>
+                                <option value="license">{% trans "License" %}</option>
+                                <option value="report">{% trans "Report" %}</option>
+                                <option value="other">{% trans "Other" %}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="title" class="form-label">{% trans "Title" %} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="file" class="form-label">{% trans "File" %} <span class="text-danger">*</span></label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label">{% trans "Description" %}</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reference_number" class="form-label">{% trans "Reference Number" %}</label>
+                            <input type="text" class="form-control" id="reference_number" name="reference_number">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="document_date" class="form-label">{% trans "Document Date" %}</label>
+                            <input type="date" class="form-control" id="document_date" name="document_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="expiry_date" class="form-label">{% trans "Expiry Date" %}</label>
+                            <input type="date" class="form-control" id="expiry_date" name="expiry_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tags" class="form-label">{% trans "Tags" %}</label>
+                            <input type="text" class="form-control" id="tags" name="tags">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_public" name="is_public" value="true">
+                                <label class="form-check-label" for="is_public">
+                                    {% trans "Public Document" %}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-2"></i>{% trans "Cancel" %}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-2"></i>{% trans "Upload" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Document View Modals -->
+{% for doc in documents %}
+<div class="modal fade" id="documentModal-{{ doc.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ doc.title }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Document Type" %}:</label>
+                            <p>{{ doc.document_type|title }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Description" %}:</label>
+                            <p>{{ doc.description|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Reference Number" %}:</label>
+                            <p>{{ doc.reference_number|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "File" %}:</label>
+                            <p>
+                                <i class="bi bi-file-earmark me-2"></i>{{ doc.file_name }} 
+                                <span class="text-muted">({{ doc.file_size|filesizeformat }})</span>
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Tags" %}:</label>
+                            <p>{{ doc.tags|default:"-" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Uploaded By" %}:</label>
+                            <p>{{ doc.uploaded_by_email|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Uploaded At" %}:</label>
+                            <p>{{ doc.created_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Document Date" %}:</label>
+                            <p>{{ doc.document_date|date:"Y-m-d"|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Expiry Date" %}:</label>
+                            <p>{{ doc.expiry_date|date:"Y-m-d"|default:"-" }}</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{% trans "Status" %}:</label>
+                            <p>
+                                <span class="badge {% if doc.is_approved %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if doc.is_approved %}{% trans "Approved" %}{% else %}{% trans "Pending" %}{% endif %}
+                                </span>
+                                {% if doc.is_public %}
+                                <span class="badge bg-info text-dark ms-2">{% trans "Public" %}</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ doc.file.url }}" class="btn btn-primary" download>
+                    <i class="bi bi-download me-2"></i>{% trans "Download" %}
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>{% trans "Close" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.table').DataTable({
+        responsive: true,
+        ordering: true,
+        pageLength: 20,
+        language: {
+            search: "{% trans 'Search:' %}",
+            lengthMenu: "{% trans 'Show _MENU_ entries' %}",
+            info: "{% trans 'Showing _START_ to _END_ of _TOTAL_ entries' %}",
+            paginate: {
+                first: "{% trans 'First' %}",
+                last: "{% trans 'Last' %}",
+                next: "{% trans 'Next' %}",
+                previous: "{% trans 'Previous' %}"
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

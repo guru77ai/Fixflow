@@ -1,88 +1,125 @@
-<!-- TODO: This is a stub template based on inventory/servicecategory_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans "Service Categories" %}{% endblock %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block page_header %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1 class="page-title">{% trans "Service Categories" %}</h1>
-        <p class="page-subtitle">{% trans "Manage service categories for your repair services" %}</p>
+        <h1 class="page-title">{{ object.name }}</h1>
+        <p class="page-subtitle">{% trans "Service Category" %} #{{ object.code }}</p>
     </div>
-    <a href="{% url 'inventory:servicecategory_form' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>{% trans "Add Category" %}
-    </a>
+    <div class="btn-group" role="group">
+        <a href="{% url 'inventory:servicecategory_form' object.pk %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'inventory:servicecategory_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">{% trans "Service Categories" %}</h5>
+    <div class="row">
+        <!-- Category Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                            <i class="bi bi-tools text-info fs-1"></i>
+                        </div>
+                    </div>
+                    <h4 class="mb-1">{{ object.name }}</h4>
+                    <p class="text-muted mb-3">{{ object.code }}</p>
+                    
+                    {% if object.is_active %}
+                    <span class="badge bg-success me-2">{% trans "Active" %}</span>
+                    {% else %}
+                    <span class="badge bg-secondary me-2">{% trans "Inactive" %}</span>
+                    {% endif %}
+                    
+                    {% if object.parent %}
+                    <div class="mt-3">
+                        <p class="mb-0 text-muted small">{% trans "Parent" %}: {{ object.parent.name }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover table-striped" id="servicecategory-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th>{% trans "Code" %}</th>
-                            <th>{% trans "Name" %}</th>
-                            <th>{% trans "Description" %}</th>
-                            <th>{% trans "Is Active" %}</th>
-                            <th>{% trans "Actions" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category in object_list %}
-                        <tr>
-                            <td>{{ category.code }}</td>
-                            <td>{{ category.name }}</td>
-                            <td>{{ category.description|truncatechars:50 }}</td>
-                            <td>
-                                <span class="badge bg-{{ category.is_active|yesno:'success,danger' }}">
-                                    {{ category.is_active|yesno:"Active,Inactive" }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'inventory:servicecategory_detail' category.pk %}" class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'inventory:servicecategory_form' category.pk %}" class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'inventory:servicecategory_confirm_delete' category.pk %}" class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
-                                {% trans "No service categories found." %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        
+        <!-- Category Details -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% trans "Category Details" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Category Name" %}:</label>
+                                <p>{{ object.name }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Category Code" %}:</label>
+                                <p>{{ object.code }}</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Description" %}:</label>
+                                <p>{{ object.description|default:"-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Parent Category" %}:</label>
+                                <p>{{ object.parent.name if object.parent else "-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Status" %}:</label>
+                                <p>
+                                    <span class="badge {% if object.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if object.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Organization" %}:</label>
+                                <p>{{ object.organization.name if object.organization else "-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Branch" %}:</label>
+                                <p>{{ object.branch.name if object.branch else "-" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Created At" %}:</label>
+                                <p>{{ object.created_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{% trans "Updated At" %}:</label>
+                                <p>{{ object.updated_at|date:"Y-m-d H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        $('#servicecategory-table').DataTable({
-            responsive: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/{{ request.LANGUAGE_CODE }}.json'
-            }
-        });
-    });
-</script>
 {% endblock %}

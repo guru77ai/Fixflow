@@ -1,20 +1,261 @@
-<!-- TODO: This is a stub template based on branches/branch_detail.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans Branch Detail %}{% endblock %}
+{% block title %}{{ branch.name }}{% endblock %}
 
 {% block page_header %}
-<div class="page-header">
-    <h1 class="page-title">{% trans Branch Detail %}</h1>
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">{{ branch.name }}</h1>
+        <p class="page-subtitle">
+            {% trans "Branch" %} #{{ branch.code }} |
+            {% trans "Organization" %}: {{ branch.organization.name }} ({{ branch.organization.code }}) |
+            {% trans "Status" %}: 
+            <span class="badge {% if branch.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                {% if branch.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+            </span>
+        </p>
+    </div>
+    <div class="btn-group" role="group">
+        <a href="{% url 'branches:edit' branch.id %}" class="btn btn-primary">
+            <i class="bi bi-pencil me-2"></i>{% trans "Edit" %}
+        </a>
+        <a href="{% url 'branches:list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>{% trans "Back" %}
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4">
-    <div class="card">
-        <div class="card-body">
-            <p>{% trans "Content for " + template_name + " will be implemented here." %}</p>
+    <div class="row">
+        <!-- Branch Profile Card -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-lg mx-auto mb-3 bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-shop-window text-primary fs-1"></i>
+                        </div>
+                        <h4 class="mb-1">{{ branch.name }}</h4>
+                        <p class="text-muted mb-3">{{ branch.code }}</p>
+                        
+                        {% if branch.is_main_branch %}
+                        <span class="badge bg-primary me-2">{% trans "Main Branch" %}</span>
+                        {% endif %}
+                        {% if branch.auto_generate_documents %}
+                        <span class="badge bg-info text-dark me-2">{% trans "Auto Documents" %}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 mb-4">
+                        {% if branch.phone %}
+                        <a href="tel:{{ branch.phone }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-telephone me-2"></i>{{ branch.phone }}
+                        </a>
+                        {% endif %}
+                        {% if branch.email %}
+                        <a href="mailto:{{ branch.email }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-envelope me-2"></i>{{ branch.email }}
+                        </a>
+                        {% endif %}
+                        {% if branch.website %}
+                        <a href="{{ branch.website }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="bi bi-globe me-2"></i>{% trans "Website" %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Address" %}</h6>
+                        <p class="mb-0">
+                            {{ branch.address|default:"-" }}<br>
+                            {% if branch.city %}{{ branch.city }}, {% endif %}
+                            {% if branch.state %}{{ branch.state }}, {% endif %}
+                            {{ branch.postal_code|default:"" }}<br>
+                            {{ branch.country|default:"" }}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">{% trans "Manager" %}</h6>
+                        {% if branch.manager %}
+                        <p class="mb-0">
+                            {{ branch.manager.first_name }} {{ branch.manager.last_name }}<br>
+                            <small class="text-muted">{{ branch.manager.email }}</small>
+                        </p>
+                        {% else %}
+                        <p class="text-muted mb-0">{% trans "No manager assigned" %}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <h6 class="text-muted mb-3">{% trans "Statistics" %}</h6>
+                        <div class="row text-center">
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ branch.next_sale_number|default:0 }}</div>
+                                <small class="text-muted">{% trans "Next Sale" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ branch.next_repair_number|default:0 }}</div>
+                                <small class="text-muted">{% trans "Next Repair" %}</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h4 mb-0">{{ branch.next_purchase_number|default:0 }}</div>
+                                <small class="text-muted">{% trans "Next Purchase" %}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Branch Details Tabs -->
+        <div class="col-lg-8 col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="branchTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#overview" type="button" role="tab">
+                                <i class="bi bi-house me-2"></i>{% trans "Overview" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="settings-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#settings" type="button" role="tab">
+                                <i class="bi bi-gear me-2"></i>{% trans "Settings" %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#notes" type="button" role="tab">
+                                <i class="bi bi-sticky me-2"></i>{% trans "Notes" %}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="branchTabsContent">
+                        <!-- Overview Tab -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                            <h5>{% trans "Basic Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Organization" %}:</th>
+                                            <td>{{ branch.organization.name }} ({{ branch.organization.code }})</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Branch Name" %}:</th>
+                                            <td>{{ branch.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Branch Code" %}:</th>
+                                            <td>{{ branch.code }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Main Branch" %}:</th>
+                                            <td>
+                                                {% if branch.is_main_branch %}
+                                                <span class="badge bg-primary">{% trans "Yes" %}</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">{% trans "No" %}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Status" %}:</th>
+                                            <td>
+                                                <span class="badge {% if branch.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                                    {% if branch.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <h5 class="mt-4">{% trans "Contact Information" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Phone" %}:</th>
+                                            <td>{{ branch.phone|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Secondary Phone" %}:</th>
+                                            <td>{{ branch.secondary_phone|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Email" %}:</th>
+                                            <td>{{ branch.email|default:"-" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Website" %}:</th>
+                                            <td><a href="{{ branch.website }}" target="_blank">{{ branch.website|default:"-" }}</a></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Settings Tab -->
+                        <div class="tab-pane fade" id="settings" role="tabpanel">
+                            <h5>{% trans "Branch Settings" %}</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th width="40%">{% trans "Auto Generate Documents" %}:</th>
+                                            <td>
+                                                {% if branch.auto_generate_documents %}
+                                                <span class="badge bg-success">{% trans "Enabled" %}</span>
+                                                {% else %}
+                                                <span class="badge bg-secondary">{% trans "Disabled" %}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Next Sale Number" %}:</th>
+                                            <td>{{ branch.next_sale_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Next Repair Number" %}:</th>
+                                            <td>{{ branch.next_repair_number }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>{% trans "Next Purchase Number" %}:</th>
+                                            <td>{{ branch.next_purchase_number }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Notes Tab -->
+                        <div class="tab-pane fade" id="notes" role="tabpanel">
+                            <div class="mb-3">
+                                <h5>{% trans "Notes" %}</h5>
+                                {% if branch.notes %}
+                                <div class="card">
+                                    <div class="card-body">
+                                        <p class="mb-0">{{ branch.notes }}</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p class="text-muted text-center py-4">
+                                    {% trans "No notes for this branch." %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

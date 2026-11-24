@@ -1,18 +1,17 @@
-<!-- TODO: This is a stub template based on crm/customer_list.html. Customize as needed. -->
 {% extends 'base/base.html' %}
 {% load i18n static %}
 
-{% block title %}{% trans "Customers" %}{% endblock %}
+{% block title %}{% trans "Repair Orders" %}{% endblock %}
 
 {% block page_header %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1 class="page-title">{% trans "Customers" %}</h1>
-        <p class="page-subtitle">{% trans "Manage all customers and their information" %}</p>
+        <h1 class="page-title">{% trans "Repair Orders" %}</h1>
+        <p class="page-subtitle">{% trans "Manage all repair orders and their status" %}</p>
     </div>
     <div>
-        <a href="{% url 'crm:customer_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>{% trans "Add Customer" %}
+        <a href="{% url 'repair:repairorder_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>{% trans "Add Repair Order" %}
         </a>
     </div>
 </div>
@@ -27,11 +26,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="stat-icon bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-people-fill"></i>
+                            <i class="bi bi-tools"></i>
                         </div>
                         <div class="ms-3">
-                            <h6 class="stat-label mb-1">{% trans "Total Customers" %}</h6>
-                            <h3 class="stat-value mb-0">{{ stats.total_customers|default:0 }}</h3>
+                            <h6 class="stat-label mb-1">{% trans "Total Repairs" %}</h6>
+                            <h3 class="stat-value mb-0">{{ paginator.count|default:0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -45,8 +44,8 @@
                             <i class="bi bi-check-circle-fill"></i>
                         </div>
                         <div class="ms-3">
-                            <h6 class="stat-label mb-1">{% trans "Active" %}</h6>
-                            <h3 class="stat-value mb-0">{{ stats.active_customers|default:0 }}</h3>
+                            <h6 class="stat-label mb-1">{% trans "Completed" %}</h6>
+                            <h3 class="stat-value mb-0">{{ completed_count|default:0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -60,8 +59,8 @@
                             <i class="bi bi-clock-fill"></i>
                         </div>
                         <div class="ms-3">
-                            <h6 class="stat-label mb-1">{% trans "Pending" %}</h6>
-                            <h3 class="stat-value mb-0">{{ stats.pending_customers|default:0 }}</h3>
+                            <h6 class="stat-label mb-1">{% trans "In Progress" %}</h6>
+                            <h3 class="stat-value mb-0">{{ in_progress_count|default:0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -71,12 +70,12 @@
             <div class="card stat-card h-100">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-people-fill"></i>
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="bi bi-exclamation-circle-fill"></i>
                         </div>
                         <div class="ms-3">
-                            <h6 class="stat-label mb-1">{% trans "New This Month" %}</h6>
-                            <h3 class="stat-value mb-0">{{ stats.new_this_month|default:0 }}</h3>
+                            <h6 class="stat-label mb-1">{% trans "Urgent" %}</h6>
+                            <h3 class="stat-value mb-0">{{ urgent_count|default:0 }}</h3>
                         </div>
                     </div>
                 </div>
@@ -92,7 +91,7 @@
                     <label for="search" class="form-label">{% trans "Search" %}</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="search" name="search" 
-                               value="{{ request.GET.search }}" placeholder="{% trans 'Name, phone, or email' %}">
+                               value="{{ request.GET.search }}" placeholder="{% trans 'Order number, customer, or device' %}">
                         <button class="btn btn-outline-secondary" type="submit">
                             <i class="bi bi-search"></i>
                         </button>
@@ -102,33 +101,38 @@
                     <label for="status" class="form-label">{% trans "Status" %}</label>
                     <select class="form-select" id="status" name="status">
                         <option value="">{% trans "All Statuses" %}</option>
-                        {% for choice in status_choices %}
-                        <option value="{{ choice.0 }}" {% if request.GET.status == choice.0 %}selected{% endif %}>
-                            {% trans choice.1 %}
+                        {% for status in status_choices %}
+                        <option value="{{ status.0 }}" {% if request.GET.status == status.0 %}selected{% endif %}>
+                            {% trans status.1 %}
                         </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel me-2"></i>{% trans "Apply Filters" %}
-                    </button>
+                    <label for="priority" class="form-label">{% trans "Priority" %}</label>
+                    <select class="form-select" id="priority" name="priority">
+                        <option value="">{% trans "All Priorities" %}</option>
+                        {% for priority in priority_choices %}
+                        <option value="{{ priority.0 }}" {% if request.GET.priority == priority.0 %}selected{% endif %}>
+                            {% trans priority.1 %}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">&nbsp;</label>
-                    <a href="{% url 'crm:customer_list' %}" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-x-circle me-2"></i>{% trans "Clear" %}
-                    </a>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-2"></i>{% trans "Apply" %}
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Customers Table -->
+    <!-- Repair Orders Table -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">{% trans "Customers" %} ({{ paginator.count }})</h5>
+            <h5 class="card-title mb-0">{% trans "Repair Orders" %} ({{ paginator.count|default:0 }})</h5>
             <div>
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="{% trans 'Export' %}">
                     <i class="bi bi-download"></i>
@@ -140,52 +144,53 @@
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>{% trans "ID" %}</th>
-                            <th>{% trans "Name" %}</th>
-                            <th>{% trans "Phone" %}</th>
-                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Order #" %}</th>
+                            <th>{% trans "Customer" %}</th>
+                            <th>{% trans "Device" %}</th>
                             <th>{% trans "Status" %}</th>
-                            <th>{% trans "Devices" %}</th>
-                            <th>{% trans "Created" %}</th>
+                            <th>{% trans "Priority" %}</th>
+                            <th>{% trans "Technician" %}</th>
+                            <th>{% trans "Received" %}</th>
                             <th>{% trans "Actions" %}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for customer in customers %}
+                        {% for repair in object_list %}
                         <tr>
-                            <td>{{ customer.customer_number|default:customer.pk }}</td>
                             <td>
-                                <a href="{% url 'crm:customer_detail' customer.pk %}" class="text-decoration-none">
-                                    {{ customer.full_name }}
+                                <a href="{% url 'repair:repairorder_detail' repair.pk %}" class="text-decoration-none">
+                                    {{ repair.order_number }}
                                 </a>
-                                {% if customer.is_vip %}
-                                <span class="badge bg-warning text-dark ms-2">VIP</span>
-                                {% endif %}
                             </td>
-                            <td>{{ customer.phone|default:"-" }}</td>
-                            <td>{{ customer.email|default:"-" }}</td>
+                            <td>{{ repair.customer.full_name|default:"-" }}</td>
+                            <td>{{ repair.device.name|default:repair.device_name|default:"-" }}</td>
                             <td>
-                                <span class="badge 
-                                    {% if customer.status == 'active' %}bg-success
-                                    {% elif customer.status == 'inactive' %}bg-secondary
-                                    {% elif customer.status == 'pending' %}bg-warning
-                                    {% elif customer.status == 'blocked' %}bg-danger{% endif %}">
-                                    {% trans customer.get_status_display %}
+                                <span class="badge bg-{{ repair.status.color|default:'primary' }}">
+                                    {{ repair.status.name|default:"-" }}
                                 </span>
                             </td>
-                            <td>{{ customer.devices_count|default:0 }}</td>
-                            <td>{{ customer.created_at|date:"Y-m-d" }}</td>
+                            <td>
+                                <span class="badge bg-{{ repair.priority.color|default:'warning' }}">
+                                    {{ repair.priority.name|default:"-" }}
+                                </span>
+                            </td>
+                            <td>{{ repair.assigned_to.get_full_name|default:"-" }}</td>
+                            <td>{{ repair.received_date|date:"Y-m-d" }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'crm:customer_detail' customer.pk %}" 
+                                    <a href="{% url 'repair:repairorder_detail' repair.pk %}" 
                                        class="btn btn-sm btn-outline-info" title="{% trans 'View' %}">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{% url 'crm:customer_edit' customer.pk %}" 
+                                    <a href="{% url 'repair:repairorder_edit' repair.pk %}" 
                                        class="btn btn-sm btn-outline-primary" title="{% trans 'Edit' %}">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a href="{% url 'crm:customer_delete' customer.pk %}" 
+                                    <a href="{% url 'repair:repairorder_status_change' repair.pk %}" 
+                                       class="btn btn-sm btn-outline-success" title="{% trans 'Change Status' %}">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </a>
+                                    <a href="{% url 'repair:repairorder_delete' repair.pk %}" 
                                        class="btn btn-sm btn-outline-danger" title="{% trans 'Delete' %}">
                                         <i class="bi bi-trash"></i>
                                     </a>
@@ -195,7 +200,7 @@
                         {% empty %}
                         <tr>
                             <td colspan="8" class="text-center text-muted py-4">
-                                {% trans "No customers found." %}
+                                {% trans "No repair orders found." %}
                             </td>
                         </tr>
                         {% endfor %}
@@ -203,19 +208,18 @@
                 </table>
             </div>
         </div>
+        {% if is_paginated %}
         <div class="card-footer">
-            <!-- Pagination -->
-            {% if is_paginated %}
-            <nav aria-label="Page navigation">
+            <nav aria-label="Repair orders navigation">
                 <ul class="pagination justify-content-center mb-0">
                     {% if page_obj.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">
                             <i class="bi bi-chevron-double-left"></i>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
@@ -226,7 +230,7 @@
                     <li class="page-item active"><span class="page-link">{{ num }}</span></li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">
                             {{ num }}
                         </a>
                     </li>
@@ -235,20 +239,20 @@
                     
                     {% if page_obj.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.priority %}&priority={{ request.GET.priority }}{% endif %}">
                             <i class="bi bi-chevron-double-right"></i>
                         </a>
                     </li>
                     {% endif %}
                 </ul>
             </nav>
-            {% endif %}
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
